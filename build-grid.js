@@ -254,7 +254,7 @@ const layers = { land: rle(land), ctry: rle(ctry), terr: rle(terr), road: rle(ro
 for (const k in layers) console.log('  ', k, (layers[k].length / 1024).toFixed(0) + ' KB');
 
 fs.writeFileSync('grid.js',
-  'window.GRID=' + JSON.stringify({ RES, GW, GH, names: cNames, layers, places, railDraw, airports }) + ';\n');
+  'window.GRID=' + JSON.stringify({ RES, GW, GH, names: cNames, layers, places, airports }) + ';\n');
 console.log('grid.js', (fs.statSync('grid.js').size / 1024 / 1024).toFixed(2), 'MB');
 
 /* render geometry: 50m land + country borders, as plain coordinate arrays */

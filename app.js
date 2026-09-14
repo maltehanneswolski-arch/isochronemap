@@ -459,7 +459,6 @@
   /* ================= render geometry ================= */
   const LANDGEO = { type: 'Feature', geometry: { type: 'MultiPolygon', coordinates: window.GEO.land } };
   const BORDERS = { type: 'Feature', geometry: { type: 'MultiPolygon', coordinates: window.GEO.countries } };
-  const RAILGEO = { type: 'MultiLineString', coordinates: G.railDraw };
   /* Two levels of coastline, chosen by zoom and nothing else. Keying detail to
      whether the globe happens to be moving made it visibly change under the
      cursor; keying it to zoom means a given view always looks the same. */
@@ -513,7 +512,7 @@
     origin: { lon: -0.13, lat: 51.51, name: 'London' },
     rotL: 0.13, rotP: -51.51, scale: 300,
     field: null, ref: null, ladder: D.LADDERS.base,
-    reveal: 99, dragging: false, tBuf: null, tKey: '', net: true, palette: 0,
+    reveal: 99, dragging: false, tBuf: null, tKey: '', palette: 0,
     interacting: false, moveQ: 1, frameAvg: 0
   };
 
@@ -527,15 +526,56 @@
   const path = d3.geoPath(proj, ctx);
   const pathStr = d3.geoPath(proj);          // same projection, returns SVG data
   /* Re-projecting the vector layers on every draw was the whole cost of a
-     frame. Project once per view and keep the Path2D, so a fill, a wash and a
-     stroke of the same coastline cost one projection between them. */
-  const vec = { key: '' };
+     frame. Project once and keep the Path2D, so a fill, a wash and a stroke of
+     the same coastline cost one projection between them.
+
+     Orthographic is linear in scale: at a fixed rotation a zoom only
+     multiplies the projected coordinates, so the same path serves every zoom
+     level, with the difference applied as a transform when it is drawn. The
+     one thing that does not scale is d3's great-circle resampling, which is
+     cut to a tolerance in projected pixels. So the layers are built in
+     half-octave steps and always at the top of the step, never below the
+     scale on screen: the drawn path is then only ever shrunk, and its
+     resampling can only get finer than it needs to be, never coarser. The
+     whole zoom range crosses about eight of those steps, instead of
+     reprojecting 25 000 points on every frame of every zoom. */
+  const vec = { key: '', s: 1 };
   function layer(name, geo) {
-    const key = [Math.round(S.scale * 10), Math.round(S.rotL * 100),
-      Math.round(S.rotP * 100), Math.round(cx), Math.round(cy)].join(',');
-    if (vec.key !== key) { for (const k in vec) if (k !== 'key') delete vec[k]; vec.key = key; }
-    if (!vec[name]) { const d = pathStr(geo); vec[name] = d ? new Path2D(d) : null; }
+    const bucket = Math.ceil(Math.log2(S.scale) * 2);      // half-octaves
+    const key = [bucket, Math.round(S.rotL * 100), Math.round(S.rotP * 100),
+      Math.round(cx), Math.round(cy)].join(',');
+    if (vec.key !== key) {
+      for (const k in vec) if (k !== 'key' && k !== 's') delete vec[k];
+      vec.key = key; vec.s = Math.pow(2, bucket / 2);
+    }
+    if (!(name in vec)) {
+      proj.scale(vec.s);
+      const d = pathStr(geo);
+      vec[name] = d ? new Path2D(d) : null;
+      proj.scale(S.scale);
+    }
     return vec[name];
+  }
+
+  /* Place dots and labels are projected once per rotation for the same
+     reason, as unit-sphere coordinates that a zoom simply multiplies. */
+  const lab = { key: '', x: null, y: null, z: null };
+  function labelGeom() {
+    const key = Math.round(S.rotL * 100) + ',' + Math.round(S.rotP * 100);
+    if (lab.key === key) return lab;
+    const n = PLACES.length;
+    if (!lab.x) { lab.x = new Float64Array(n); lab.y = new Float64Array(n); lab.z = new Float64Array(n); }
+    const cosP = Math.cos(S.rotP * RAD), sinP = Math.sin(S.rotP * RAD);
+    for (let k = 0; k < n; k++) {
+      const c = PLACES[k];
+      const l = (c.lon + S.rotL) * RAD, ph = c.lat * RAD;
+      const cp = Math.cos(ph), sp = Math.sin(ph), cl = Math.cos(l);
+      lab.x[k] = Math.sin(l) * cp;
+      lab.y[k] = -(sp * cosP + cl * cp * sinP);
+      lab.z[k] = cl * cp * cosP - sp * sinP;
+    }
+    lab.key = key;
+    return lab;
   }
 
   function stageSize() {
@@ -1113,7 +1153,15 @@
 
     const fine = zoom > 2.2;
     const landPath = layer(fine ? 'land' : 'landMed', fine ? LANDGEO : LANDMED);
-    if (landPath) { ctx.fillStyle = T.land; ctx.fill(landPath); }
+    /* what the cached paths were cut at, against what is on screen now */
+    const k = r / vec.s, iw = 1 / k;
+    const globe = fn => {
+      ctx.save();
+      ctx.transform(k, 0, 0, k, cx * (1 - k), cy * (1 - k));
+      fn();
+      ctx.restore();
+    };
+    if (landPath) globe(() => { ctx.fillStyle = T.land; ctx.fill(landPath); });
 
     drawField();
 
@@ -1123,42 +1171,24 @@
     // Lift the continents back out of the glow. This runs over the whole of
     // the land, reached or not, so a country you cannot get to at all still
     // reads as a country rather than as more ocean.
-    if (landPath) {
-      ctx.save();
-      ctx.fillStyle = 'rgba(146,182,236,.055)'; ctx.fill(landPath);
-      ctx.restore();
-    }
+    if (landPath) globe(() => { ctx.fillStyle = 'rgba(146,182,236,.055)'; ctx.fill(landPath); });
 
-
-    const M = D.MODES[S.mode], yr = D.ERAS[S.era].y;
-
-    // the network that shapes the contours
-    if (S.net && zoom > 1.2 && (M.rail || M.best) && D.RAIL[S.era] > 0) {
-      const rp = layer('rail', RAILGEO);
-      ctx.globalAlpha = Math.min(1, (zoom - 1.2) * .85); ctx.strokeStyle = T.rail;
-      if (rp) ctx.stroke(rp);
-      ctx.lineWidth = zoom > 3 ? 0.9 : 0.7; ctx.globalAlpha = 1;
-    }
-    if ((M.rail || M.best) && D.RAIL[S.era] > 0) {
-      ctx.beginPath();
-      for (const ln of D.RAIL_LINES) if (ln.y <= yr) path({ type: 'LineString', coordinates: ln.p });
-      if (D.HSR[S.era] > 0) for (const ln of D.HSR_LINES) path({ type: 'LineString', coordinates: ln });
-      ctx.strokeStyle = T.rail; ctx.lineWidth = 0.9;
-      ctx.setLineDash([3, 3]); ctx.stroke(); ctx.setLineDash([]);
-    }
 
     const bp = layer(fine ? 'borders' : 'bordersMed', fine ? BORDERS : BORDERMED);
-    if (bp) {
-      ctx.strokeStyle = T.borderHalo; ctx.lineWidth = 1.6; ctx.stroke(bp);
-      ctx.strokeStyle = T.border; ctx.lineWidth = 0.6; ctx.stroke(bp);
-    }
-    if (landPath) {
-      ctx.strokeStyle = T.coastHalo; ctx.lineWidth = 2; ctx.stroke(landPath);
-      ctx.strokeStyle = T.coast; ctx.lineWidth = 0.8; ctx.stroke(landPath);
-    }
+    globe(() => {
+      if (bp) {
+        ctx.strokeStyle = T.borderHalo; ctx.lineWidth = 1.6 * iw; ctx.stroke(bp);
+        ctx.strokeStyle = T.border; ctx.lineWidth = 0.6 * iw; ctx.stroke(bp);
+      }
+      if (landPath) {
+        ctx.strokeStyle = T.coastHalo; ctx.lineWidth = 2 * iw; ctx.stroke(landPath);
+        ctx.strokeStyle = T.coast; ctx.lineWidth = 0.8 * iw; ctx.stroke(landPath);
+      }
+    });
 
 
     // places — more of them the closer you look, never overlapping
+    const LG = labelGeom();
     const cosP = Math.cos(S.rotP * RAD), sinP = Math.sin(S.rotP * RAD);
     const facing = (lon, lat) => {
       const l = (lon + S.rotL) * RAD, p = lat * RAD;
@@ -1172,10 +1202,9 @@
     const placed = [];
     for (let k = 0; k < nShow; k++) {
       const c = PLACES[k];
-      const z = facing(c.lon, c.lat);
+      const z = LG.z[k];
       if (z <= 0.04) continue;
-      const p = proj([c.lon, c.lat]);
-      if (!p) continue;
+      const p = [cx + r * LG.x[k], cy + r * LG.y[k]];
       const big = k < 26;
       ctx.globalAlpha = Math.min(1, z / 0.26);
       ctx.beginPath(); ctx.arc(p[0], p[1], big ? 2.1 : 1.4, 0, TAU);
