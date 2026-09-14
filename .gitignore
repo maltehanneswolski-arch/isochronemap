@@ -1,0 +1,5 @@
+# Natural Earth source downloads (~100 MB) — only the packed output is shipped.
+# Re-fetch with the commands in README.md, then: node build-grid.js
+data/
+node_modules/
+*.log
