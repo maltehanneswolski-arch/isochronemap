@@ -413,16 +413,31 @@
   const LANDGEO = { type: 'Feature', geometry: { type: 'MultiPolygon', coordinates: window.GEO.land } };
   const BORDERS = { type: 'Feature', geometry: { type: 'MultiPolygon', coordinates: window.GEO.countries } };
   const RAILGEO = { type: 'MultiLineString', coordinates: G.railDraw };
-  /* A lighter copy of the coastline for use while the globe is in motion.
-     Keeping every third point is still three times cheaper to project, but
-     unlike a harsher decimation it leaves Greenland looking like Greenland. */
-  const LANDLO = {
+  /* Two levels of coastline, chosen by zoom and nothing else. Keying detail to
+     whether the globe happens to be moving made it visibly change under the
+     cursor; keying it to zoom means a given view always looks the same. */
+  function thin(step) {
+    return {
+      type: 'Feature', geometry: {
+        type: 'MultiPolygon',
+        coordinates: window.GEO.land.map(poly => poly.map(ring => {
+          if (ring.length <= 16) return ring;
+          const out = [];
+          for (let i = 0; i < ring.length - 1; i += step) out.push(ring[i]);
+          out.push(ring[ring.length - 1]);
+          return out;
+        })).filter(p => p.length)
+      }
+    };
+  }
+  const LANDMED = thin(2);
+  const BORDERMED = {
     type: 'Feature', geometry: {
       type: 'MultiPolygon',
-      coordinates: window.GEO.land.map(poly => poly.map(ring => {
-        if (ring.length <= 24) return ring;
+      coordinates: window.GEO.countries.map(poly => poly.map(ring => {
+        if (ring.length <= 16) return ring;
         const out = [];
-        for (let i = 0; i < ring.length - 1; i += 3) out.push(ring[i]);
+        for (let i = 0; i < ring.length - 1; i += 2) out.push(ring[i]);
         out.push(ring[ring.length - 1]);
         return out;
       })).filter(p => p.length)
@@ -451,7 +466,8 @@
     origin: { lon: -0.13, lat: 51.51, name: 'London' },
     rotL: 0.13, rotP: -51.51, scale: 300,
     field: null, ref: null, ladder: D.LADDERS.base,
-    reveal: 99, dragging: false, tBuf: null, tKey: '', net: true, palette: 0
+    reveal: 99, dragging: false, tBuf: null, tKey: '', net: true, palette: 0,
+    quality: 1, frameAvg: 0
   };
 
   /* ================= canvas ================= */
@@ -481,8 +497,10 @@
     for (const c of [sky, cv]) { c.width = Wc * DPR; c.height = Hc * DPR; }
     skyC.setTransform(DPR, 0, 0, DPR, 0, 0);
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    cx = Wc * 0.5; cy = Hc * (Wc > 900 ? 0.5 : 0.42);
-    const fit = Math.min(Wc * 0.84, Hc * 0.84) / 2;
+    // the panel occupies the right edge, so centre the globe in what is left
+    const gutter = Wc > 980 ? 302 : 0;
+    cx = (Wc - gutter) * 0.5; cy = Hc * (Wc > 980 ? 0.5 : 0.42);
+    const fit = Math.min((Wc - gutter) * 0.88, Hc * 0.84) / 2;
     if (!S.fitted) { S.scale = fit; S.fitted = true; }
     else S.scale = Math.max(fit * 0.78, Math.min(S.scale, fit * 12));
     S.fit = fit;
@@ -588,19 +606,30 @@
     return L.length + (c - L[L.length - 1]) / L[L.length - 1];
   }
 
+  /* The band coordinate depends only on the cost field and the ladder, so it
+     is worked out once for all 1 036 800 cells rather than for every pixel of
+     every frame — which is most of what a frame used to cost. */
+  function bandGrid() {
+    const key = (S.fieldGen | 0) + '|' + S.ladder.join(',');
+    if (S.bgKey === key) return S.bg;
+    const dist = S.field.dist, L = S.ladder, out = S.bg && S.bg.length === GN ? S.bg : new Float32Array(GN);
+    for (let c = 0; c < GN; c++) out[c] = bandT(dist[c], L);
+    S.bg = out; S.bgKey = key;
+    return out;
+  }
+
   function drawField() {
-    const dist = S.field && S.field.dist;
-    if (!dist) return;
+    if (!S.field) return;
+    const dist = bandGrid();
     const r = S.scale;
     const x0 = Math.max(0, Math.floor(cx - r)), x1 = Math.min(Wc, Math.ceil(cx + r));
     const y0 = Math.max(0, Math.floor(cy - r)), y1 = Math.min(Hc, Math.ceil(cy + r));
     const rw = x1 - x0, rh = y1 - y0;
     if (rw <= 2 || rh <= 2) return;
 
-    // sample at the display's own resolution so the wash is smooth rather
-    // than an upscaled low-res image
-    const target = S.dragging ? 170
-      : Math.min(950, Math.max(rw, rh) * 1.05 * Math.min(1.3, DPR));
+    // One resolution, moving or still. A softer band image is far less
+    // noticeable than the map changing its whole appearance under your hand.
+    const target = Math.min(470, Math.max(rw, rh) * 0.74 * Math.min(1.15, DPR)) * S.quality;
     const lon0 = S.rotL, phi = S.rotP * RAD;
     const key = [S.fieldGen | 0, x0, y0, rw, rh, Math.round(r * 10), Math.round(S.rotL * 100), Math.round(S.rotP * 100), Math.round(target)].join(',');
 
@@ -612,29 +641,42 @@
         S.scratch = { n: need, t: new Float32Array(need), lnd: new Uint8Array(need) };
       const t = S.scratch.t, lnd = S.scratch.lnd;
       const cosP = Math.cos(phi), sinP = Math.sin(phi);
-      const L = S.ladder;
-      for (let by = 0; by < bh; by++) {
-        const sy = y0 + (by + 0.5) * rh / bh, Y = -(sy - cy) / r, Y2 = Y * Y;
-        for (let bx = 0; bx < bw; bx++) {
-          const p = by * bw + bx;
-          const sx = x0 + (bx + 0.5) * rw / bw, X = (sx - cx) / r;
-          const d2 = X * X + Y2;
-          if (d2 > 1) { t[p] = -1; continue; }
-          const Z = Math.sqrt(1 - d2);
-          const a = Y * cosP - Z * sinP, b = Y * sinP + Z * cosP;
-          const lat = Math.asin(Math.max(-1, Math.min(1, a))) * DEG;
-          let lon = Math.atan2(X, b) * DEG - lon0;
-          lon = ((lon + 180) % 360 + 360) % 360 - 180;
-          const fi = (lon + 180) / RES - 0.5, fj = (90 - lat) / RES - 0.5;
-          const i0 = Math.floor(fi), j0 = Math.min(GH - 2, Math.max(0, Math.floor(fj)));
-          const u = fi - i0, v = Math.min(1, Math.max(0, fj - j0));
-          const ia = ((i0 % GW) + GW) % GW, ib = (ia + 1) % GW;
-          const c00 = dist[j0 * GW + ia], c10 = dist[j0 * GW + ib];
-          const c01 = dist[(j0 + 1) * GW + ia], c11 = dist[(j0 + 1) * GW + ib];
-          const cc = (c00 * (1 - u) + c10 * u) * (1 - v) + (c01 * (1 - u) + c11 * u) * v;
-          t[p] = bandT(cc, L);
-          lnd[p] = landMask[(v < 0.5 ? j0 : j0 + 1) * GW + (u < 0.5 ? ia : ib)];
+
+      // camera-space ray per pixel — unchanged by rotation, so cache it
+      const geoKey = [bw, bh, x0, y0, rw, rh, Math.round(r * 10), Math.round(cx), Math.round(cy)].join(',');
+      if (S.rayKey !== geoKey || !S.rayX || S.rayX.length < need) {
+        S.rayX = new Float32Array(need); S.rayY = new Float32Array(need); S.rayZ = new Float32Array(need);
+        for (let by = 0; by < bh; by++) {
+          const sy = y0 + (by + 0.5) * rh / bh, Y = -(sy - cy) / r, Y2 = Y * Y;
+          for (let bx = 0; bx < bw; bx++) {
+            const q = by * bw + bx;
+            const sx = x0 + (bx + 0.5) * rw / bw, X = (sx - cx) / r;
+            const d2 = X * X + Y2;
+            if (d2 > 1) { S.rayZ[q] = -1; continue; }
+            S.rayX[q] = X; S.rayY[q] = Y; S.rayZ[q] = Math.sqrt(1 - d2);
+          }
         }
+        S.rayKey = geoKey;
+      }
+      const rayX = S.rayX, rayY = S.rayY, rayZ = S.rayZ;
+
+      for (let p = 0; p < need; p++) {
+        const Z = rayZ[p];
+        if (Z < 0) { t[p] = -1; continue; }
+        const Y = rayY[p], X = rayX[p];
+        const a = Y * cosP - Z * sinP, b = Y * sinP + Z * cosP;
+        const lat = Math.asin(a < -1 ? -1 : a > 1 ? 1 : a) * DEG;
+        let lon = Math.atan2(X, b) * DEG - lon0;
+        lon = ((lon + 180) % 360 + 360) % 360 - 180;
+        const fi = (lon + 180) / RES - 0.5, fj = (90 - lat) / RES - 0.5;
+        const i0 = Math.floor(fi), j0 = Math.min(GH - 2, Math.max(0, Math.floor(fj)));
+        const u = fi - i0, v = fj - j0 < 0 ? 0 : fj - j0 > 1 ? 1 : fj - j0;
+        const ia = ((i0 % GW) + GW) % GW, ib = (ia + 1) % GW;
+        const r0 = j0 * GW, r1 = r0 + GW;
+        const c00 = dist[r0 + ia], c10 = dist[r0 + ib];
+        const c01 = dist[r1 + ia], c11 = dist[r1 + ib];
+        t[p] = (c00 * (1 - u) + c10 * u) * (1 - v) + (c01 * (1 - u) + c11 * u) * v;
+        lnd[p] = landMask[(v < 0.5 ? r0 : r1) + (u < 0.5 ? ia : ib)];
       }
       S.tBuf = { t, lnd, bw, bh, x0, y0, rw, rh };
       S.tKey = key;
@@ -680,7 +722,7 @@
 
         // an isochrone on every threshold, and a fainter one mid-band
         let line = 0;
-        if (beyond < 0.02 && !S.dragging) {   // lines cost a gradient; restore them at rest
+        if (beyond < 0.02) {   // lines cost a gradient; restore them at rest
           const xm = t[p - (bx > 0 ? 1 : 0)], xp = t[p + (bx < bw - 1 ? 1 : 0)];
           const ym = t[p - (by > 0 ? bw : 0)], yp = t[p + (by < bh - 1 ? bw : 0)];
           const gx = (xm < 0 || xp < 0) ? 0 : (xp - xm) * 0.5;
@@ -719,10 +761,10 @@
       // 'screen' blending over a retina-scaled canvas costs most of a frame,
       // and it washes the tints toward white. Plain alpha is both quicker and
       // more saturated; the bloom below still uses screen, but only at rest.
-      ctx.globalCompositeOperation = S.dragging ? 'source-over' : TH().blend;
+      ctx.globalCompositeOperation = TH().blend;
       ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = S.dragging ? 'low' : 'high';
-      if (!S.dragging && TH().glow) {
+      ctx.imageSmoothingQuality = 'high';
+      if (TH().glow) {
         const zoom = S.scale / (S.fit || S.scale);
         try {
           ctx.filter = 'blur(' + (zoom > 2 ? 3 : 5) + 'px)';
@@ -740,13 +782,30 @@
 
   /* ---- main draw ---- */
   function draw() {
+    const t0 = performance.now();
+    drawScene();
+    /* Hold one appearance whether the globe is moving or still, and instead fit
+       that appearance to the machine: measure the frame and settle on a raster
+       size this browser can actually sustain. Adjusted only between gestures,
+       so nothing shifts under your hand mid-drag. */
+    const ms = performance.now() - t0;
+    S.frameAvg = S.frameAvg ? S.frameAvg * 0.8 + ms * 0.2 : ms;
+    if (!S.dragging) {
+      const q = S.quality;
+      if (S.frameAvg > 42 && q > 0.45) S.quality = Math.max(0.45, q - 0.12);
+      else if (S.frameAvg < 14 && q < 1) S.quality = Math.min(1, q + 0.08);
+      if (S.quality !== q) { S.tKey = ''; S.bufKey = ''; S.frameAvg = 0; }
+    }
+  }
+
+  function drawScene() {
     const r = S.scale, zoom = r / (S.fit || r);
     if (!S.dragging) refreshLadder();
     proj.translate([cx, cy]).scale(r).rotate([S.rotL, S.rotP, 0]);
     ctx.clearRect(0, 0, Wc, Hc);
 
     const T = TH();
-    if (T.glow && !S.dragging) {
+    if (T.glow) {
       const atm = ctx.createRadialGradient(cx, cy, r * 0.97, cx, cy, r * 1.16);
       atm.addColorStop(0, 'rgba(90,140,210,.30)'); atm.addColorStop(1, 'rgba(90,140,210,0)');
       ctx.fillStyle = atm; ctx.beginPath(); ctx.arc(cx, cy, r * 1.16, 0, TAU); ctx.fill();
@@ -761,7 +820,8 @@
     oc.addColorStop(0, T.sea0); oc.addColorStop(.62, T.sea1); oc.addColorStop(1, T.sea2);
     ctx.fillStyle = oc; ctx.beginPath(); ctx.arc(cx, cy, r, 0, TAU); ctx.fill();
 
-    const landPath = layer(S.dragging ? 'landLo' : 'land', S.dragging ? LANDLO : LANDGEO);
+    const fine = zoom > 2.2;
+    const landPath = layer(fine ? 'land' : 'landMed', fine ? LANDGEO : LANDMED);
     if (landPath) { ctx.fillStyle = T.land; ctx.fill(landPath); }
 
     drawField();
@@ -772,7 +832,7 @@
     // Lift the continents back out of the glow. This runs over the whole of
     // the land, reached or not, so a country you cannot get to at all still
     // reads as a country rather than as more ocean.
-    if (!S.dragging && landPath) {
+    if (landPath) {
       ctx.save();
       ctx.fillStyle = 'rgba(146,182,236,.055)'; ctx.fill(landPath);
       ctx.restore();
@@ -782,7 +842,7 @@
     const M = D.MODES[S.mode], yr = D.ERAS[S.era].y;
 
     // the network that shapes the contours
-    if (S.net && !S.dragging && zoom > 1.2 && (M.rail || M.best) && D.RAIL[S.era] > 0) {
+    if (S.net && zoom > 1.2 && (M.rail || M.best) && D.RAIL[S.era] > 0) {
       const rp = layer('rail', RAILGEO);
       ctx.globalAlpha = Math.min(1, (zoom - 1.2) * .85); ctx.strokeStyle = T.rail;
       if (rp) ctx.stroke(rp);
@@ -796,15 +856,13 @@
       ctx.setLineDash([3, 3]); ctx.stroke(); ctx.setLineDash([]);
     }
 
-    if (!S.dragging) {
-      const bp = layer('borders', BORDERS);
-      if (bp) {
-        ctx.strokeStyle = T.borderHalo; ctx.lineWidth = 1.6; ctx.stroke(bp);
-        ctx.strokeStyle = T.border; ctx.lineWidth = 0.6; ctx.stroke(bp);
-      }
+    const bp = layer(fine ? 'borders' : 'bordersMed', fine ? BORDERS : BORDERMED);
+    if (bp) {
+      ctx.strokeStyle = T.borderHalo; ctx.lineWidth = 1.6; ctx.stroke(bp);
+      ctx.strokeStyle = T.border; ctx.lineWidth = 0.6; ctx.stroke(bp);
     }
     if (landPath) {
-      if (!S.dragging) { ctx.strokeStyle = T.coastHalo; ctx.lineWidth = 2; ctx.stroke(landPath); }
+      ctx.strokeStyle = T.coastHalo; ctx.lineWidth = 2; ctx.stroke(landPath);
       ctx.strokeStyle = T.coast; ctx.lineWidth = 0.8; ctx.stroke(landPath);
     }
 
@@ -815,7 +873,7 @@
       const l = (lon + S.rotL) * RAD, p = lat * RAD;
       return Math.cos(l) * Math.cos(p) * cosP - Math.sin(p) * sinP;
     };
-    const nShow = S.dragging ? 14 : Math.round(Math.min(PLACES.length, 26 + Math.pow(zoom, 2.1) * 34));
+    const nShow = Math.round(Math.min(PLACES.length, 22 + Math.pow(zoom, 2.1) * 30));
     ctx.font = '500 10px "IBM Plex Sans", sans-serif';
     ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
     const placed = [];
@@ -1180,12 +1238,8 @@
     down = null;
     if (wasDrag) {
       cancelAnimationFrame(dragRaf); dragRaf = 0;
-      cv.classList.remove('dragging');
-      draw();                                   // cheap frame, immediately
-      clearTimeout(S.upgrade);
-      S.upgrade = setTimeout(() => {            // then the full-quality one
-        S.dragging = false; S.tKey = ''; draw();
-      }, 70);
+      S.dragging = false; cv.classList.remove('dragging');
+      draw();
     }
   });
   cv.addEventListener('pointerleave', () => { $('tip').hidden = true; });
@@ -1194,9 +1248,6 @@
     const fit = S.fit || 300;
     S.scale = Math.max(fit * .78, Math.min(fit * 12, S.scale * (e.deltaY < 0 ? 1.15 : 1 / 1.15)));
     S.tKey = '';
-    S.dragging = true;                       // keep the cheap path while wheeling
-    clearTimeout(S.wheelIdle);
-    S.wheelIdle = setTimeout(() => { S.dragging = false; S.tKey = ''; draw(); }, 180);
     if (!dragRaf) dragRaf = requestAnimationFrame(() => { dragRaf = 0; draw(); });
   }, { passive: false });
 
