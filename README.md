@@ -61,7 +61,10 @@ Peking at seven weeks in the same model.
 | Railways (37,487 grid cells) | Natural Earth 10m railroads |
 | Ferry routes (314) | Natural Earth 10m roads, ferry class |
 | Terrain (222 ranges, 58 deserts) | Natural Earth 10m geography regions |
-| Airfields (890) | Natural Earth 10m airports |
+| Airfields (2,829) | [OurAirports](https://ourairports.com/data/) (public domain), large and medium with scheduled service, plus Natural Earth 10m |
+| High-speed rail (3,534 cells) | [OpenStreetMap](https://wiki.openstreetmap.org/wiki/Key:highspeed) `highspeed=yes` track via Overpass, with a hand list of corridors carrying speeds and opening years |
+| Fixed links | Channel Tunnel, Great Belt, Øresund, Seikan, Kanmon, Bosphorus, King Fahd, portal to portal |
+| Real journey times (166 pairs) | [Transitous](https://transitous.org) over open GTFS, and operator timetables |
 | Place labels (1,100) | Natural Earth 10m populated places |
 | Road speed by country | [IMF Mean Speed score](https://www.imf.org/en/Publications/WP/Issues/2022/05/13/Road-Quality-and-Mean-Speed-Score-517801) (Moszoro & Soto 2022), 161 countries |
 | Road class speeds | [Van Etten 2020, WACV](https://openaccess.thecvf.com/content_WACV_2020/papers/Van_Etten_City-Scale_Road_Extraction_from_Satellite_Imagery_v2_Road_Speeds_and_WACV_2020_paper.pdf) |
@@ -72,6 +75,26 @@ Railways, canals and fixed links open on their real dates: Suez 1869, Panama
 1914, the Channel Tunnel 1994. Before 1869 every ship rounds the Cape, which is
 most of what the early maps look like.
 
+## Calibration
+
+Scheduled transport in 2026 is checked against 166 real city-centre to
+city-centre journeys: Transitous (an open routing service over open GTFS
+feeds, fastest of three Tuesday departures) where its feeds reach, operator
+timetables plus 0.4 h of station access elsewhere. Result: 92% of pairs within
+a quarter of the real time, 99% within 40%, median ratio 0.94. Brussels to
+Vienna reads 8.4 h against 9.5-10 by ICE and Railjet; Paris to Marseille 3.5
+against 3.5; Tokyo to Osaka 2.6 against 2.75; Beijing to Shanghai 5.1 against
+4.7. The widest misses are Alpine passes, where the railway and the road wind
+far beyond the straight line the grid measures, and Indian trunk lines.
+
+```bash
+python tools/harvest_transitous.py     # fetch real journeys (resumes)
+python tools/make_calibration.py       # write calibration.json
+```
+
+Then on a local server, in the console: `await __iso.calibrate()` returns
+model against real for every pair.
+
 ## Files
 
 | File | |
@@ -81,7 +104,9 @@ most of what the early maps look like.
 | `data.js` | era constants, country profiles, hand-authored geography |
 | `grid.js` | packed 0.25° layers (land, country, terrain, road, rail, ferry) + places + airfields |
 | `geo.js` | coastline and border geometry for drawing |
-| `build-grid.js` | regenerates `grid.js` and `geo.js` from Natural Earth |
+| `build-grid.js` | regenerates `grid.js` and `geo.js` from Natural Earth, OurAirports and the OSM pull |
+| `calibration.json` | the real journeys the model is checked against |
+| `tools/` | the harvesters for Transitous and Overpass, and the calibration assembler |
 
 ## Rebuilding the data
 
@@ -93,7 +118,9 @@ for f in ne_10m_railroads ne_10m_roads ne_10m_populated_places_simple \
   curl -sLO $base/$f.geojson
 done
 curl -sL -o countries-50m.json https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json
-cd .. && node --max-old-space-size=6144 build-grid.js
+curl -sL -o ourairports.csv https://davidmegginson.github.io/ourairports-data/airports.csv
+cd .. && python tools/harvest_osm_hsr.py   # high-speed track from Overpass, in small boxes
+node --max-old-space-size=6144 build-grid.js
 ```
 
 ## Running locally

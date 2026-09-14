@@ -76,9 +76,12 @@
   /* ================= hand-authored overlays ================= */
   const river = new Uint8Array(GN);
   const trunkYear = new Int16Array(GN).fill(9999);
-  const hsrMask = new Uint8Array(GN);
+  /* high-speed track from OpenStreetMap, baked per cell in grid.js */
+  const hsrV = unrle(G.layers.hsrv || '');       // km/h / 2 through the cell, 0 = none
+  const hsrY = unrle(G.layers.hsry || '');       // opening year - 1900
   const canalYear = new Int16Array(GN);
   const linkYear = new Int16Array(GN);
+  const linkWait = new Float32Array(GN);        // check-in at a tunnel portal, hours
 
   const DIRS = [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]];
 
@@ -113,19 +116,21 @@
       }
     }
     for (const r of D.RIVERS) stamp(r, (lo, la) => { const c = cellOf(lo, la); if (landMask[c]) river[c] = 1; });
+    // fixed links first: a rail tunnel or bridge carries the trunk network
+    // across, so the trunk stamp below may land on those sea cells too
+    for (const fl of D.FIXED_LINKS) stamp(fl.pts, (lo, la) => {
+      const c = cellOf(lo, la); linkYear[c] = fl.year;
+      if (fl.wait) linkWait[c] = fl.wait;
+      if (fl.rail && fl.year < trunkYear[c]) trunkYear[c] = fl.year;
+    }, RES * 0.25);
     for (const ln of D.RAIL_LINES)
-      stamp(ln.p, (lo, la) => { const c = cellOf(lo, la); if (landMask[c] && ln.y < trunkYear[c]) trunkYear[c] = ln.y; });
-    for (const [l0, a0, l1, a1] of D.HSR_REGIONS)
-      for (let j = rowOf(a1); j <= rowOf(a0); j++)
-        for (let lon = l0; lon <= l1; lon += RES) {
-          const c = j * GW + colOf(lon);
-          if (landMask[c] && railCls[c]) hsrMask[c] = 1;
-        }
-    for (const ln of D.HSR_LINES) stamp(ln, (lo, la) => { const c = cellOf(lo, la); if (landMask[c]) hsrMask[c] = 1; });
+      stamp(ln.p, (lo, la) => {
+        const c = cellOf(lo, la);
+        if ((landMask[c] || linkYear[c]) && ln.y < trunkYear[c]) trunkYear[c] = ln.y;
+      });
     for (const cn of D.CANALS) stamp(cn.pts, (lo, la) => {
       const c = cellOf(lo, la); canalYear[c] = cn.year; ferryCell[c] = 1;
     }, RES * 0.25);
-    for (const fl of D.FIXED_LINKS) stamp(fl.pts, (lo, la) => { linkYear[cellOf(lo, la)] = fl.year; }, RES * 0.25);
     for (const r of D.FERRY_ROUTES) stamp(r, (lo, la) => { ferryCell[cellOf(lo, la)] = 1; }, RES * 0.25);
   }
 
@@ -164,13 +169,15 @@
   function buildSpeed(mi, ei) {
     const M = D.MODES[mi], yr = D.ERAS[ei].y, best = !!M.best;
     const sp = new Float32Array(GN), duty = new Uint8Array(GN), wet = new Uint8Array(GN);
+    const railOn = new Uint8Array(GN);            // the cell's speed is a train's
+    const hsrOn = new Uint8Array(GN);             // ...a high-speed train's
     const netW = D.NET_W[ei], CM = D.CLASS_MUL, circ = D.ROAD_CIRC;
     const oceanOK = M.sea === 'ship';
     const seaBase = D.WATER[ei] * (M.rail ? D.WATER_SCHEDULED[ei] : 1);
     const fry = D.FERRY[ei], ice = D.ICE_WATER[ei], riv = D.RIVER[ei] / D.RIVER_CIRC;
     const ids = best ? D.MODES.filter(m => !m.best && !m.air && m.since <= ei).map(m => m.id) : [M.id];
     const tDuty = byId.transit.duty[ei];
-    const railBase = D.RAIL[ei], hsrBase = D.HSR[ei];
+    const railBase = D.RAIL[ei];
     const railMode = M.rail || best;
 
     const rf = new Float32Array(5), rfB = new Float32Array(5), rfF = new Float32Array(5);
@@ -183,54 +190,54 @@
     for (let t = 0; t < 6; t++) tmul[t] = D.TERRAIN_MUL[t][ei];
 
     const NK = NC + 1;                              // last slot = unclaimed land
-    const qual = new Float32Array(NK), rqA = new Float32Array(NK);
-    const ryA = new Int16Array(NK), hsrA = new Uint8Array(NK);
+    const qual = new Float32Array(NK), qual1 = new Float32Array(NK), rqA = new Float32Array(NK);
+    const ryA = new Int16Array(NK);
     for (let k = 0; k < NK; k++) {
       const ms = k < NC ? cMS[k] : 60;
       qual[k] = Math.pow(ms / D.ROAD_REF, D.ROAD_EXP[ei]);
-      rqA[k] = k < NC ? (ei === 4 ? cRQ[k] : cRH[k]) : 0;
+      qual1[k] = ms / D.ROAD_REF;               // unexaggerated: what a coach on the main road sees
+      // unclaimed land is mostly sea cells bridged by a tunnel: good track
+      rqA[k] = k < NC ? (ei === 4 ? cRQ[k] : cRH[k]) : 0.9;
       ryA[k] = k < NC ? cRY[k] : 9999;
-      hsrA[k] = k < NC && yr >= cHY[k] ? 1 : 0;
     }
 
     // lookup[((k*6 + terrain)*5 + roadClass)*3 + railState]
     const LN = NK * 90;
-    const luS = new Float32Array(LN), luD = new Uint8Array(LN);
+    const luS = new Float32Array(LN), luD = new Uint8Array(LN), luR = new Uint8Array(LN);
     for (let k = 0; k < NK; k++) {
-      const q = qual[k], rq = rqA[k], hsrOn = hsrA[k];
+      const q = qual[k], q1 = qual1[k], rq = rqA[k];
       for (let t = 0; t < 6; t++) {
-        const tm = tmul[t], soft = 0.5 + 0.5 * tm;
+        const tm = tmul[t], soft = (t === 1 || t === 5) ? 0.15 + 0.65 * tm : 0.85 + 0.15 * tm;
+        // the mean-speed score already carries the country's terrain speeds, but not
+        // the extra distance a mountain road winds through: roads take it at half weight
+        const tmCar = 0.5 + 0.5 * tm, tmCoach = 0.4 + 0.6 * tm;
         for (let rc = 0; rc < 5; rc++) {
           const rfv = rf[rc], rfv2 = rfB[rc], rfv3 = rfF[rc];
           for (let rs = 0; rs < 3; rs++) {
-            let v = 0, vd = tDuty;
+            let v = 0, vd = tDuty, vr = 0;
             for (let m = 0; m < ids.length; m++) {
               const id = ids[m], MM = byId[id], d = MM.duty[ei], base = MM.land[ei];
-              let kmd;
+              let kmd, byRail = 0;
               if (id === 'foot') kmd = base * (0.80 + 0.20 * q) * tm * rfv3 / circ;
               else if (id === 'bike') kmd = base * (0.25 + 0.75 * q) * tm * rfv2 / circ;
-              else if (id === 'road') kmd = base * q * tm * rfv / circ;
+              else if (id === 'road') kmd = base * q * tmCar * rfv / circ;
               else {
-                kmd = base * (0.20 + 0.80 * q) * tm * rfv / circ;
+                kmd = base * (0.15 + 0.85 * q1) * tmCoach * (1 + (rfv - 1) * 0.5) / circ;
                 if (rs && railBase > 0 && rq > 0) {
                   let r = railBase * rq * soft * (rs === 2 ? D.RAIL_MAIN : D.RAIL_BRANCH);
-                  if (hsrOn) r *= D.HSR_NET_BONUS;
                   if (id === 'air') r *= 0.8;
                   r /= D.RAIL_CIRC;
-                  if (r > kmd) kmd = r;
+                  if (r > kmd) { kmd = r; byRail = 1; }
                 }
               }
-              if (kmd / d > v / vd) { v = kmd; vd = d; }
+              if (kmd / d > v / vd) { v = kmd; vd = d; vr = byRail; }
             }
             const o = ((k * 6 + t) * 5 + rc) * 3 + rs;
-            luS[o] = v / vd; luD[o] = vd;
+            luS[o] = v / vd; luD[o] = vd; luR[o] = vr;
           }
         }
       }
     }
-    const hsrSpeed = new Float32Array(NK);
-    for (let k = 0; k < NK; k++)
-      hsrSpeed[k] = (hsrBase > 0 && hsrA[k] && railMode) ? hsrBase * Math.max(rqA[k], 0.7) / D.RAIL_CIRC / tDuty : 0;
     const rivSpeed = oceanOK ? riv / D.SEA_DUTY : 0;
 
     for (let j = 0; j < GH; j++) {
@@ -264,38 +271,73 @@
         }
         const o = ((k * 6 + terr[c]) * 5 + roadCls[c]) * 3 + rs;
         let v = luS[o], vd = luD[o];
-        if (hsrMask[c] && hsrSpeed[k] > v) { v = hsrSpeed[k]; vd = tDuty; }
-        if (rivSpeed && river[c] && rivSpeed > v) { v = rivSpeed; vd = D.SEA_DUTY; }
-        sp[c] = v; duty[c] = vd;
+        let onR = luR[o];
+        /* a high-speed line is what it is, whatever the legacy network around
+           it: its cells run at their own speed from the year they opened */
+        if (railMode && hsrV[c] && hsrY[c] && yr >= 1900 + hsrY[c]) {
+          const hv = hsrV[c] * 2 / D.RAIL_CIRC * (M.air ? 0.8 : 1);
+          if (hv > v) { v = hv; vd = tDuty; onR = 1; hsrOn[c] = 1; }
+        }
+        if (rivSpeed && river[c] && rivSpeed > v) { v = rivSpeed; vd = D.SEA_DUTY; onR = 0; hsrOn[c] = 0; }
+        sp[c] = v; duty[c] = vd; railOn[c] = onR;
       }
     }
     // half-reciprocal speed, so the inner loop adds instead of dividing
     const inv = new Float32Array(GN);
     for (let c = 0; c < GN; c++) inv[c] = sp[c] > 0 ? 0.5 / sp[c] : 0;
-    return { sp, duty, wet, inv };
+    return { sp, duty, wet, inv, railOn, hsrOn };
   }
 
   /* ================= the field =================
      Dial's algorithm: a bucketed queue in place of a binary heap, which is
      what makes a million-cell search feel instant. */
+  /* The airfield graph does not depend on where you start, so it is built
+     once per era: which fields are open, and for each the fields within
+     range and the hours to them. Some 2 700 fields are far too many to pair
+     up again on every solve. */
+  const airGraphs = new Map();
+  function airGraph(ei) {
+    if (airGraphs.has(ei)) return airGraphs.get(ei);
+    const yr = D.ERAS[ei].y, air = D.AIR[ei];
+    const ports = AIRPORTS.filter(a => a.r <= D.AIR_RANK[ei] && (!a.y || a.y <= yr));
+    const n = ports.length, nb = new Array(n), hr = new Array(n), latSpan = air.range / 111;
+    for (let a = 0; a < n; a++) {
+      const A = ports[a], I = [], Hh = [];
+      for (let b = 0; b < n; b++) {
+        if (b === a) continue;
+        const B = ports[b];
+        if (Math.abs(A.lat - B.lat) > latSpan) continue;
+        const km = gcDist(A.lon, A.lat, B.lon, B.lat);
+        if (km > air.range) continue;
+        I.push(b); Hh.push(km / air.cruise + air.stop);
+      }
+      nb[a] = Int32Array.from(I); hr[a] = Float32Array.from(Hh);
+    }
+    const g = { ports, nb, hr, cells: ports.map(c => landCellOf(c.lon, c.lat)) };
+    airGraphs.set(ei, g);
+    return g;
+  }
+
   const NBUK = 600000;
   const bHead = new Int32Array(NBUK);
   let bNext = null, bPrev = null, bBuk = null, bDone = null;
 
   function computeField(oLon, oLat, mi, ei) {
-    const M = D.MODES[mi], { sp, duty, wet, inv } = buildSpeed(mi, ei);
+    const M = D.MODES[mi], { sp, duty, wet, inv, railOn, hsrOn } = buildSpeed(mi, ei);
     const port = D.PORT_H[ei];
+    // the first train of a journey costs the walk to the station and the wait
+    const board = (M.rail || M.best) ? D.RAIL_BOARD[ei] : 0, alight = board ? D.RAIL_ALIGHT : 0;
+    const border = board ? D.RAIL_BORDER[ei] : 0;
     // duty hours only ever take a handful of values, so 24/dEdge is a table
     const restTab = new Float32Array(49);
     for (let s = 1; s <= 48; s++) restTab[s] = 48 / s;   // 24 / (s/2)
     const flying = M.air && !!D.AIR[ei];
-    const yr = D.ERAS[ei].y;
-    const ports = flying
-      ? AIRPORTS.filter(a => a.r <= D.AIR_RANK[ei] && (!a.y || a.y <= yr)) : [];
+    const AG = flying ? airGraph(ei) : null;
+    const ports = AG ? AG.ports : [];
     const NA = ports.length, total = GN + NA;
     const air = flying ? D.AIR[ei] : null;
     const airAt = new Map();
-    ports.forEach((c, k) => airAt.set(landCellOf(c.lon, c.lat), k));
+    if (AG) AG.cells.forEach((c, k) => airAt.set(c, k));
 
     /* The bucket width used to be taken from the colour scale on screen, so
        the solver's range depended on how far the reader had zoomed: after a
@@ -373,6 +415,12 @@
             }
             let nc = du + add;
             if (wu !== wet[v]) nc += port * ((ferryCell[u] || ferryCell[v]) ? D.FERRY_PORT : 1);
+            if (board) {
+              const ru = u === start ? 0 : railOn[u], rv = railOn[v];
+              if (rv !== ru) nc += rv ? board : alight;
+              else if (rv && ctryRaw[u] !== ctryRaw[v] && ctryRaw[u] && ctryRaw[v]) nc += border;
+            }
+            if (linkWait[v] && !linkWait[u]) nc += linkWait[v];
             if (nc < dist[v]) { dist[v] = nc; move[v] = m1; push(nc, v); }
           }
         }
@@ -381,14 +429,12 @@
           if (nc < dist[v]) { dist[v] = nc; move[v] = mu; push(nc, v); }
         }
       } else {
-        const a = u - GN, A = ports[a];
-        const gcell = landCellOf(A.lon, A.lat), ncg = du + air.land;
+        const a = u - GN;
+        const gcell = AG.cells[a], ncg = du + air.land;
         if (ncg < dist[gcell]) { dist[gcell] = ncg; move[gcell] = mu; push(ncg, gcell); }
-        for (let b = 0; b < NA; b++) {
-          if (b === a) continue;
-          const B = ports[b], km = gcDist(A.lon, A.lat, B.lon, B.lat);
-          if (km > air.range) continue;
-          const v = GN + b, nc = du + km / air.cruise + air.stop;
+        const I = AG.nb[a], Hh = AG.hr[a];
+        for (let q = 0; q < I.length; q++) {
+          const v = GN + I[q], nc = du + Hh[q];
           if (nc < dist[v]) { dist[v] = nc; move[v] = mu; push(nc, v); }
         }
       }
@@ -1397,13 +1443,18 @@
       H('Rail');
       const r = ['37\u2009487 cells, main lines and branches separated',
         'Each country gets its own opening year and service quality',
-        'Main line ' + N(D.RAIL[ei]) + ' km/day'];
-      if (D.HSR[ei] > 0) r.push('High-speed track ' + N(D.HSR[ei]) + ' km/day' +
-        '<ul><li>TGV 263 km/h start to stop</li><li>Shinkansen 285</li></ul>');
+        'Main line ' + N(D.RAIL[ei]) + ' km/day',
+        HR(D.RAIL_BOARD[ei]) + ' to board the first train, ' + HR(D.RAIL_ALIGHT) + ' to alight, ' + HR(D.RAIL_BORDER[ei]) + ' at a frontier'];
+      if (E.y >= 1964) r.push('High-speed track from ' +
+        A('https://wiki.openstreetmap.org/wiki/Key:highspeed', 'OpenStreetMap') +
+        ', run at 75% of its line speed' +
+        '<ul><li>320 km/h LGV: 240</li><li>300 km/h ICE line: 225</li></ul>');
       if (E.y >= 1900) r.push('Anchored on published timings' +
         '<ul><li>Trans-Siberian 70\u201390 km/h</li>' +
         (E.y >= 1950 ? '<li>Rajdhani 83\u201398</li>' : '') + '</ul>');
       if (E.y >= 1950) r.push('Still no working line: Central African Republic, Chad, Somalia, Bhutan');
+      if (ei === 7) r.push('Checked against 166 real journeys today (' +
+        A('https://transitous.org', 'Transitous') + ', operator timetables): 92% within a quarter, median 0.94');
       L(r);
     }
 
@@ -1434,7 +1485,8 @@
       const a = D.AIR[ei];
       H('Air');
       L(['Chartered, not timetabled. The limit is the aircraft',
-         N(AIRPORTS.filter(x => x.r <= D.AIR_RANK[ei] && (!x.y || x.y <= E.y)).length) + ' airfields',
+         N(AIRPORTS.filter(x => x.r <= D.AIR_RANK[ei] && (!x.y || x.y <= E.y)).length) + ' airfields, from ' +
+           A('https://ourairports.com/data/', 'OurAirports') + ' and Natural Earth',
          N(a.cruise) + ' km/h, range ' + N(a.range) + ' km',
          HR(a.board) + ' to get airborne, ' + HR(a.stop) + ' a refuelling stop']);
     }
@@ -1833,8 +1885,30 @@
 
   /* on a local server only: the pieces a test harness needs to drive the
      model without going through the pointer */
+  /* Checks the model against real scheduled journey times in calibration.json
+     (Transitous for Europe, operator timetables elsewhere), one solve per
+     origin. Takes a slice of origins so a harness can run it in pieces. */
+  async function calibrate(k0, k1, mode, era) {
+    const cal = await (await fetch('calibration.json')).json();
+    const byFrom = new Map();
+    for (const q of cal.pairs) {
+      if (q.hours == null) continue;
+      if (!byFrom.has(q.from)) byFrom.set(q.from, []);
+      byFrom.get(q.from).push(q);
+    }
+    const rows = [];
+    for (const fr of [...byFrom.keys()].slice(k0 || 0, k1 || 1e9)) {
+      const ps = byFrom.get(fr), [la, lo] = ps[0].fromLL;
+      const f = getField(lo, la, mode == null ? 4 : mode, era == null ? 7 : era);
+      for (const q of ps) {
+        const t = f.dist[landCellOf(q.toLL[1], q.toLL[0])];
+        rows.push({ from: q.from, to: q.to, real: q.hours, model: +t.toFixed(2), ratio: +(t / q.hours).toFixed(2), src: q.src || 'transitous' });
+      }
+    }
+    return rows;
+  }
   if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname))
-    window.__iso = { S, setOrigin, recompute, draw, fieldLadder, timeAt, fieldCache };
+    window.__iso = { S, setOrigin, recompute, draw, fieldLadder, timeAt, fieldCache, getField, landCellOf, calibrate };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();

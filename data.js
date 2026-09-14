@@ -73,7 +73,7 @@ window.ISO = (function () {
         'Express train & ocean liner', 'Express train & liner', 'Rail, coach & ferry',
         'Rail, coach & ferry', 'High-speed rail & ferry', 'Rail, metro, coach & ferry'],
       icon: 'M7 4.5h10a1.6 1.6 0 011.6 1.6v8.3a1.6 1.6 0 01-1.6 1.6H7a1.6 1.6 0 01-1.6-1.6V6.1A1.6 1.6 0 017 4.5zM5.4 9.6h13.2M8.4 12.8h.01M15.6 12.8h.01M8 16v3.4M16 16v3.4',
-      land: [60, 130, 200, 260, 360, 480, 580, 620],
+      land: [60, 130, 200, 300, 450, 700, 950, 1000],   // the coach: 1000 km in a 14 h day is 71 km/h, a motorway express
       duty: [14, 16, 14, 14, 14, 14, 14, 14], since: 0, rail: true, sea: 'ship'
     },
     {
@@ -120,7 +120,6 @@ window.ISO = (function () {
   const FOOT_MUL = [0.55, 0.90, 1.00, 1.00, 0.95];
   const RAIL_MAIN = 1.15, RAIL_BRANCH = 0.85;
 
-  const HSR_NET_BONUS = 1.4;                    // country-wide uplift where HSR exists
 
   /* how strongly national road quality bites, by era: in 1750 the gap between
      the best and worst roads on Earth was real but narrower than it is today */
@@ -235,17 +234,17 @@ window.ISO = (function () {
   const COUNTRY_RAW = [
     ['Afghanistan', 57, .05, 1982, 9999], ['Albania', 65, .15, 1947, 9999], ['Algeria', 88, .50, 1862, 9999],
     ['Angola', 78, .30, 1889, 9999], ['Antarctica', 20, 0, 9999, 9999], ['Argentina', 91, .40, 1857, 9999],
-    ['Armenia', 57, .30, 1895, 9999], ['Australia', 96, .45, 1854, 9999], ['Austria', 96, .92, 1838, 2012],
+    ['Armenia', 57, .30, 1895, 9999], ['Australia', 96, .45, 1854, 9999], ['Austria', 96, 0.8, 1838, 2012],
     ['Azerbaijan', 80, .45, 1880, 9999], ['Bahamas', 70, 0, 9999, 9999], ['Bangladesh', 41, .45, 1862, 9999],
     ['Belarus', 85, .70, 1862, 9999], ['Belgium', 92, .95, 1835, 1997], ['Belize', 67, 0, 9999, 9999],
     ['Benin', 63, .10, 1900, 9999], ['Bhutan', 38, 0, 9999, 9999], ['Bolivia', 50, .20, 1892, 9999],
     ['Bosnia and Herz.', 57, .40, 1872, 9999], ['Botswana', 91, .30, 1897, 9999], ['Brazil', 72, .25, 1854, 9999],
-    ['Brunei', 88, 0, 9999, 9999], ['Bulgaria', 88, .60, 1866, 9999], ['Burkina Faso', 63, .15, 1954, 9999],
+    ['Brunei', 88, 0, 9999, 9999], ['Bulgaria', 88, 0.5, 1866, 9999], ['Burkina Faso', 63, .15, 1954, 9999],
     ['Burundi', 51, 0, 9999, 9999], ['Cambodia', 55, .10, 1932, 9999], ['Cameroon', 56, .25, 1911, 9999],
     ['Canada', 106, .30, 1836, 9999], ['Central African Rep.', 61, 0, 9999, 9999], ['Chad', 63, 0, 9999, 9999],
     ['Chile', 92, .35, 1851, 9999], ['China', 90, .90, 1876, 2008], ['Colombia', 57, .10, 1871, 9999],
-    ['Congo', 63, .15, 1934, 9999], ['Costa Rica', 55, .15, 1890, 9999], ['Croatia', 98, .60, 1862, 9999],
-    ['Cuba', 78, .40, 1837, 9999], ['Cyprus', 76, 0, 9999, 9999], ['Czechia', 98, .90, 1839, 9999],
+    ['Congo', 63, .15, 1934, 9999], ['Costa Rica', 55, .15, 1890, 9999], ['Croatia', 98, 0.5, 1862, 9999],
+    ['Cuba', 78, .40, 1837, 9999], ['Cyprus', 76, 0, 9999, 9999], ['Czechia', 98, 0.7, 1839, 9999],
     ["Côte d'Ivoire", 62, .20, 1904, 9999], ['Dem. Rep. Congo', 62, .10, 1898, 9999], ['Denmark', 78, .85, 1847, 9999],
     ['Djibouti', 69, .20, 1917, 9999], ['Dominican Rep.', 74, .05, 1887, 9999], ['Ecuador', 60, .05, 1873, 9999],
     ['Egypt', 83, .60, 1854, 9999], ['El Salvador', 56, .02, 1882, 9999], ['Eq. Guinea', 74, 0, 9999, 9999],
@@ -256,11 +255,11 @@ window.ISO = (function () {
     ['Ghana', 56, .15, 1898, 9999], ['Greece', 93, .50, 1869, 9999], ['Greenland', 35, 0, 9999, 9999],
     ['Guatemala', 53, .02, 1884, 9999], ['Guinea', 50, .10, 1904, 9999], ['Guinea-Bissau', 60, 0, 9999, 9999],
     ['Guyana', 59, .02, 1848, 9999], ['Haiti', 41, 0, 9999, 9999], ['Honduras', 56, .02, 1870, 9999],
-    ['Hungary', 96, .80, 1846, 9999], ['Iceland', 77, 0, 9999, 9999], ['India', 58, .80, 1853, 9999],
-    ['Indonesia', 55, .30, 1867, 2023], ['Iran', 94, .50, 1888, 9999], ['Iraq', 79, .20, 1914, 9999],
+    ['Hungary', 96, 0.7, 1846, 9999], ['Iceland', 77, 0, 9999, 9999], ['India', 58, 0.75, 1853, 9999],
+    ['Indonesia', 55, 0.7, 1867, 2023], ['Iran', 94, .50, 1888, 9999], ['Iraq', 79, .20, 1914, 9999],
     ['Ireland', 88, .65, 1834, 9999], ['Israel', 84, .70, 1892, 9999], ['Italy', 95, .85, 1839, 1988],
     ['Jamaica', 61, .02, 1845, 9999], ['Japan', 81, 1.0, 1872, 1964], ['Jordan', 77, .10, 1904, 9999],
-    ['Kazakhstan', 72, .55, 1901, 9999], ['Kenya', 57, .35, 1896, 9999], ['Kosovo', 65, .35, 1874, 9999],
+    ['Kazakhstan', 72, .55, 1901, 9999], ['Kenya', 57, 0.5, 1896, 9999], ['Kosovo', 65, .35, 1874, 9999],
     ['Kuwait', 85, 0, 9999, 9999], ['Kyrgyzstan', 61, .15, 1924, 9999], ['Laos', 60, .20, 2009, 9999],
     ['Latvia', 77, .55, 1861, 9999], ['Lebanon', 60, 0, 9999, 9999], ['Lesotho', 60, .05, 1905, 9999],
     ['Liberia', 66, .05, 1951, 9999], ['Libya', 90, 0, 9999, 9999], ['Lithuania', 89, .60, 1860, 9999],
@@ -275,19 +274,19 @@ window.ISO = (function () {
     ['Norway', 73, .70, 1854, 9999], ['Oman', 102, .05, 9999, 9999], ['Pakistan', 86, .45, 1861, 9999],
     ['Palestine', 60, 0, 9999, 9999], ['Panama', 72, .10, 1855, 9999], ['Papua New Guinea', 59, 0, 9999, 9999],
     ['Paraguay', 67, .02, 1861, 9999], ['Peru', 62, .15, 1851, 9999], ['Philippines', 52, .05, 1892, 9999],
-    ['Poland', 92, .80, 1842, 2014], ['Portugal', 106, .75, 1856, 9999], ['Puerto Rico', 78, .05, 1891, 9999],
-    ['Qatar', 82, .20, 2019, 9999], ['Romania', 73, .65, 1854, 9999], ['Russia', 76, .70, 1837, 2009],
-    ['Rwanda', 47, 0, 9999, 9999], ['S. Sudan', 59, .05, 1962, 9999], ['Saudi Arabia', 106, .40, 1951, 2018],
-    ['Senegal', 71, .15, 1885, 9999], ['Serbia', 94, .50, 1884, 9999], ['Sierra Leone', 64, .02, 1896, 9999],
-    ['Slovakia', 93, .80, 1840, 9999], ['Slovenia', 90, .75, 1846, 9999], ['Solomon Is.', 45, 0, 9999, 9999],
+    ['Poland', 92, 0.75, 1842, 2014], ['Portugal', 106, 0.7, 1856, 9999], ['Puerto Rico', 78, .05, 1891, 9999],
+    ['Qatar', 82, .20, 2019, 9999], ['Romania', 73, 0.4, 1854, 9999], ['Russia', 76, .70, 1837, 2009],
+    ['Rwanda', 47, 0, 9999, 9999], ['S. Sudan', 59, .05, 1962, 9999], ['Saudi Arabia', 106, 0.6, 1951, 2018],
+    ['Senegal', 71, .15, 1885, 9999], ['Serbia', 94, 0.45, 1884, 9999], ['Sierra Leone', 64, .02, 1896, 9999],
+    ['Slovakia', 93, 0.65, 1840, 9999], ['Slovenia', 90, 0.55, 1846, 9999], ['Solomon Is.', 45, 0, 9999, 9999],
     ['Somalia', 58, 0, 9999, 9999], ['Somaliland', 58, 0, 9999, 9999], ['South Africa', 100, .60, 1860, 9999],
     ['South Korea', 93, .90, 1899, 2004], ['Spain', 103, .85, 1848, 1992], ['Sri Lanka', 50, .40, 1864, 9999],
     ['Sudan', 72, .15, 1875, 9999], ['Suriname', 65, .02, 1903, 9999], ['Sweden', 94, .80, 1856, 1990],
-    ['Switzerland', 87, 1.0, 1847, 2007], ['Syria', 72, .10, 1895, 9999], ['Taiwan', 91, .85, 1891, 2007],
-    ['Tajikistan', 52, .20, 1929, 9999], ['Tanzania', 57, .30, 1893, 9999], ['Thailand', 77, .40, 1893, 9999],
+    ['Switzerland', 87, .9, 1847, 2007], ['Syria', 72, .10, 1895, 9999], ['Taiwan', 91, .85, 1891, 2007],
+    ['Tajikistan', 52, .20, 1929, 9999], ['Tanzania', 57, .30, 1893, 9999], ['Thailand', 77, 0.65, 1893, 9999],
     ['Timor-Leste', 40, 0, 9999, 9999], ['Togo', 63, .10, 1905, 9999], ['Trinidad and Tobago', 51, 0, 9999, 9999],
     ['Tunisia', 78, .50, 1872, 9999], ['Turkey', 93, .60, 1860, 2009], ['Turkmenistan', 79, .40, 1888, 9999],
-    ['Uganda', 64, .15, 1901, 9999], ['Ukraine', 75, .70, 1861, 9999], ['United Arab Emirates', 80, .30, 2016, 9999],
+    ['Uganda', 64, .15, 1901, 9999], ['Ukraine', 75, 0.8, 1861, 9999], ['United Arab Emirates', 80, .30, 2016, 9999],
     ['United Kingdom', 87, .90, 1825, 2003], ['United States of America', 107, .35, 1830, 2000],
     ['Uruguay', 82, .25, 1869, 9999], ['Uzbekistan', 71, .55, 1888, 2011], ['Vanuatu', 45, 0, 9999, 9999],
     ['Venezuela', 83, .10, 1877, 9999], ['Vietnam', 51, .35, 1885, 9999], ['W. Sahara', 80, 0, 9999, 9999],
@@ -337,14 +336,29 @@ window.ISO = (function () {
     { n: 'Phoenix, McMurdo',          lon: 166.75, lat: -77.95, y: 2016 }
   ];
 
+  /* Drawn portal to portal. The Channel Tunnel used to run from [1.5,50.9] to
+     [1.9,51.1], which is a line parallel to the French coast in open water:
+     it bridged one of the four sea cells between Folkestone and Coquelles and
+     every train to London went by ferry. Links marked rail carry the trunk
+     network across, so a train uses them at line speed. */
   const FIXED_LINKS = [
-    { name: 'Channel Tunnel', year: 1994, pts: [[1.5, 50.9], [1.9, 51.1]] },
-    { name: 'Great Belt & Øresund', year: 1998, pts: [[10.9, 55.6], [11.0, 56.5], [12.7, 55.9]] },
-    { name: 'Bosphorus bridges', year: 1973, pts: [[29.0, 41.15], [28.9, 40.9]] },
-    { name: 'Kanmon Tunnel', year: 1942, pts: [[130.95, 33.95]] },
-    { name: 'Seikan Tunnel', year: 1988, pts: [[140.5, 41.6]] },
-    { name: 'King Fahd Causeway', year: 1986, pts: [[50.3, 26.2]] }
+    { name: 'Channel Tunnel', year: 1994, rail: 1, wait: 0.6, pts: [[1.17, 51.10], [1.81, 50.92]] },   // check-in and passports
+    { name: 'Great Belt', year: 1997, rail: 1, pts: [[10.75, 55.31], [11.15, 55.35]] },
+    { name: 'Øresund', year: 2000, rail: 1, pts: [[12.62, 55.64], [13.00, 55.58]] },
+    { name: 'Bosphorus bridges', year: 1973, pts: [[28.98, 41.05], [29.06, 41.05]] },
+    { name: 'Kanmon Tunnel', year: 1942, rail: 1, pts: [[130.90, 33.94], [130.98, 33.96]] },
+    { name: 'Seikan Tunnel', year: 1988, rail: 1, pts: [[140.35, 41.25], [140.35, 41.72]] },
+    { name: 'King Fahd Causeway', year: 1986, pts: [[50.10, 26.20], [50.50, 26.22]] }
   ];
+
+  /* Getting to the station, buying the ticket, waiting for the train: paid
+     once, on boarding the first train of a journey, and a little again on
+     alighting. Hours. */
+  const RAIL_BOARD = [0, 1.0, 0.75, 0.6, 0.6, 0.5, 0.5, 0.5];
+  const RAIL_ALIGHT = 0.15;
+  /* crossing a frontier by rail: customs and a change of carriage in 1850,
+     passports until the 1970s, today mostly a change of train or operator */
+  const RAIL_BORDER = [0, 1.0, 0.75, 0.75, 0.75, 0.5, 0.4, 0.4];
 
   /* --- water that the coarse grid would otherwise close up -------------
      The Bering Strait is 82 km wide and rasterises shut, land-bridging Asia
@@ -438,24 +452,6 @@ window.ISO = (function () {
   ];
 
   /* --- high-speed rail -------------------------------------------------- */
-  const HSR_LINES = [
-    [[139.7, 35.7], [137, 35.2], [135.5, 34.7], [132.5, 34.4], [130.4, 33.6]],
-    [[139.7, 35.7], [140.9, 38.3], [141.3, 43.1]],
-    [[-3.7, 40.4], [0.6, 41.1], [2.2, 41.4], [3.1, 43.2], [5.4, 43.3], [4.8, 45.7], [2.35, 48.9]],
-    [[-3.7, 40.4], [-4.7, 38.0], [-5.98, 37.4]],
-    [[2.35, 48.9], [4.35, 50.85], [4.9, 52.4]], [[2.35, 48.9], [-0.13, 51.5]],
-    [[2.35, 48.9], [-1.55, 47.2]], [[2.35, 48.9], [-0.58, 44.84]],
-    [[4.35, 50.85], [6.9, 50.9], [8.6, 50.1], [9.2, 48.8], [11.6, 48.1], [13.4, 52.5]],
-    [[9.2, 45.5], [11.3, 44.5], [12.5, 41.9], [14.3, 40.85]],
-    [[126.98, 37.57], [127.4, 36.3], [128.6, 35.87], [129.05, 35.18]],
-    [[121.5, 25.05], [120.7, 24.15], [120.3, 22.6]],
-    [[29.0, 41.0], [30.5, 40.2], [32.9, 39.9]],
-    [[-5.8, 35.8], [-6.3, 34.7], [-7.6, 33.6]],
-    [[39.2, 21.5], [39.8, 21.4], [39.6, 24.5]],
-    [[-71.06, 42.36], [-74.01, 40.71], [-75.16, 39.95], [-77.04, 38.91]],
-    [[37.62, 55.75], [34.3, 57.0], [30.31, 59.94]]
-  ];
-  const HSR_REGIONS = [[103, 22, 122, 41, 2015]];
 
   /* --- cities: [name, lon, lat, rank, airEraIndex|0] -------------------
      rank 0 = always labelled, 1 = labelled when zoomed, 2 = dot only     */
@@ -572,8 +568,8 @@ window.ISO = (function () {
 
   return {
     ERAS, MODES, SEA_TINT, SEA_MIX, PALETTES, FIELD_ALPHA, SATURATE, LINE_WIDTH, LINE_STRENGTH, BEYOND_ALPHA, WATER, WATER_SCHEDULED, FERRY, ICE_WATER, RIVER, PORT_H, RAIL, HSR,
-    HSR_NET_BONUS, ROAD_CIRC, RAIL_CIRC, RIVER_CIRC, ROAD_EXP, ROAD_REF, TERRAIN_MUL, AIR, AIR_RANK, COUNTRY_RAW, RAIL_HIST, RAINFOREST,
+    ROAD_CIRC, RAIL_CIRC, RIVER_CIRC, ROAD_EXP, ROAD_REF, TERRAIN_MUL, AIR, AIR_RANK, COUNTRY_RAW, RAIL_HIST, RAINFOREST,
     CLASS_MUL, NET_W, BIKE_MUL, FOOT_MUL, RAIL_MAIN, RAIL_BRANCH, ANTARCTIC_AIR, STRAITS, WATER_CUTS, FERRY_ROUTES, FERRY_PORT, SEA_DUTY, FIXED_LINKS, CANALS, RIVERS,
-    RAIL_LINES, HSR_LINES, HSR_REGIONS, CITIES, LANDMARKS, LADDERS, RAMP
+    RAIL_LINES, RAIL_BOARD, RAIL_ALIGHT, RAIL_BORDER, CITIES, LANDMARKS, LADDERS, RAMP
   };
 })();
