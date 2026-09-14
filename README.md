@@ -20,6 +20,18 @@ as it stands.
 - Five colour schemes, one of them taken from Galton's own hand-tinted green,
   yellow, pink, blue and brown plate.
 
+## On a phone
+
+Below 820px the panel becomes a sheet at the foot of the screen, and the era
+axis moves inside it, so only one thing ever covers the globe. It rests
+showing the place, the means of travel and the years, and is dragged up for
+the scale, the colours, the journey table and the method.
+
+One finger turns the globe and two pinch it. A touch screen has no hover, so a
+tap pins the time to that place with the choice of starting again from there,
+and a double tap zooms in. A phone held on its side keeps the side panel
+instead: a sheet would leave the globe no height.
+
 ## How it works
 
 Earth is laid on a 0.25° grid of 1,036,800 cells. Every cell carries the road

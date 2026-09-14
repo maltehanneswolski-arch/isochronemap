@@ -407,7 +407,7 @@
     cancelLookahead();
     const { lon, lat } = S.origin, mi = S.mode;
     const jobs = [];
-    for (const d of [1, -1, 2, -2]) {          // the years either side first
+    for (const d of (S.mobile ? [1, -1] : [1, -1, 2, -2])) {          // the years either side first
       const e = S.era + d;
       if (e >= 0 && e < D.ERAS.length && D.MODES[mi].since <= e) jobs.push([lon, lat, mi, e]);
     }
@@ -532,21 +532,54 @@
 
   function stageSize() {
     DPR = Math.min(2, window.devicePixelRatio || 1);
-    Wc = window.innerWidth; Hc = window.innerHeight;
+    const de = document.documentElement;
+    Wc = de.clientWidth || window.innerWidth;
+    Hc = de.clientHeight || window.innerHeight;
     for (const c of [sky, cv]) { c.width = Wc * DPR; c.height = Hc * DPR; }
     skyC.setTransform(DPR, 0, 0, DPR, 0, 0);
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    // the panel occupies the right edge, so centre the globe in what is left
-    const gutter = Wc > 980 ? 302 : 0;
-    cx = (Wc - gutter) * 0.5; cy = Hc * (Wc > 980 ? 0.5 : 0.42);
-    const fit = Math.min((Wc - gutter) * 0.88, Hc * 0.84) / 2;
+
+    /* Under 820px the panel becomes a sheet along the bottom and the era axis
+       moves inside it, so the globe has the whole screen above it. */
+    /* A phone held on its side has room across but none down, so it keeps the
+       side panel rather than a sheet. */
+    const mob = Wc <= 820 && Hc >= 480;
+    if (mob !== S.mobile) {
+      S.mobile = mob;
+      document.body.classList.toggle('mobile', mob);
+      const tl = $('timeline'), pn = $('panel');
+      if (mob) pn.appendChild(tl); else document.body.appendChild(tl);
+      if (!mob) document.body.classList.remove('sheet-open');
+    }
+    const peek = mob ? sheetPeek() : 0;
+
+    // the panel holds the right edge at every width above the sheet, so the
+    // globe is centred in what is left of the screen
+    const gutter = mob ? 0 : (Wc > 1140 ? 302 : 284);
+    const foot = mob || Hc > 620 ? 0 : 86;     // on a short screen the axis is in the way
+    cx = (Wc - gutter) * 0.5;
+    const head = mob ? 54 : 0;                 // the masthead sits in this strip
+    cy = mob ? head + (Hc - peek - head) * 0.5 : (Hc - foot) * 0.5;
+    const fit = mob ? Math.min(Wc * 0.96, (Hc - peek - head) * 0.96) / 2
+                    : Math.min((Wc - gutter) * 0.88, (Hc - foot) * 0.84) / 2;
     if (!S.fitted) { S.scale = fit; S.fitted = true; }
     else S.scale = Math.max(fit * 0.78, Math.min(S.scale, fit * 12));
     S.fit = fit;
-    // in the bottom-bar layout the picker has no room to fold, so keep it open
-    const t = $('travel');
-    if (t) t.open = Wc <= 980 ? true : t.open;
     drawSky(); S.tKey = ''; draw();
+  }
+
+  /* How much of the sheet stays on screen when it is down: the handle, the
+     place, the means of travel and the years. Measured rather than guessed,
+     because the type reflows at narrow widths. */
+  function sheetPeek() {
+    const pn = $('panel'), tl = $('timeline');
+    if (!tl || tl.parentNode !== pn) return 188;
+    const top = pn.getBoundingClientRect().top;
+    const h = Math.round(tl.getBoundingClientRect().bottom - top + 16);
+    const peek = Math.max(120, Math.min(h, Math.round(Hc * 0.42)));
+    pn.style.setProperty('--peek', peek + 'px');
+    S.peekPx = peek;
+    return peek;
   }
 
   function drawSky() {
@@ -1404,6 +1437,7 @@
       S.mode = +b.dataset.m;
       $('travel').open = false;               // fold back to the one in use
       syncControls(); recompute(true);
+      if (S.mobile) document.body.classList.remove('sheet-open');
     });
   }
   function buildEras() {
@@ -1430,7 +1464,10 @@
       b.innerHTML = '<div class="tick"></div><div class="yr">' + e.y + '</div>' +
         '<div class="tag">' + e.tag + '</div>';
       b.title = e.y + ' — ' + e.tag;
-      b.addEventListener('click', () => { S.era = k; syncControls(); recompute(true); });
+      b.addEventListener('click', () => {
+        S.era = k; syncControls(); recompute(true);
+        if (S.mobile) document.body.classList.remove('sheet-open');
+      });
       ax.appendChild(b);
     });
   }
@@ -1467,35 +1504,75 @@
     return [lon, lat];
   }
 
-  let down = null, moved = 0, dragRaf = 0;
+  /* One finger turns the globe, two pinch it. A mouse gets the same from a
+     drag and the wheel. Touch needs a slacker slop before a press counts as a
+     drag, because a finger never lands still. */
+  let down = null, moved = 0, dragRaf = 0, pinch = null, lastTap = 0;
+  const pointers = new Map();
+  const redraw = () => { if (!dragRaf) dragRaf = requestAnimationFrame(() => { dragRaf = 0; draw(); }); };
+  const zoomTo = k => {
+    const fit = S.fit || 300;
+    S.scale = Math.max(fit * .78, Math.min(fit * 12, k));
+    S.tKey = ''; interacting(); redraw();
+  };
+  const spread = () => {
+    const [a, b] = [...pointers.values()];
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  };
+
   cv.addEventListener('pointerdown', e => {
-    down = { x: e.clientX, y: e.clientY, rl: S.rotL, rp: S.rotP };
-    moved = 0; S.dragging = false;
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     cv.setPointerCapture(e.pointerId);
+    if (pointers.size === 2) {
+      pinch = { d: spread(), s: S.scale };
+      down = null;                                   // no rotating mid-pinch
+      $('tip').hidden = true;
+      return;
+    }
+    if (pointers.size > 2) return;
+    down = { x: e.clientX, y: e.clientY, rl: S.rotL, rp: S.rotP, touch: e.pointerType !== 'mouse' };
+    moved = 0; S.dragging = false;
   });
+
   cv.addEventListener('pointermove', e => {
+    if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch && pointers.size >= 2) {
+      const d = spread();
+      if (pinch.d > 8) zoomTo(pinch.s * d / pinch.d);
+      return;
+    }
     if (down) {
       const dx = e.clientX - down.x, dy = e.clientY - down.y;
       moved = Math.max(moved, Math.hypot(dx, dy));
-      if (moved > 3) {
-        if (!S.dragging) { S.dragging = true; cv.classList.add('dragging'); $('tip').hidden = true; }
+      if (moved > (down.touch ? 9 : 3)) {
+        if (!S.dragging) { S.dragging = true; cv.classList.add('dragging'); unpinTip(); }
         const k = 130 / S.scale;
         S.rotL = down.rl + dx * k;
         S.rotP = Math.max(-90, Math.min(90, down.rp - dy * k));
         S.tKey = '';
         // a pointer can fire far faster than the screen refreshes; coalesce
         interacting();
-        if (!dragRaf) dragRaf = requestAnimationFrame(() => { dragRaf = 0; draw(); });
+        redraw();
       }
       return;
     }
-    hover(e.clientX, e.clientY);
+    if (e.pointerType === 'mouse') hover(e.clientX, e.clientY);
   });
-  cv.addEventListener('pointerup', e => {
+
+  const release = e => {
+    pointers.delete(e.pointerId);
+    if (pointers.size < 2) pinch = null;
     const wasDrag = S.dragging;
-    if (down && !wasDrag && moved <= 3) {
+    if (down && !wasDrag && moved <= (down.touch ? 9 : 3)) {
       const ll = screenToLonLat(e.clientX, e.clientY);
-      if (ll) setOrigin(ll[0], ll[1]);
+      if (ll) {
+        if (!down.touch) setOrigin(ll[0], ll[1]);
+        else {
+          const now = performance.now();
+          if (now - lastTap < 320) { lastTap = 0; zoomTo(S.scale * 1.7); unpinTip(); }
+          else { lastTap = now; hover(e.clientX, e.clientY, ll); }
+        }
+      }
     }
     down = null;
     if (wasDrag) {
@@ -1503,32 +1580,53 @@
       S.dragging = false; cv.classList.remove('dragging');
       draw();
     }
-  });
-  cv.addEventListener('pointerleave', () => { $('tip').hidden = true; });
+  };
+  cv.addEventListener('pointerup', release);
+  cv.addEventListener('pointercancel', release);
+  cv.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') $('tip').hidden = true; });
   cv.addEventListener('wheel', e => {
     e.preventDefault();
-    const fit = S.fit || 300;
-    S.scale = Math.max(fit * .78, Math.min(fit * 12, S.scale * (e.deltaY < 0 ? 1.15 : 1 / 1.15)));
-    S.tKey = '';
-    interacting();
-    if (!dragRaf) dragRaf = requestAnimationFrame(() => { dragRaf = 0; draw(); });
+    zoomTo(S.scale * (e.deltaY < 0 ? 1.15 : 1 / 1.15));
   }, { passive: false });
+  cv.addEventListener('dblclick', e => e.preventDefault());
 
-  function hover(sx, sy) {
-    const tip = $('tip');
-    const ll = screenToLonLat(sx, sy);
-    if (!ll || !S.field) { tip.hidden = true; return; }
+  /* On a mouse this follows the cursor. On a touch screen there is no hover,
+     so a tap pins it instead: the time to that place, and the choice of
+     starting again from there. Without it a phone could read no time at all
+     except by moving the origin. */
+  function hover(sx, sy, ll) {
+    const tip = $('tip'), pin = !!ll;
+    ll = ll || screenToLonLat(sx, sy);
+    if (!ll || !S.field) { unpinTip(); return; }
     const c = nearestPlace(ll[0], ll[1], 14000 / S.scale * 9);
     const lon = c ? c.lon : ll[0], lat = c ? c.lat : ll[1];
     const t = timeAt(S.field, lon, lat);
     const k = countryAt(lon, lat);
     const name = c ? c.n : (k >= 0 ? cName[k] : 'Open sea');
-    tip.innerHTML = '<b>' + name + '</b><span>' + fmtDur(t) + '</span>';
-    tip.style.left = sx + 'px'; tip.style.top = sy + 'px';
+    tip.innerHTML = '<b>' + name + '</b><span>' + fmtDur(t) + '</span>' +
+      (pin ? '<button type="button" data-go>Start here</button>' : '');
+    tip.classList.toggle('pin', pin);
+    const below = sy < 120;
+    tip.classList.toggle('below', below);
+    tip.style.left = Math.max(92, Math.min(Wc - 92, sx)) + 'px';
+    tip.style.top = sy + 'px';
     tip.hidden = false;
+    if (pin) tipAt = [lon, lat];
   }
+  let tipAt = null;
+  function unpinTip() {
+    const tip = $('tip');
+    tip.hidden = true; tip.classList.remove('pin', 'below'); tipAt = null;
+  }
+  $('tip').addEventListener('click', e => {
+    if (!e.target.closest('[data-go]') || !tipAt) return;
+    const [lon, lat] = tipAt;
+    unpinTip();
+    setOrigin(lon, lat);
+  });
 
   function setOrigin(lon, lat, name, recentre) {
+    unpinTip();
     const c = name ? null : nearestPlace(lon, lat, 120);
     S.origin = { lon: c ? c.lon : lon, lat: c ? c.lat : lat, name: name || (c ? c.n : coordName(lon, lat)) };
     if (recentre) { S.rotL = -S.origin.lon; S.rotP = -S.origin.lat; S.tKey = ''; }
@@ -1593,6 +1691,56 @@
     });
   }
 
+  /* ================= the sheet, on a phone =================
+     It rests at the peek height and is dragged or tapped up. Dragging tracks
+     the finger so it never feels like a button that happens to animate. */
+  function setupSheet() {
+    const pn = $('panel'), gb = $('grab');
+    const openSheet = v => {
+      document.body.classList.toggle('sheet-open', v);
+      if (v) unpinTip(); else pn.scrollTop = 0;
+    };
+    let g = null;
+    // the handle, the place and its coordinates all take the drag
+    const onHandle = t => t === gb || t.id === 'originName' || t.id === 'originCoord';
+    pn.addEventListener('pointerdown', e => {
+      if (!S.mobile || !onHandle(e.target)) return;
+      g = { y: e.clientY, open: document.body.classList.contains('sheet-open'), moved: 0 };
+      gb.setPointerCapture(e.pointerId);
+      pn.classList.add('dragging');
+      unpinTip();
+    });
+    gb.addEventListener('pointermove', e => {
+      if (!g) return;
+      const dy = e.clientY - g.y;
+      g.moved = Math.max(g.moved, Math.abs(dy));
+      const rest = g.open ? 0 : pn.offsetHeight - (S.peekPx || 188);
+      const y = Math.max(0, Math.min(pn.offsetHeight - 40, rest + dy));
+      pn.style.transform = 'translateY(' + y + 'px)';
+    });
+    const end = () => {
+      if (!g) return;
+      pn.classList.remove('dragging');
+      pn.style.transform = '';
+      const m = g.moved, was = g.open;
+      g = null;
+      if (m < 6) openSheet(!was);                      // a tap toggles
+      else openSheet(was ? m < 70 : m > 44);           // a drag goes where it was headed
+    };
+    gb.addEventListener('pointerup', end);
+    gb.addEventListener('pointercancel', end);
+    gb.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault(); openSheet(!document.body.classList.contains('sheet-open'));
+      }
+    });
+
+    // reaching for the globe puts the sheet away
+    cv.addEventListener('pointerdown', () => {
+      if (S.mobile && document.body.classList.contains('sheet-open')) openSheet(false);
+    }, true);
+  }
+
   /* ================= boot ================= */
   function boot() {
     const msg = $('bootMsg');
@@ -1611,7 +1759,14 @@
       msg.textContent = 'finding every route…';
       buildModes(); buildEras(); buildSearch(); buildPalettes();
       syncControls();
-      window.addEventListener('resize', stageSize);
+      /* A phone fires resize for every pixel the address bar slides, and a
+         full redraw is far too expensive to run on each one. */
+      let rt = 0;
+      const scheduleSize = () => { clearTimeout(rt); rt = setTimeout(stageSize, 90); };
+      window.addEventListener('resize', scheduleSize);
+      window.addEventListener('orientationchange', () => setTimeout(stageSize, 220));
+      if (window.visualViewport) window.visualViewport.addEventListener('resize', scheduleSize);
+      setupSheet();
       if (window.ResizeObserver) {
         let t = 0;
         new ResizeObserver(() => { clearTimeout(t); t = setTimeout(stageSize, 80); })

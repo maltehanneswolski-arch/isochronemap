@@ -1,4 +1,5 @@
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500;6..96,600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <title>Isochronic Globe</title>
 <style>
@@ -200,21 +201,14 @@ details a:hover{color:var(--line-lit);border-bottom-color:var(--line-lit)}
 #tip b{display:block;font-family:var(--font-s);font-size:12px;font-weight:500;color:#F2F5FA}
 #tip span{color:var(--hot)}
 #tip em{font-style:normal;color:var(--text-faint)}
-
-/* ---------- search ---------- */
-#find{position:fixed;z-index:6;left:22px;bottom:22px;width:214px}
-#findInput{
-  width:100%;padding:8px 10px;background:var(--panel);border:1px solid var(--rule);
-  color:var(--text);font-family:var(--font-s);font-size:12px;
-  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-}
-#findInput::placeholder{color:var(--text-faint)}
-#findList{list-style:none;margin:0;padding:0;position:absolute;bottom:100%;left:0;right:0;
-  background:var(--panel-solid);border:1px solid var(--rule);border-bottom:none;
-  max-height:212px;overflow-y:auto}
-#findList li{padding:6px 10px;font-size:12px;cursor:pointer;color:var(--text-dim)}
-#findList li:hover,#findList li.on{background:rgba(200,214,235,.12);color:var(--text)}
-#findList:empty{display:none}
+#tip.below{transform:translate(-50%,13px)}
+#tip.pin{pointer-events:auto}
+#tip button{display:block;width:100%;margin-top:8px;padding:8px 10px;
+  border:1px solid var(--line-dim);background:rgba(200,214,235,.12);
+  font-family:var(--font-s);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  font-weight:600;color:var(--head)}
+#tip button:active{background:rgba(200,214,235,.22)}
+#grab{display:none}
 
 /* ---------- boot ---------- */
 #boot{position:fixed;inset:0;z-index:20;display:grid;place-items:center;
@@ -225,37 +219,91 @@ details a:hover{color:var(--line-lit);border-bottom-color:var(--line-lit)}
 #boot small{font-family:var(--font-m);font-size:11px;color:var(--text-faint);letter-spacing:.06em}
 
 @media (max-width:1140px){
-  #readout{width:252px}
-  #timeline{width:min(560px,calc(100vw - 540px));padding:13px 20px 10px}
+  #panel{width:262px}
+  #timeline{padding:12px 26px 9px}
 }
-@media (max-width:980px){
-  #brand{max-width:none;top:14px;left:14px}
-  #brand h1{font-size:22px} #brand p,#brand .rule{display:none}
-  #panel{top:auto;bottom:86px;left:14px;right:14px;width:auto;max-height:none;padding:8px}
-  #panel #originName{display:inline-block;font-size:16px;margin:0 10px 0 0;vertical-align:middle}
-  #panel #originCoord,#travelNow,#paletteName,#modeNote,#solveNote{display:none}
-  #panel .sect,#panel>details:not(#travel){display:none}
-  #findInput{display:inline-block;width:170px;vertical-align:middle}
-  #findList{position:absolute;bottom:100%;left:8px;width:220px}
-  #travel{margin-top:7px;border-top:none;padding-top:0}
-  #modeList{display:flex;gap:3px}
-  .mode{grid-template-columns:1fr;justify-items:center;gap:2px;padding:5px 2px;flex:1;min-width:0}
-  .mode span{display:none}
-  .mode b{font-size:9.5px;text-align:center;line-height:1.15}
-  #paletteWrap{margin:7px 2px 0}
-  #palette button i{height:9px}
-  #timeline{left:14px;right:14px;bottom:14px;padding:8px 16px 4px}
-  #timeline .eyebrow{display:none}
-  #axis{height:34px}
-  .era .tag{display:none}
-  .era .yr{font-size:10px}
+/* ================= phones and small tablets =================
+   Below 820px the panel becomes a sheet at the foot of the screen. It rests
+   at a peek height showing the place, the means of travel and the years, and
+   is dragged up for everything else. The era axis moves inside it, so there
+   is only ever one thing covering the globe. */
+body.mobile{overscroll-behavior:none}
+body.mobile #brand{top:calc(11px + env(safe-area-inset-top));left:calc(15px + env(safe-area-inset-left));
+  max-width:none}
+body.mobile #brand h1{font-size:19px;margin-bottom:0}
+body.mobile #brand .rule,body.mobile #brand p{display:none}
+
+body.mobile #panel{
+  top:auto;left:0;right:0;bottom:0;width:auto;z-index:8;
+  height:86vh; height:86dvh; max-height:none;
+  padding:0 15px calc(16px + env(safe-area-inset-bottom));
+  border-left:none;border-right:none;border-bottom:none;border-radius:15px 15px 0 0;
+  background:rgba(8,12,20,.93);
+  display:flex;flex-direction:column;align-items:stretch;
+  overflow:hidden;overscroll-behavior:contain;
+  transform:translateY(calc(100% - var(--peek,188px)));
+  transition:transform .34s cubic-bezier(.32,.72,0,1);
+  box-shadow:0 -14px 40px rgba(0,0,0,.55);
 }
-@media (max-width:600px){
-  .mode b{display:none}
-  .mode svg{width:21px;height:17px}
-  #panel #originName{font-size:14px}
-  #findInput{width:120px}
+body.mobile.sheet-open #panel{transform:translateY(0);overflow-y:auto}
+body.mobile #panel.dragging{transition:none}
+
+body.mobile #grab{
+  display:block;order:0;flex:none;position:sticky;top:0;z-index:2;
+  margin:0 -15px;padding:10px 0 8px;touch-action:none;
+  background:linear-gradient(rgba(8,12,20,.98) 72%,rgba(8,12,20,0));
 }
+body.mobile #grab::before{content:"";display:block;width:34px;height:4px;border-radius:2px;
+  background:var(--rule-soft);margin:0 auto}
+body.mobile.sheet-open #grab::before{background:var(--rule)}
+
+body.mobile #originName{order:1;flex:none;font-size:22px;margin:1px 0 2px;touch-action:none}
+body.mobile #originCoord{order:2;flex:none;touch-action:none}
+body.mobile #travel{order:3;flex:none;margin-top:11px;border-top:none;padding-top:0}
+body.mobile #timeline{order:4;flex:none;position:static;padding:12px 0 0;margin:0;
+  background:none;border:none;backdrop-filter:none;-webkit-backdrop-filter:none;width:auto}
+body.mobile #findInput{order:5;flex:none;margin-top:16px}
+body.mobile #findList{order:6;flex:none}
+body.mobile .sect{order:7;flex:none}
+body.mobile #paletteWrap{order:8;flex:none}
+body.mobile #detail{order:9;flex:none}
+body.mobile #panel>details:last-of-type{order:10;flex:none}
+body.mobile #solveNote{order:11;flex:none;margin-bottom:4px}
+
+/* the era axis, as a row of chips */
+body.mobile #timeline .eyebrow{display:none}
+body.mobile #axis{height:auto;display:flex;gap:3px}
+body.mobile #axis .track,body.mobile #axis .fill,body.mobile #axis .brk{display:none}
+body.mobile .era{position:static;transform:none;flex:1 1 0;min-width:0;padding:9px 0 8px;
+  border:1px solid var(--rule-soft);background:rgba(255,255,255,.02)}
+body.mobile .era .tick,body.mobile .era .tag{display:none}
+body.mobile .era .yr{font-size:11px;margin:0}
+body.mobile .era[aria-pressed="true"]{background:rgba(200,214,235,.13);border-color:var(--line-dim)}
+
+/* means of travel: the one in use, opening to a grid of six */
+body.mobile #travelNow{padding:10px 11px}
+body.mobile #travelNow b{font-size:13.5px}
+body.mobile #modeList{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:5px}
+body.mobile .mode{grid-template-columns:1fr;justify-items:center;text-align:center;
+  gap:5px;padding:11px 4px;border-color:var(--rule-soft);background:rgba(255,255,255,.02)}
+body.mobile .mode+.mode{margin-top:0}
+body.mobile .mode b{font-size:10.5px;line-height:1.2}
+body.mobile .mode [data-v]{display:none}
+body.mobile #modeNote{margin-top:7px}
+
+/* everything below the fold gets a little more room for a thumb */
+body.mobile summary{padding:4px 0}
+body.mobile #findInput,body.mobile #findList li{font-size:16px;padding:10px 11px}
+body.mobile #palette button i{height:17px}
+body.mobile .stat b{font-size:19px}
+body.mobile #tip{max-width:min(78vw,260px);white-space:normal}
+
+@media (max-width:360px){
+  body.mobile .era .yr{font-size:10px}
+  body.mobile .mode b{font-size:9.5px}
+  body.mobile #originName{font-size:19px}
+}
+
 @media (prefers-reduced-motion:reduce){*{transition-duration:.01ms !important}}
 </style>
 
@@ -272,6 +320,7 @@ details a:hover{color:var(--line-lit);border-bottom-color:var(--line-lit)}
 
 
 <aside id="panel" class="panel" aria-live="polite">
+  <div id="grab" role="button" tabindex="0" aria-label="Expand the panel"></div>
   <input id="findInput" type="text" placeholder="Search a city&hellip;" autocomplete="off"
          spellcheck="false" aria-label="Search a city">
   <ul id="findList"></ul>
