@@ -28,6 +28,12 @@ then solves for the quickest possible route through that grid — a least-cost
 path, the same method [Weiss et al. (2018, *Nature*)](https://www.nature.com/articles/nature25181)
 use for their global friction surface — with Dial's bucketed Dijkstra.
 
+The band field is drawn by a **WebGL2 fragment shader**: the solved grid is
+uploaded once as a texture and the GPU does the sphere projection per pixel, so
+the globe stays at full resolution while it turns. Isochrone lines use
+screen-space derivatives (`fwidth`), which keeps them a constant width at any
+zoom. A CPU renderer is kept as a fallback.
+
 Speeds are separated into a **speed** and a **duty day**: 5 km/h walking for
 8 hours, 90 km/h driving for 10. A short hop runs at the full speed; only a
 long haul starts paying for nights and rests. That keeps London–Edinburgh at

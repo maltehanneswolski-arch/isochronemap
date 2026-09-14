@@ -609,6 +609,183 @@
   /* The band coordinate depends only on the cost field and the ladder, so it
      is worked out once for all 1 036 800 cells rather than for every pixel of
      every frame — which is most of what a frame used to cost. */
+
+  /* ================= the field, on the GPU =================
+     Re-projecting the sphere on the CPU means an asin and an atan2 for every
+     one of a million pixels, every frame — which is the whole reason moving
+     the globe was heavy. The band field is instead uploaded once as a texture
+     (that upload is the only slow part, and it happens when you pick a new
+     city, not while you move) and a fragment shader does the projection. The
+     GPU does that for nothing, so the map can stay at full resolution while
+     it turns. Falls back to the CPU renderer where WebGL2 is unavailable. */
+  const GL = (() => {
+    const cv = document.createElement('canvas');
+    const gl = cv.getContext('webgl2', { alpha: true, antialias: false, premultipliedAlpha: false });
+    if (!gl) return null;
+
+    const VERT = `#version 300 es
+    void main(){
+      vec2 p = vec2((gl_VertexID << 1) & 2, gl_VertexID & 2);
+      gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0);
+    }`;
+
+    const FRAG = `#version 300 es
+    precision highp float;
+    uniform sampler2D uTex;
+    uniform vec2  uCentre, uTexSize;
+    uniform float uRadius, uCosP, uSinP, uLon0, uHeight;
+    uniform float uNB, uTMax, uAlpha, uSat, uSeaMix, uBeyondA, uLineW, uLineS, uRev;
+    uniform vec3  uSea;
+    uniform vec3  uRamp[18];
+    out vec4 frag;
+
+    float decode(vec2 px){
+      vec4 t = texelFetch(uTex, ivec2(px), 0);
+      return (t.r * 255.0 + t.g * 255.0 * 256.0) / 65535.0 * uTMax;
+    }
+    float landAt(vec2 px){ return texelFetch(uTex, ivec2(px), 0).b; }
+
+    void main(){
+      vec2 sc = vec2(gl_FragCoord.x, uHeight - gl_FragCoord.y);
+      vec2 d  = (sc - uCentre) / uRadius;
+      float X = d.x, Y = -d.y;
+      float q = X * X + Y * Y;
+      if (q > 1.0) discard;
+      float Z = sqrt(1.0 - q);
+
+      float a = Y * uCosP - Z * uSinP;
+      float b = Y * uSinP + Z * uCosP;
+      float lat = degrees(asin(clamp(a, -1.0, 1.0)));
+      float lon = degrees(atan(X, b)) - uLon0;
+      lon = mod(lon + 180.0, 360.0) - 180.0;
+
+      // bilinear over the band grid, wrapping in longitude
+      float fi = (lon + 180.0) / 360.0 * uTexSize.x - 0.5;
+      float fj = (90.0 - lat) / 180.0 * uTexSize.y - 0.5;
+      float i0 = floor(fi), j0 = clamp(floor(fj), 0.0, uTexSize.y - 2.0);
+      float u = fi - i0, v = clamp(fj - j0, 0.0, 1.0);
+      float ia = mod(i0, uTexSize.x), ib = mod(i0 + 1.0, uTexSize.x);
+      float t = mix(mix(decode(vec2(ia, j0)),      decode(vec2(ib, j0)),      u),
+                    mix(decode(vec2(ia, j0 + 1.0)), decode(vec2(ib, j0 + 1.0)), u), v);
+      float isLand = landAt(vec2(u < 0.5 ? ia : ib, v < 0.5 ? j0 : j0 + 1.0));
+
+      if (t > uRev) discard;
+      float raw = t;
+      float beyond = 0.0;
+      if (t >= uNB) { beyond = min(1.0, (t - uNB) / 5.0); t = uNB - 0.0001; }
+
+      float band = floor(t), f = t - band;
+      int i0b = int(band);
+      vec3 c0 = uRamp[i0b];
+      vec3 c1 = uRamp[i0b + 1 < int(uNB) ? i0b + 1 : int(uNB) - 1];
+      vec3 c = mix(c0, c1, f);
+
+      float l = (max(max(c.r, c.g), c.b) + min(min(c.r, c.g), c.b)) * 0.5;
+      c = vec3(l) + (c - vec3(l)) * uSat;
+      c *= 1.0 - beyond * 0.45;
+      float alpha = uAlpha * (1.0 - beyond * (1.0 - uBeyondA));
+
+      // isochrones, at a width that is constant on screen
+      float line = 0.0;
+      if (raw < uNB) {
+        float g = max(fwidth(raw), 1e-4);
+        float dmin = min(f, 1.0 - f);
+        float maj = clamp(1.0 - dmin / (g * uLineW), 0.0, 1.0);
+        float hm  = abs(f - 0.5);
+        float mid = clamp(1.0 - hm / (g * uLineW * 0.8), 0.0, 1.0);
+        line = max(maj * maj, mid * mid * 0.45);
+      }
+
+      if (isLand < 0.5) { c = mix(c, uSea, uSeaMix); alpha *= 0.84; }
+      if (line > 0.0) { c = mix(c, vec3(1.0), line * uLineS); alpha += line * 0.22; }
+
+      frag = vec4(c, clamp(alpha, 0.0, 1.0));
+    }`;
+
+    function build(type, src) {
+      const sh = gl.createShader(type);
+      gl.shaderSource(sh, src); gl.compileShader(sh);
+      if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(sh));
+      return sh;
+    }
+    let prog;
+    try {
+      prog = gl.createProgram();
+      gl.attachShader(prog, build(gl.VERTEX_SHADER, VERT));
+      gl.attachShader(prog, build(gl.FRAGMENT_SHADER, FRAG));
+      gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+    } catch (e) { return null; }
+
+    const U = {};
+    for (const n of ['uTex', 'uCentre', 'uTexSize', 'uRadius', 'uCosP', 'uSinP', 'uLon0', 'uHeight',
+      'uNB', 'uTMax', 'uAlpha', 'uSat', 'uSeaMix', 'uBeyondA', 'uLineW', 'uLineS', 'uRev', 'uSea', 'uRamp'])
+      U[n] = gl.getUniformLocation(prog, n);
+
+    const tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.NEAREST], [gl.TEXTURE_MAG_FILTER, gl.NEAREST],
+      [gl.TEXTURE_WRAP_S, gl.REPEAT], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]])
+      gl.texParameteri(gl.TEXTURE_2D, k, v);
+
+    const buf = new Uint8Array(GW * GH * 4);
+    let texKey = '';
+
+    /* Pack the band grid into a texture: sixteen bits of band coordinate
+       across red and green, the land flag in blue. */
+    function upload(bandArr, tmax) {
+      const key = (S.fieldGen | 0) + '|' + S.ladder.join(',');
+      if (key === texKey) return;
+      texKey = key;
+      const k = 65535 / tmax;
+      for (let c = 0, o = 0; c < GN; c++, o += 4) {
+        let q = bandArr[c] * k;
+        q = q < 0 ? 0 : q > 65535 ? 65535 : q | 0;
+        buf[o] = q & 255; buf[o + 1] = q >> 8;
+        buf[o + 2] = landMask[c] ? 255 : 0; buf[o + 3] = 255;
+      }
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, GW, GH, 0, gl.RGBA, gl.UNSIGNED_BYTE, buf);
+    }
+
+    function render(w, h, centre, radius, rot, ramp, rev) {
+      if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+      gl.viewport(0, 0, w, h);
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.useProgram(prog);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      const NB = ramp.length, TMAX = NB + 6;
+      const flat = new Float32Array(18 * 3);
+      for (let i = 0; i < 18; i++) {
+        const c = ramp[Math.min(i, NB - 1)];
+        flat[i * 3] = c[0] / 255; flat[i * 3 + 1] = c[1] / 255; flat[i * 3 + 2] = c[2] / 255;
+      }
+      gl.uniform1i(U.uTex, 0);
+      gl.uniform2f(U.uCentre, centre[0], centre[1]);
+      gl.uniform2f(U.uTexSize, GW, GH);
+      gl.uniform1f(U.uRadius, radius);
+      gl.uniform1f(U.uCosP, Math.cos(rot[1] * RAD));
+      gl.uniform1f(U.uSinP, Math.sin(rot[1] * RAD));
+      gl.uniform1f(U.uLon0, rot[0]);
+      gl.uniform1f(U.uHeight, h);
+      gl.uniform1f(U.uNB, NB);
+      gl.uniform1f(U.uTMax, TMAX);
+      gl.uniform1f(U.uAlpha, D.FIELD_ALPHA);
+      gl.uniform1f(U.uSat, D.SATURATE);
+      gl.uniform1f(U.uSeaMix, D.SEA_MIX);
+      gl.uniform1f(U.uBeyondA, D.BEYOND_ALPHA);
+      gl.uniform1f(U.uLineW, D.LINE_WIDTH);
+      gl.uniform1f(U.uLineS, D.LINE_STRENGTH);
+      gl.uniform1f(U.uRev, rev >= NB ? 1e6 : rev);
+      gl.uniform3f(U.uSea, D.SEA_TINT[0] / 255, D.SEA_TINT[1] / 255, D.SEA_TINT[2] / 255);
+      gl.uniform3fv(U.uRamp, flat);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+    }
+    return { canvas: cv, upload, render, tmax: n => n + 6 };
+  })();
+
   function bandGrid() {
     const key = (S.fieldGen | 0) + '|' + S.ladder.join(',');
     if (S.bgKey === key) return S.bg;
@@ -619,6 +796,32 @@
   }
 
   function drawField() {
+    if (!S.field) return;
+    if (GL) return drawFieldGL();
+    return drawFieldCPU();
+  }
+
+  function drawFieldGL() {
+    const ramp = rampOf(), NB = ramp.length;
+    GL.upload(bandGrid(), NB + 6);
+    const w = Math.round(Wc * DPR), h = Math.round(Hc * DPR);
+    GL.render(w, h, [cx * DPR, cy * DPR], S.scale * DPR,
+      [S.rotL, S.rotP], ramp, S.reveal);
+    ctx.save();
+    ctx.globalCompositeOperation = TH().blend;
+    if (TH().glow) {
+      try {
+        ctx.filter = 'blur(6px)'; ctx.globalAlpha = 0.3;
+        ctx.drawImage(GL.canvas, 0, 0, Wc, Hc);
+        ctx.filter = 'none';
+      } catch (e) { /* no filter support */ }
+    }
+    ctx.globalAlpha = 1;
+    ctx.drawImage(GL.canvas, 0, 0, Wc, Hc);
+    ctx.restore();
+  }
+
+  function drawFieldCPU() {
     if (!S.field) return;
     const dist = bandGrid();
     const r = S.scale;
@@ -877,7 +1080,9 @@
       const l = (lon + S.rotL) * RAD, p = lat * RAD;
       return Math.cos(l) * Math.cos(p) * cosP - Math.sin(p) * sinP;
     };
-    const nShow = Math.round(Math.min(PLACES.length, 22 + Math.pow(zoom, 2.1) * 30));
+    // grows with zoom, but bounded: past a few hundred the declutter rejects
+    // nearly all of them anyway, and each still costs a projection
+    const nShow = Math.round(Math.min(PLACES.length, 420, 22 + Math.pow(zoom, 1.8) * 28));
     ctx.font = '500 10px "IBM Plex Sans", sans-serif';
     ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
     const placed = [];
