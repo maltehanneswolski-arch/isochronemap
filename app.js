@@ -467,7 +467,7 @@
     rotL: 0.13, rotP: -51.51, scale: 300,
     field: null, ref: null, ladder: D.LADDERS.base,
     reveal: 99, dragging: false, tBuf: null, tKey: '', net: true, palette: 0,
-    quality: 1, frameAvg: 0
+    interacting: false, moveQ: 1, frameAvg: 0
   };
 
   /* ================= canvas ================= */
@@ -627,9 +627,10 @@
     const rw = x1 - x0, rh = y1 - y0;
     if (rw <= 2 || rh <= 2) return;
 
-    // One resolution, moving or still. A softer band image is far less
-    // noticeable than the map changing its whole appearance under your hand.
-    const target = Math.min(470, Math.max(rw, rh) * 0.74 * Math.min(1.15, DPR)) * S.quality;
+    const big = Math.max(rw, rh);
+    const target = S.interacting
+      ? Math.min(430, big * 0.62 * Math.min(1.1, DPR)) * S.moveQ
+      : Math.min(1020, big * 1.06 * Math.min(1.5, DPR));
     const lon0 = S.rotL, phi = S.rotP * RAD;
     const key = [S.fieldGen | 0, x0, y0, rw, rh, Math.round(r * 10), Math.round(S.rotL * 100), Math.round(S.rotP * 100), Math.round(target)].join(',');
 
@@ -782,25 +783,34 @@
 
   /* ---- main draw ---- */
   function draw() {
+    /* Sharpness is never traded away permanently. While the globe is actually
+       being moved the band raster is sampled coarser so it keeps up; the moment
+       you stop, it settles and redraws at full resolution. Only the raster
+       changes — every layer stays on, so nothing appears or disappears. */
     const t0 = performance.now();
     drawScene();
-    /* Hold one appearance whether the globe is moving or still, and instead fit
-       that appearance to the machine: measure the frame and settle on a raster
-       size this browser can actually sustain. Adjusted only between gestures,
-       so nothing shifts under your hand mid-drag. */
-    const ms = performance.now() - t0;
-    S.frameAvg = S.frameAvg ? S.frameAvg * 0.8 + ms * 0.2 : ms;
-    if (!S.dragging) {
-      const q = S.quality;
-      if (S.frameAvg > 42 && q > 0.45) S.quality = Math.max(0.45, q - 0.12);
-      else if (S.frameAvg < 14 && q < 1) S.quality = Math.min(1, q + 0.08);
-      if (S.quality !== q) { S.tKey = ''; S.bufKey = ''; S.frameAvg = 0; }
+    if (S.interacting) {
+      const ms = performance.now() - t0;
+      S.frameAvg = S.frameAvg ? S.frameAvg * 0.75 + ms * 0.25 : ms;
+      // only the moving resolution adapts, and only within a narrow band
+      // floor at 0.62: below that the raster is no longer what costs the frame
+      if (S.frameAvg > 40 && S.moveQ > 0.62) { S.moveQ -= 0.1; S.tKey = ''; S.frameAvg = 0; }
+      else if (S.frameAvg < 16 && S.moveQ < 1) { S.moveQ += 0.06; S.frameAvg = 0; }
     }
+  }
+
+  /* any gesture marks the globe as in motion; it settles a moment after */
+  function interacting() {
+    S.interacting = true;
+    clearTimeout(S.settle);
+    S.settle = setTimeout(() => {
+      S.interacting = false; S.tKey = ''; S.bufKey = ''; draw();
+    }, 220);
   }
 
   function drawScene() {
     const r = S.scale, zoom = r / (S.fit || r);
-    if (!S.dragging) refreshLadder();
+    if (!S.interacting) refreshLadder();
     proj.translate([cx, cy]).scale(r).rotate([S.rotL, S.rotP, 0]);
     ctx.clearRect(0, 0, Wc, Hc);
 
@@ -1223,6 +1233,7 @@
         S.rotP = Math.max(-90, Math.min(90, down.rp - dy * k));
         S.tKey = '';
         // a pointer can fire far faster than the screen refreshes; coalesce
+        interacting();
         if (!dragRaf) dragRaf = requestAnimationFrame(() => { dragRaf = 0; draw(); });
       }
       return;
@@ -1248,6 +1259,7 @@
     const fit = S.fit || 300;
     S.scale = Math.max(fit * .78, Math.min(fit * 12, S.scale * (e.deltaY < 0 ? 1.15 : 1 / 1.15)));
     S.tKey = '';
+    interacting();
     if (!dragRaf) dragRaf = requestAnimationFrame(() => { dragRaf = 0; draw(); });
   }, { passive: false });
 
