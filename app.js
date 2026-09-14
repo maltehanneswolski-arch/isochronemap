@@ -382,6 +382,45 @@
     return { dist, ports, start };
   }
 
+  /* ================= solved fields, kept and looked ahead =================
+     A solve is the expensive step, so results are kept and the neighbouring
+     years are worked out during the quiet moments after you stop. Scrubbing
+     the timeline is then usually instant. Any gesture cancels the look-ahead,
+     so it never steals a frame from something you are actually doing. */
+  const fieldCache = new Map();
+  const CACHE_MAX = 7;                       // ~4 MB of distances apiece
+  const fieldKey = (lon, lat, mi, ei) => lon.toFixed(3) + ',' + lat.toFixed(3) + ',' + mi + ',' + ei;
+
+  function getField(lon, lat, mi, ei) {
+    const k = fieldKey(lon, lat, mi, ei);
+    const hit = fieldCache.get(k);
+    if (hit) { fieldCache.delete(k); fieldCache.set(k, hit); return hit; }
+    const f = computeField(lon, lat, mi, ei);
+    fieldCache.set(k, f);
+    while (fieldCache.size > CACHE_MAX) fieldCache.delete(fieldCache.keys().next().value);
+    return f;
+  }
+
+  function cancelLookahead() { clearTimeout(S.pre); S.pre = 0; }
+
+  function lookahead() {
+    cancelLookahead();
+    const { lon, lat } = S.origin, mi = S.mode;
+    const jobs = [];
+    for (const d of [1, -1, 2, -2]) {          // the years either side first
+      const e = S.era + d;
+      if (e >= 0 && e < D.ERAS.length && D.MODES[mi].since <= e) jobs.push([lon, lat, mi, e]);
+    }
+    let i = 0;
+    const step = () => {
+      if (i >= jobs.length || S.interacting) { S.pre = 0; return; }
+      const j = jobs[i++];
+      if (!fieldCache.has(fieldKey(j[0], j[1], j[2], j[3]))) getField(j[0], j[1], j[2], j[3]);
+      S.pre = setTimeout(step, 250);
+    };
+    S.pre = setTimeout(step, 900);
+  }
+
   /* ================= formatting ================= */
   function fmtDur(h) {
     if (!isFinite(h)) return '—';
@@ -504,6 +543,9 @@
     if (!S.fitted) { S.scale = fit; S.fitted = true; }
     else S.scale = Math.max(fit * 0.78, Math.min(S.scale, fit * 12));
     S.fit = fit;
+    // in the bottom-bar layout the picker has no room to fold, so keep it open
+    const t = $('travel');
+    if (t) t.open = Wc <= 980 ? true : t.open;
     drawSky(); S.tKey = ''; draw();
   }
 
@@ -734,7 +776,7 @@
     /* Pack the band grid into a texture: sixteen bits of band coordinate
        across red and green, the land flag in blue. */
     function upload(bandArr, tmax) {
-      const key = (S.fieldGen | 0) + '|' + S.ladder.join(',');
+      const key = S.fieldKey + '|' + S.ladder.join(',');
       if (key === texKey) return;
       texKey = key;
       const k = 65535 / tmax;
@@ -787,7 +829,7 @@
   })();
 
   function bandGrid() {
-    const key = (S.fieldGen | 0) + '|' + S.ladder.join(',');
+    const key = S.fieldKey + '|' + S.ladder.join(',');
     if (S.bgKey === key) return S.bg;
     const dist = S.field.dist, L = S.ladder, out = S.bg && S.bg.length === GN ? S.bg : new Float32Array(GN);
     for (let c = 0; c < GN; c++) out[c] = bandT(dist[c], L);
@@ -999,6 +1041,7 @@
   /* any gesture marks the globe as in motion; it settles a moment after */
   function interacting() {
     S.interacting = true;
+    if (S.pre) cancelLookahead();
     clearTimeout(S.settle);
     S.settle = setTimeout(() => {
       S.interacting = false; S.tKey = ''; S.bufKey = ''; draw();
@@ -1336,13 +1379,15 @@
     clearTimeout(S.solveTimer);
     S.solveTimer = setTimeout(() => {
       const t0 = performance.now();
-      S.field = computeField(S.origin.lon, S.origin.lat, S.mode, S.era);
+      S.fieldKey = fieldKey(S.origin.lon, S.origin.lat, S.mode, S.era);
+      S.field = getField(S.origin.lon, S.origin.lat, S.mode, S.era);
       S.solveMs = Math.round(performance.now() - t0);
       S.fieldGen = (S.fieldGen || 0) + 1;
       S.tKey = '';
       document.body.classList.remove('solving');
       updateReadout(); updateMethod();
       if (animateIn) animate(0); else { S.reveal = 99; draw(); }
+      lookahead();
     }, 40);
   }
 
@@ -1355,7 +1400,9 @@
     $('modeList').addEventListener('click', e => {
       const b = e.target.closest('.mode');
       if (!b || b.disabled) return;
-      S.mode = +b.dataset.m; syncControls(); recompute(true);
+      S.mode = +b.dataset.m;
+      $('travel').open = false;               // fold back to the one in use
+      syncControls(); recompute(true);
     });
   }
   function buildEras() {
@@ -1398,6 +1445,10 @@
     let note = '';
     for (const m of D.MODES) if (m.since > ei && m.why) { note = m.why[ei] || ''; break; }
     $('modeNote').textContent = note;
+    const cur = D.MODES[S.mode];
+    $('travelNow').innerHTML =
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + cur.icon + '"/></svg>' +
+      '<span><b>' + cur.name + '</b><i>' + cur.vehicle[ei] + '</i></span>';
     document.querySelectorAll('.era').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.e === ei)));
     $('axisFill').style.width = (ei / Math.max(1, D.ERAS.length - 1) * 100) + '%';
   }
