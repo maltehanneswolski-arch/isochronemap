@@ -443,7 +443,7 @@
   }
   const fmtKm = k => {
     const v = k >= 1000 ? Math.round(k / 10) * 10 : Math.round(k);
-    return String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' km';
+    return String(v).replace(/\B(?=(\d{3})+(?!\d))/g, '\u2009') + ' km';
   };
 
   function ladderFor() { return D.LADDERS.base; }
@@ -1235,7 +1235,9 @@
 
     const k = countryAt(lo, la);
     if (k >= 0) {
-      const bits = ['roads ' + cMS[k] + ' km/h'];
+      const rm = D.MODES[S.mode].land ? D.MODES[S.mode] : byId.road;
+      const kmh = rm.land[ei] / rm.duty[ei] * Math.pow(cMS[k] / D.ROAD_REF, D.ROAD_EXP[ei]);
+      const bits = ['roads ' + (kmh < 10 ? kmh.toFixed(1) : Math.round(kmh)) + ' km/h'];
       bits.push(cRY[k] > yr ? 'no railway yet' : cRQ[k] === 0 ? 'no railway' : 'rail from ' + cRY[k]);
       if (cHY[k] <= yr) bits.push('high-speed since ' + cHY[k]);
       $('profile').innerHTML = '<b>' + cName[k] + '</b> · ' + bits.join(' · ');
@@ -1253,7 +1255,7 @@
     }
     $('statDay').textContent = fmtKm(far);
     $('statDayNote').textContent = 'farthest point';
-    $('solveNote').textContent = '1 036 800 cells · solved in ' +
+    $('solveNote').textContent = '1\u2009036\u2009800 cells · solved in ' +
       (S.solveMs >= 1000 ? (S.solveMs / 1000).toFixed(1) + ' s' : S.solveMs + ' ms');
     const pct = landIn / landTot * 100;
     $('statWeek').textContent = (pct < 1 ? pct.toFixed(1) : Math.round(pct)) + '%';
@@ -1289,83 +1291,82 @@
   function updateMethod() {
     const M = D.MODES[S.mode], ei = S.era, E = D.ERAS[ei], b = [];
     const A = (u, t) => '<a href="' + u + '" target="_blank" rel="noopener">' + t + '</a>';
+    const H = t => b.push('<h4>' + t + '</h4>');
+    const N = n => n.toLocaleString('en').replace(/,/g, '\u2009');
+    const HR = h => h < 2 ? Math.round(h * 60) + ' min' : h + ' h';
+    const L = items => b.push('<ul>' + items.map(i => '<li>' + i + '</li>').join('') + '</ul>');
 
-    b.push('<p>Earth sits on a <b>0.25\u00b0 grid</b> of 1\u2009036\u2009800 cells, each carrying the real road ' +
-      'class, railway, ferry route, terrain and country beneath it. The map solves for the <b>quickest possible ' +
-      'route</b> through that grid \u2014 a least-cost path, the same method ' +
-      A('https://www.nature.com/articles/nature25181', 'Weiss et al. (2018, Nature)') +
-      ' use for their global friction surface. That is why the bands finger out along main lines and motorways ' +
-      'instead of spreading as circles.</p>');
+    H('Grid');
+    L(['0.25\u00b0, 1\u2009036\u2009800 cells',
+       'Each cell holds its road class, railway, ferry route, terrain and country',
+       'Quickest route found by least-cost path (Dial\u2019s Dijkstra), after ' +
+         A('https://www.nature.com/articles/nature25181', 'Weiss et al. 2018')]);
 
-    b.push('<p><b>Roads differ by country and by class.</b> Every country carries its ' +
-      A('https://www.imf.org/en/Publications/WP/Issues/2022/05/13/Road-Quality-and-Mean-Speed-Score-517801', 'IMF Mean Speed score') +
-      ' \u2014 the measured harmonic road speed between its cities, from 38 km/h in Bhutan to 107 in the United ' +
-      'States. Each cell is then scaled by what is actually under you, with the class spread following ' +
-      A('https://openaccess.thecvf.com/content_WACV_2020/papers/Van_Etten_City-Scale_Road_Extraction_from_Satellite_Imagery_v2_Road_Speeds_and_WACV_2020_paper.pdf', 'Van Etten (2020)') +
-      ': a three-lane paved motorway at 105 km/h, a residential road at 40, a dirt cart track at 24.</p>');
+    H('Roads');
+    L(['Country speed from the ' +
+         A('https://www.imf.org/en/Publications/WP/Issues/2022/05/13/Road-Quality-and-Mean-Speed-Score-517801', 'IMF Mean Speed score') +
+         ': 38 km/h in Bhutan, 107 in the United States' +
+         '<ul><li>the score sets relative quality, the year sets the speed</li></ul>',
+       'Class multiplier after ' +
+         A('https://openaccess.thecvf.com/content_WACV_2020/papers/Van_Etten_City-Scale_Road_Extraction_from_Satellite_Imagery_v2_Road_Speeds_and_WACV_2020_paper.pdf', 'Van Etten 2020') +
+         '<ul><li>motorway 105 km/h</li><li>residential 40</li><li>dirt track 24</li></ul>',
+       'Terrain cuts it to ' + Math.round(D.TERRAIN_MUL[5][ei] * 100) + '\u2013' +
+         Math.round(D.TERRAIN_MUL[2][ei] * 100) + '% (ice to desert)']);
 
-    if (M.rail || M.best)
-      b.push('<p><b>Railways are the real network</b> \u2014 37\u2009487 cells of it, main lines and branches apart. ' +
-        'Each country has its own opening year and service quality: Switzerland and Japan at full speed, Canada ' +
-        'at a third, and the Central African Republic, Chad, Somalia and Bhutan with no working railway at all \u2014 ' +
-        A('https://en.wikipedia.org/wiki/History_of_rail_transport_in_the_Central_African_Republic', 'the CAR\u2019s only line') +
-        ' ran 7.5 km and closed around 1960. Speeds are anchored on published start-to-stop averages: TGV 263 km/h, ' +
-        'Shinkansen 285, Chinese G-trains 292, Indian Rajdhani 83\u201398, Trans-Siberian 70\u201390, VIA Rail capped at 130.' +
-        (D.HSR[ei] > 0 ? ' High-speed track runs at <b>' + D.HSR[ei] + ' km/day</b>.' : '') + '</p>');
+    if ((M.rail || M.best) && D.RAIL[ei] > 0) {
+      H('Rail');
+      const r = ['37\u2009487 cells, main lines and branches separated',
+        'Each country gets its own opening year and service quality',
+        'Main line ' + N(D.RAIL[ei]) + ' km/day'];
+      if (D.HSR[ei] > 0) r.push('High-speed track ' + N(D.HSR[ei]) + ' km/day' +
+        '<ul><li>TGV 263 km/h start to stop</li><li>Shinkansen 285</li></ul>');
+      if (E.y >= 1900) r.push('Anchored on published timings' +
+        '<ul><li>Trans-Siberian 70\u201390 km/h</li>' +
+        (E.y >= 1950 ? '<li>Rajdhani 83\u201398</li>' : '') + '</ul>');
+      if (E.y >= 1950) r.push('Still no working line: Central African Republic, Chad, Somalia, Bhutan');
+      L(r);
+    }
 
-    if (M.land)
-      b.push('<p>This mode runs at <b>' + Math.round(M.land[ei] / M.duty[ei] * 10) / 10 + ' km/h</b> on a ' +
-        'par-quality highway and keeps it up for <b>' + M.duty[ei] + ' h</b> a day. Short hops run at full speed; ' +
-        'only a long haul pays for nights and rests. Walking follows ' +
-        A('https://en.wikipedia.org/wiki/Tobler%27s_hiking_function', 'Tobler\u2019s hiking function') +
-        ' \u2014 5 km/h on the flat, a real day averaging 2\u20134. Mountain, desert, rainforest, tundra and ice cut ' +
-        'the pace to between <b>' + Math.round(D.TERRAIN_MUL[5][ei] * 100) + '%</b> and <b>' +
-        Math.round(D.TERRAIN_MUL[2][ei] * 100) + '%</b>.</p>');
+    if (M.land) {
+      H('Pace');
+      L([Math.round(M.land[ei] / M.duty[ei] * 10) / 10 + ' km/h, ' + M.duty[ei] + ' h a day',
+         'Short trips run at full speed. Only long ones pay for nights and rests',
+         'Walking set by ' + A('https://en.wikipedia.org/wiki/Tobler%27s_hiking_function', 'Tobler\u2019s hiking function') +
+           ': 5 km/h flat, 2\u20134 over a real day']);
+    }
 
+    H('Water');
     if (M.sea === 'ship')
-      b.push('<p>Ships are in play: open sea at <b>' + D.WATER[ei] + ' km/day</b> around the clock, rivers at <b>' +
-        D.RIVER[ei] + '</b>, and <b>' + D.PORT_H[ei] + ' h</b> lost boarding or landing. The 1750 figure is net ' +
-        'progress made good, from ' +
-        A('https://www.rmg.co.uk/stories/maritime-history/library-archive/18th-century-sailing-times-between-english-channel-coast', 'Royal Museums Greenwich') +
-        ': Atlantic crossings of 30\u201340 days eastbound and 50\u201370 westbound.</p>');
+      L(['Open sea ' + N(D.WATER[ei]) + ' km/day, around the clock',
+         'Navigable rivers ' + N(D.RIVER[ei]) + ' km/day',
+         HR(D.PORT_H[ei]) + ' to board or land',
+         E.y < 1869 ? 'No Suez, no Panama. Every ship rounds the Cape' : 'Suez open from 1869, Panama from 1914'
+         ].concat(ei === 0 ? ['Sail figures are progress made good, from ' +
+           A('https://www.rmg.co.uk/stories/maritime-history/library-archive/18th-century-sailing-times-between-english-channel-coast', 'Royal Museums Greenwich') +
+           '<ul><li>30\u201340 days out to the Indies</li><li>50\u201370 back</li></ul>'] : []));
     else
-      b.push('<p><b>You stay on land.</b> Open water carries no colour, because you cannot get onto it. The ' +
-        'exceptions are <b>314 real ferry routes</b> from the Natural Earth network \u2014 the longest is Sicily to ' +
-        'Venice at 1\u2009281 km, and not one of them crosses an ocean.' +
-        (E.y >= 1950 ? ' Fixed links count as dry land from the year they opened: Kanmon 1942, the Bosphorus 1973, ' +
-          'Seikan 1988, the Channel Tunnel 1994, the Great Belt and \u00d8resund 1998.' : '') + '</p>');
-
-    if (E.y < 1869) b.push('<p><b>No Suez, no Panama.</b> Both isthmuses are closed in ' + E.y +
-      ', so every ship rounds the Cape of Good Hope or Cape Horn.</p>');
+      L(['You stay on land. Open water takes no colour',
+         '314 scheduled ferry routes, the longest 1\u2009281 km. None crosses an ocean'
+         ].concat(E.y >= 1950 ? ['Fixed links count as land from their opening year' +
+           '<ul><li>Kanmon 1942, Bosphorus 1973</li><li>Seikan 1988, Channel Tunnel 1994</li></ul>'] : []));
 
     if (M.air && D.AIR[ei]) {
       const a = D.AIR[ei];
-      b.push('<p><b>Air means chartered, not scheduled.</b> The question is how fast you could physically get ' +
-        'there if cost were no object, so the limit is the aircraft, not a timetable: any of <b>' +
-        G.airports.filter(x => x.r <= D.AIR_RANK[ei]).length + ' airfields</b>, cruising at <b>' + a.cruise +
-        ' km/h</b> with <b>' + a.range.toLocaleString('en') + ' km</b> of range and <b>' + a.stop +
-        ' h</b> for a refuelling turn. ' +
-        (E.y >= 2000
-          ? 'That is a ' + A('https://bombardier.com/en/aircraft/global-7500', 'Bombardier Global 7500') +
-            ' at 7\u2009700 nm and Mach 0.925, or a Gulfstream G650ER at 7\u2009500 nm.'
-          : 'That is a Lockheed Constellation at 489 km/h. For comparison the ' +
-            A('https://transportgeography.org/contents/chapter5/air-transport/london-sydney-air-routes/', 'scheduled 1950 Kangaroo route') +
-            ' took about 58 h over seven stops \u2014 flying straight through is quicker.') +
-        '</p>');
+      H('Air');
+      L(['Chartered, not timetabled. The limit is the aircraft',
+         N(G.airports.filter(x => x.r <= D.AIR_RANK[ei]).length) + ' airfields',
+         N(a.cruise) + ' km/h, range ' + N(a.range) + ' km',
+         HR(a.board) + ' to get airborne, ' + HR(a.stop) + ' a refuelling stop']);
     }
 
-    b.push('<p>Grid routes still cut corners a real road would not, so land travel is divided by a <b>circuity ' +
-      'factor</b> of ' + D.ROAD_CIRC + ' by road and ' + D.RAIL_CIRC + ' by rail. The bands are not fixed either: ' +
-      'they are laid across whatever is on screen, so a hemisphere reads in weeks and one country in minutes.</p>');
+    H('Corrections');
+    L(['Grid routes cut corners. Land time divided by ' + D.ROAD_CIRC + ' road, ' + D.RAIL_CIRC + ' rail',
+       'Bands are laid across what is on screen, not fixed']);
 
-    b.push('<p style="color:#4E596E">Historic road speeds come from ' +
-      A('https://www.historic-uk.com/CultureUK/The-Stagecoach/', 'stagecoach records') +
-      ' \u2014 about 5 mph and 60\u201370 miles a day before the turnpikes, 8\u201310 mph by the mail-coach era. ' +
-      'Country rail density follows the ' +
-      A('https://ppp.worldbank.org/public-private-partnership/sites/default/files/2024-08/Africa_Offtrac%20-%20SubSaharan%20African%20Railways_EN.pdf', 'World Bank survey') +
-      ' of sub-Saharan railways: an average of 3 km of track per 1\u2009000 km\u00b2, and sixteen African countries ' +
-      'with none at all. Still an illustrative model, not routing data \u2014 it ignores winds, monsoons, ' +
-      'timetables, borders, war and weather.</p>');
+    H('Limits');
+    L(['An illustrative model, not routing data',
+       'Ignores wind, monsoon, timetables, borders, war, weather',
+       'Assumes you always catch the best connection']);
     $('method').innerHTML = b.join('');
   }
 

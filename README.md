@@ -2,42 +2,43 @@
 
 An interactive isochrone map of the world, after Francis Galton's *Isochronic
 Passage Chart for Travellers* (Proceedings of the Royal Geographical Society,
-1881) — the first map of its kind, drawn by H. Sharbau and lithographed by
-E. Weller, showing days of journey from London.
+1881), drawn by H. Sharbau and lithographed by E. Weller, which showed days of
+journey from London.
 
 Click any point on Earth and the map shows how far you could get from it, by a
 chosen means of travel, in a chosen year.
 
-**Live:** deploy to Netlify straight from this repository — it is a static site
-with no build step.
+It is a static site with no build step, so Netlify can deploy this repository
+as it stands.
 
 ## What it does
 
-- **Eight years:** 1750, 1850, 1900, 1925, 1950, 1975, 2000, 2026
-- **Six ways to travel:** fastest route, on foot, by bicycle, by road,
-  scheduled transport, by air. Modes that did not exist yet are disabled with
-  the reason (no bicycle before the 1860s; no powered flight before 1903).
-- **Five colour schemes**, including one taken from Galton's own hand-tinted
-  green / yellow / pink / blue / brown plate.
+- Eight years: 1750, 1850, 1900, 1925, 1950, 1975, 2000, 2026.
+- Six ways to travel: fastest route, on foot, by bicycle, by road, scheduled
+  transport, by air. Modes that did not exist yet are disabled, with the reason
+  (no bicycle before the 1860s, no powered flight before 1903).
+- Five colour schemes, one of them taken from Galton's own hand-tinted green,
+  yellow, pink, blue and brown plate.
 
 ## How it works
 
-Earth is laid on a **0.25° grid of 1,036,800 cells**. Every cell carries the
-real road class, railway, ferry route, terrain and country beneath it. The map
-then solves for the quickest possible route through that grid — a least-cost
-path, the same method [Weiss et al. (2018, *Nature*)](https://www.nature.com/articles/nature25181)
-use for their global friction surface — with Dial's bucketed Dijkstra.
+Earth is laid on a 0.25° grid of 1,036,800 cells. Every cell carries the road
+class, railway, ferry route, terrain and country beneath it. The map then
+solves for the quickest route through that grid with Dial's bucketed Dijkstra.
+It is the least-cost path method
+[Weiss et al. (2018, *Nature*)](https://www.nature.com/articles/nature25181)
+use for their global friction surface.
 
-The band field is drawn by a **WebGL2 fragment shader**: the solved grid is
+The band field is drawn by a WebGL2 fragment shader. The solved grid is
 uploaded once as a texture and the GPU does the sphere projection per pixel, so
 the globe stays at full resolution while it turns. Isochrone lines use
 screen-space derivatives (`fwidth`), which keeps them a constant width at any
 zoom. A CPU renderer is kept as a fallback.
 
-Speeds are separated into a **speed** and a **duty day**: 5 km/h walking for
-8 hours, 90 km/h driving for 10. A short hop runs at the full speed; only a
-long haul starts paying for nights and rests. That keeps London–Edinburgh at
-seven hours and London–Peking at seven weeks in the same model.
+Speed and duty day are separate: 5 km/h walking for 8 hours, 90 km/h driving
+for 10. A short hop runs at the full speed. Only a long haul starts paying for
+nights and rests. That keeps London to Edinburgh at seven hours and London to
+Peking at seven weeks in the same model.
 
 ### Data
 

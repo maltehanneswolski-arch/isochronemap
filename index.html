@@ -154,9 +154,19 @@ summary::-webkit-details-marker{display:none}
 summary::after{content:" +";color:var(--line)}
 details[open] summary::after{content:" \2212"}
 details p{font-size:11px;line-height:1.55;color:var(--text-faint);margin:9px 0 0}
+details h4{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);
+  margin:13px 0 0;font-weight:600}
+details h4:first-child{margin-top:9px}
+details ul{margin:5px 0 0;padding:0;list-style:none}
+details li{font-size:11px;line-height:1.45;color:var(--text-faint);margin:0 0 3px 11px;position:relative}
+details li::before{content:"";position:absolute;left:-9px;top:6px;width:3px;height:3px;
+  background:var(--text-faint);border-radius:50%}
+details ul ul{margin:2px 0 4px}
+details ul ul li{font-size:10.5px;color:#55607A;margin-left:10px}
+details ul ul li::before{background:#55607A;width:2px;height:2px;top:6px}
 details b{color:var(--text-dim);font-weight:500}
-details p a{color:var(--line);text-decoration:none;border-bottom:1px solid var(--line-dim)}
-details p a:hover{color:var(--line-lit);border-bottom-color:var(--line-lit)}
+details a{color:var(--line);text-decoration:none;border-bottom:1px solid var(--line-dim)}
+details a:hover{color:var(--line-lit);border-bottom-color:var(--line-lit)}
 
 /* ---------- era axis ---------- */
 #timeline{left:22px;right:22px;bottom:20px;padding:12px 34px 10px}
@@ -257,7 +267,7 @@ details p a:hover{color:var(--line-lit);border-bottom-color:var(--line-lit)}
 <header id="brand">
   <h1>Isochronic Globe</h1>
   <div class="rule"></div>
-  <p title="Francis Galton published the first isochronic map in 1881: bands of colour showing days of travel from London. This is built in the same spirit.">How far you could get &mdash; after <cite>Galton, 1881</cite>.</p>
+  <p title="Francis Galton published the first isochronic map in 1881: bands of colour showing days of travel from London.">How far you could get. After <cite>Galton, 1881</cite>.</p>
 </header>
 
 
