@@ -146,13 +146,13 @@ window.ISO = (function () {
      a Gulfstream G650ER 7 500 nm at Mach 0.85. `stop` is a refuelling turn,
      not a scheduled connection. */
   const AIR = {
-    3: { cruise: 200, range: 900,   board: 2.5,  land: 1.5,  stop: 2.0 },   // 1925 airliner
+    3: { cruise: 200, range: 900,   board: 1.5,  land: 1.0,  stop: 2.0 },   // 1925 airliner: few formalities
     4: { cruise: 489, range: 6400,  board: 2.0,  land: 1.25, stop: 1.5 },   // Constellation
     5: { cruise: 860, range: 10500, board: 1.75, land: 1.0,  stop: 1.0 },   // 707 / 747
     6: { cruise: 880, range: 13000, board: 1.5,  land: 0.9,  stop: 0.85 },
     7: { cruise: 900, range: 14260, board: 1.25, land: 0.75, stop: 0.75 }   // Global 7500
   };
-  const AIR_RANK = { 3: 3, 4: 5, 5: 6, 6: 8, 7: 9 };
+  const AIR_RANK = { 3: 4, 4: 5, 5: 6, 6: 8, 7: 9 };
   /* which airfields an era can use: Natural Earth scalerank, lower = bigger */
 
   /* Railway service quality in the steam and early-diesel era, where it
