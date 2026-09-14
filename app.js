@@ -627,10 +627,9 @@
     const rw = x1 - x0, rh = y1 - y0;
     if (rw <= 2 || rh <= 2) return;
 
-    const big = Math.max(rw, rh);
-    const target = S.interacting
-      ? Math.min(430, big * 0.62 * Math.min(1.1, DPR)) * S.moveQ
-      : Math.min(1020, big * 1.06 * Math.min(1.5, DPR));
+    /* One resolution, always full. Moving the globe is slower for it, but the
+       isochrones stay sharp instead of smearing under the cursor. */
+    const target = Math.min(1020, Math.max(rw, rh) * 1.06 * Math.min(1.5, DPR));
     const lon0 = S.rotL, phi = S.rotP * RAD;
     const key = [S.fieldGen | 0, x0, y0, rw, rh, Math.round(r * 10), Math.round(S.rotL * 100), Math.round(S.rotP * 100), Math.round(target)].join(',');
 
@@ -698,7 +697,8 @@
     for (let by = 0; by < bh; by++) {
       for (let bx = 0; bx < bw; bx++) {
         const p = by * bw + bx, o = p * 4;
-        let tv = t[p];
+        const raw = t[p];
+        let tv = raw;
         if (tv < 0 || tv > rev) continue;
         // Past the last threshold the ground used to be left bare, which is why
         // Greenland showed up as a black hole. Hold it at the far end of the
@@ -721,9 +721,12 @@
         if (beyond) { const k = 1 - beyond * 0.45; cr *= k; cg *= k; cb *= k; }
         let a = A0 * (1 - beyond * (1 - BEY));
 
-        // an isochrone on every threshold, and a fainter one mid-band
+        /* Isochrones are read from the unclamped value. Past the last
+           threshold every pixel is held at NB - 0.0001, which the line test
+           would see as sitting exactly on a threshold — and it painted a bright
+           ring around Greenland and the pack ice. */
         let line = 0;
-        if (beyond < 0.02) {   // lines cost a gradient; restore them at rest
+        if (raw < NB) {   // lines cost a gradient; restore them at rest
           const xm = t[p - (bx > 0 ? 1 : 0)], xp = t[p + (bx < bw - 1 ? 1 : 0)];
           const ym = t[p - (by > 0 ? bw : 0)], yp = t[p + (by < bh - 1 ? bw : 0)];
           const gx = (xm < 0 || xp < 0) ? 0 : (xp - xm) * 0.5;
@@ -787,16 +790,7 @@
        being moved the band raster is sampled coarser so it keeps up; the moment
        you stop, it settles and redraws at full resolution. Only the raster
        changes — every layer stays on, so nothing appears or disappears. */
-    const t0 = performance.now();
     drawScene();
-    if (S.interacting) {
-      const ms = performance.now() - t0;
-      S.frameAvg = S.frameAvg ? S.frameAvg * 0.75 + ms * 0.25 : ms;
-      // only the moving resolution adapts, and only within a narrow band
-      // floor at 0.62: below that the raster is no longer what costs the frame
-      if (S.frameAvg > 40 && S.moveQ > 0.62) { S.moveQ -= 0.1; S.tKey = ''; S.frameAvg = 0; }
-      else if (S.frameAvg < 16 && S.moveQ < 1) { S.moveQ += 0.06; S.frameAvg = 0; }
-    }
   }
 
   /* any gesture marks the globe as in motion; it settles a moment after */
