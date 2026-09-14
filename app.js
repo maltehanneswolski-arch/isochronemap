@@ -297,8 +297,15 @@
     const airAt = new Map();
     ports.forEach((c, k) => airAt.set(landCellOf(c.lon, c.lat), k));
 
-    const L = S.ladder;
-    const w = L[L.length - 1] * 3 / NBUK;
+    /* The bucket width used to be taken from the colour scale on screen, so
+       the solver's range depended on how far the reader had zoomed: after a
+       look at a 2026 city, a 1750 plot had a range of fifteen days and every
+       cost beyond it was thrown into the last bucket and settled out of
+       order. The width is now fixed at 72 seconds, under the smallest edge,
+       so Dial's method is exact, and the buckets form a ring: a node's
+       tentative cost is never more than one edge ahead of the current
+       bucket, so 600 000 of them cover any path however long it takes. */
+    const w = 0.02;
 
     const dist = new Float32Array(total).fill(Infinity);
     const move = new Float32Array(total).fill(0);
@@ -309,7 +316,7 @@
     bBuk.fill(-1);
     bHead.fill(-1);
 
-    let cur = 0;
+    let cur = 0, ci = 0, nOpen = 0;              // absolute bucket, ring index, queued nodes
     const invW = 1 / w;
     /* A node may be reached again at a lower cost, so it has to move buckets
        rather than be inserted twice — one `next` pointer per node cannot hold
@@ -318,28 +325,27 @@
       const b = bBuk[node];
       if (b < 0) return;
       const p = bPrev[node], n = bNext[node];
-      if (p >= 0) bNext[p] = n; else bHead[b] = n;
+      if (p >= 0) bNext[p] = n; else bHead[b % NBUK] = n;
       if (n >= 0) bPrev[n] = p;
-      bBuk[node] = -1;
+      bBuk[node] = -1; nOpen--;
     };
     const push = (cost, node) => {
       let b = (cost * invW) | 0;
-      if (b >= NBUK) b = NBUK - 1;
       if (b < cur) b = cur;
       if (bBuk[node] === b) return;
       unlink(node);
-      bPrev[node] = -1; bNext[node] = bHead[b];
-      if (bHead[b] >= 0) bPrev[bHead[b]] = node;
-      bHead[b] = node; bBuk[node] = b;
+      const r = b % NBUK;
+      bPrev[node] = -1; bNext[node] = bHead[r];
+      if (bHead[r] >= 0) bPrev[bHead[r]] = node;
+      bHead[r] = node; bBuk[node] = b; nOpen++;
     };
 
     const start = landCellOf(oLon, oLat);
     dist[start] = 0; move[start] = 0; push(0, start);
 
-    for (;;) {
-      while (cur < NBUK && bHead[cur] < 0) cur++;
-      if (cur >= NBUK) break;
-      const u = bHead[cur];
+    while (nOpen > 0) {
+      while (bHead[ci] < 0) { cur++; if (++ci === NBUK) ci = 0; }
+      const u = bHead[ci];
       unlink(u);
       if (bDone[u]) continue;
       bDone[u] = 1;
@@ -648,18 +654,20 @@
     skyC.globalAlpha = 1;
   }
 
-  /* ---- the ladder follows the view ----------------------------------
-     A fixed set of thresholds makes a continent look like one flat blob and a
-     single country like nothing at all. Instead, sample what is actually on
-     screen and lay twelve round numbers across that range — so zooming into
-     France in 1900 gives hourly contours fingering along the railways, the way
-     E. Martin drew them in 1882, while the whole globe still reads in weeks. */
+  /* ---- one scale per plot -------------------------------------------
+     The thresholds used to be re-derived from whatever was on screen, so
+     zooming in re-coloured the whole map. A scale that moves under the
+     reader is not a scale. The ladder is now a property of the field alone:
+     eighteen round numbers laid log-evenly from a few minutes or hours up to
+     the 97th percentile of everything reachable, and then held fixed however
+     the globe is turned or zoomed. It is wide enough that a city still has
+     hourly bands while the far side of the world reads in months. */
   const NICE = [0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4, 6, 8, 12, 18, 24, 36, 48, 72, 96, 120,
     168, 240, 336, 504, 720, 1080, 1440, 2160, 2880, 4320, 5760, 8760, 13140, 17520, 26280];
 
   function makeLadder(maxT) {
     const n = D.RAMP.length;
-    const lo = Math.max(NICE[0], maxT / 260);
+    const lo = Math.max(NICE[0], maxT / 600);
     const out = [];
     for (let k = 1; k <= n; k++) {
       const target = lo * Math.pow(maxT / lo, k / n);
@@ -678,44 +686,40 @@
     return out;
   }
 
-  /* costs at the 88th percentile of what the viewer can currently see */
-  function viewLadder() {
-    const dist = S.field && S.field.dist;
-    if (!dist) return S.ladder;
-    const r = S.scale, N = 90;
-    const x0 = Math.max(0, cx - r), x1 = Math.min(Wc, cx + r);
-    const y0 = Math.max(0, cy - r), y1 = Math.min(Hc, cy + r);
-    const cosP = Math.cos(S.rotP * RAD), sinP = Math.sin(S.rotP * RAD);
-    const vals = [];
-    for (let a = 0; a < N; a++) for (let b = 0; b < N; b++) {
-      const X = (x0 + (a + 0.5) * (x1 - x0) / N - cx) / r;
-      const Y = -(y0 + (b + 0.5) * (y1 - y0) / N - cy) / r;
-      const d2 = X * X + Y * Y;
-      if (d2 > 1) continue;
-      const Z = Math.sqrt(1 - d2);
-      const lat = Math.asin(Math.max(-1, Math.min(1, Y * cosP - Z * sinP))) * DEG;
-      let lon = Math.atan2(X, Y * sinP + Z * cosP) * DEG - S.rotL;
-      lon = ((lon + 180) % 360 + 360) % 360 - 180;
-      const v = dist[cellOf(lon, lat)];
-      if (v > 0 && v < Infinity) vals.push(v);
+  /* The 97th percentile of the reachable land, weighted by area and with the
+     ice sheets left out: a plain count over a lat-lon grid would let the
+     polar rows, which are many, drag the top of the scale up into the years
+     it takes to walk across Antarctica. */
+  function fieldLadder(field) {
+    if (field.ladder) return field.ladder;
+    const dist = field.dist, vals = [];
+    for (let j = 0; j < GH; j++) {
+      const w = Math.cos(latOf(j) * RAD);
+      if (w < 0.05) continue;
+      const step = Math.max(1, Math.round(11 / w));
+      const row = j * GW;
+      for (let i = (j * 7) % step; i < GW; i += step) {
+        const c = row + i;
+        if (!landMask[c] || terr[c] === 5) continue;     // ice sheets are not destinations
+        const v = dist[c];
+        if (v > 0 && v < Infinity) vals.push(v);
+      }
     }
-    if (vals.length < 30) return S.ladder;
-    vals.sort((p, q) => p - q);
-    const hi = vals[Math.min(vals.length - 1, Math.floor(vals.length * 0.97))];
-    return makeLadder(Math.max(hi, NICE[0] * 12));
+    let L;
+    if (vals.length < 30) L = makeLadder(NICE[0] * 12);      // nothing reachable: hours
+    else {
+      vals.sort((p, q) => p - q);
+      const hi = vals[Math.min(vals.length - 1, Math.floor(vals.length * 0.97))];
+      L = makeLadder(Math.max(hi, NICE[0] * 12));
+    }
+    field.ladder = L;
+    return L;
   }
 
   function refreshLadder() {
-    /* Re-deriving the bands from whatever happens to be on screen made the
-       colours crawl as the globe turned. Rotation must never change them:
-       the scale is keyed to the field itself and to a quantised zoom step,
-       so it settles once and then holds still while you look around. */
-    const z = Math.round(Math.log2(Math.max(0.4, S.scale / (S.fit || S.scale))) * 3);
-    const key = (S.fieldGen || 0) + '|' + z;
-    if (key === S.ladderKey) return false;
-    S.ladderKey = key;
-    const L = viewLadder();
-    if (L.join() === S.ladder.join()) return false;
+    if (!S.field) return false;
+    const L = fieldLadder(S.field);
+    if (L === S.ladder) return false;
     S.ladder = L; S.tKey = '';
     if (S.legendReady) updateLegend();
     return true;
@@ -1131,7 +1135,6 @@
 
   function drawScene() {
     const r = S.scale, zoom = r / (S.fit || r);
-    if (!S.interacting) refreshLadder();
     proj.translate([cx, cy]).scale(r).rotate([S.rotL, S.rotP, 0]);
     ctx.clearRect(0, 0, Wc, Hc);
 
@@ -1313,22 +1316,29 @@
       $('profile').innerHTML = '<b>' + cName[k] + '</b> · ' + bits.join(' · ');
     } else $('profile').innerHTML = '<b>At sea</b>';
 
-    let far = 0, landTot = 0, landIn = 0;
+    let far = 0, landTot = 0, landIn = 0, reached = 0;
     for (let j = 0; j < GH; j++) {
       const lat = latOf(j), w = Math.cos(lat * RAD);
       const row = j * GW;
       for (let i = 0; i < GW; i++) {
         const c = row + i, d = f.dist[c];
         if (d <= 24) { const km = gcDist(lo, la, lonOf(i), lat); if (km > far) far = km; }
-        if (landMask[c] && terr[c] !== 5) { landTot += w; if (d <= 168) landIn += w; }
+        if (landMask[c] && terr[c] !== 5) {
+          landTot += w;
+          if (d <= 168) landIn += w;
+          if (d > 0 && d < Infinity) reached++;
+        }
       }
     }
-    $('statDay').textContent = fmtKm(far);
-    $('statDayNote').textContent = 'farthest point';
+    /* a start in open water on foot reaches nothing; say so rather than
+       report the width of the cell you are standing in */
+    const stranded = reached === 0;
+    $('statDay').textContent = stranded ? '\u2014' : fmtKm(far);
+    $('statDayNote').textContent = stranded ? 'nothing reachable' : 'farthest point';
     $('solveNote').textContent = '1\u2009036\u2009800 cells · solved in ' +
       (S.solveMs >= 1000 ? (S.solveMs / 1000).toFixed(1) + ' s' : S.solveMs + ' ms');
     const pct = landIn / landTot * 100;
-    $('statWeek').textContent = (pct < 1 ? pct.toFixed(1) : Math.round(pct)) + '%';
+    $('statWeek').textContent = stranded ? '\u2014' : (pct < 1 ? pct.toFixed(1) : Math.round(pct)) + '%';
 
     $('thEra').textContent = yr;
     const rows = [];
@@ -1431,7 +1441,7 @@
 
     H('Corrections');
     L(['Grid routes cut corners. Land time divided by ' + D.ROAD_CIRC + ' road, ' + D.RAIL_CIRC + ' rail',
-       'Bands are laid across what is on screen, not fixed']);
+       'One scale per plot: 18 steps up to the 97th percentile of what is reachable. Zoom does not move it']);
 
     H('Limits');
     L(['An illustrative model, not routing data',
@@ -1455,6 +1465,7 @@
       S.solveMs = Math.round(performance.now() - t0);
       S.fieldGen = (S.fieldGen || 0) + 1;
       S.tKey = '';
+      refreshLadder();
       document.body.classList.remove('solving');
       updateReadout(); updateMethod();
       if (animateIn) animate(0); else { S.reveal = 99; draw(); }
@@ -1819,6 +1830,11 @@
 
   window.__ISO = { computeField, cellOf, landCellOf, gcDist, draw, D, G, cName, cMS, cRQ, cRY,
     ctryOf, landMask, terr, roadCls, railCls, ferryCell, fmtDur, S };
+
+  /* on a local server only: the pieces a test harness needs to drive the
+     model without going through the pointer */
+  if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname))
+    window.__iso = { S, setOrigin, recompute, draw, fieldLadder, timeAt, fieldCache };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
