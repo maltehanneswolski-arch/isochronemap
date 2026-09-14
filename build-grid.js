@@ -112,6 +112,26 @@ c50.forEach((c, idx) => {
 // land object catches islands that belong to no listed country
 for (const g of topoDecode(P('countries-50m.json'), 'land'))
   for (const poly of g.polys) fillPoly(poly, (i, j) => { land[j * GW + i] = 1; });
+
+/* The scanline above cannot fill a ring that encloses a pole. Antarctica's
+   does: in plate carree it runs the coast, drops to -90, crosses the bottom
+   edge and climbs back, and unwrapping the longitudes folds that seam onto
+   one side, so the rows below about -84 come out with fewer than two
+   crossings and are left as ocean. That is what put open sea at the South
+   Pole. The cap is filled in directly instead, which costs nothing in
+   accuracy: the Ross and Ronne ice fronts are the southern limit of open
+   water at about 78 S, so every cell below 84 S is ice sheet or ice shelf. */
+{
+  const ant = cNames.indexOf('Antarctica') + 1;
+  let n = 0;
+  for (let j = rowOf(-84); j < GH; j++)
+    for (let i = 0; i < GW; i++) {
+      const p = j * GW + i;
+      if (!land[p]) n++;
+      land[p] = 1; if (ant) ctry[p] = ant;
+    }
+  console.log('  polar cap filled', n, 'cells below 84 S');
+}
 console.log('  land cells', land.reduce((a, b) => a + b, 0), '=', (land.reduce((a, b) => a + b, 0) / GN * 100).toFixed(1) + '%');
 
 console.log('· terrain regions (10m geography)');

@@ -318,6 +318,25 @@ window.ISO = (function () {
 
 
   /* --- fixed links: water that becomes land when the bridge opens ------ */
+  /* --- runways and skiways in Antarctica -------------------------------
+     Natural Earth's airport set stops at 55 S, so the continent had nowhere
+     to land and could only be reached by ship. These are the fields that
+     actually take an aircraft, with the year each opened; before 1956 there
+     is still nothing, which is right. Blue-ice and compacted-snow strips
+     take wheeled aircraft, the skiways only ski-equipped ones. */
+  const ANTARCTIC_AIR = [
+    { n: 'Williams Field, McMurdo',   lon: 167.06, lat: -77.87, y: 1956 },
+    { n: 'Amundsen-Scott South Pole', lon: 0,      lat: -89.99, y: 1956 },
+    { n: 'Marambio',                  lon: -56.63, lat: -64.24, y: 1969 },
+    { n: 'Teniente Marsh',            lon: -58.99, lat: -62.19, y: 1980 },
+    { n: 'Rothera',                   lon: -68.13, lat: -67.57, y: 1991 },
+    { n: 'Novolazarevskaya',          lon: 11.60,  lat: -70.83, y: 2001 },
+    { n: 'Troll',                     lon: 2.53,   lat: -72.01, y: 2005 },
+    { n: 'Wilkins, Casey',            lon: 111.48, lat: -66.69, y: 2008 },
+    { n: 'Union Glacier',             lon: -83.32, lat: -79.78, y: 2010 },
+    { n: 'Phoenix, McMurdo',          lon: 166.75, lat: -77.95, y: 2016 }
+  ];
+
   const FIXED_LINKS = [
     { name: 'Channel Tunnel', year: 1994, pts: [[1.5, 50.9], [1.9, 51.1]] },
     { name: 'Great Belt & Øresund', year: 1998, pts: [[10.9, 55.6], [11.0, 56.5], [12.7, 55.9]] },
@@ -554,7 +573,7 @@ window.ISO = (function () {
   return {
     ERAS, MODES, SEA_TINT, SEA_MIX, PALETTES, FIELD_ALPHA, SATURATE, LINE_WIDTH, LINE_STRENGTH, BEYOND_ALPHA, WATER, WATER_SCHEDULED, FERRY, ICE_WATER, RIVER, PORT_H, RAIL, HSR,
     HSR_NET_BONUS, ROAD_CIRC, RAIL_CIRC, RIVER_CIRC, ROAD_EXP, ROAD_REF, TERRAIN_MUL, AIR, AIR_RANK, COUNTRY_RAW, RAIL_HIST, RAINFOREST,
-    CLASS_MUL, NET_W, BIKE_MUL, FOOT_MUL, RAIL_MAIN, RAIL_BRANCH, STRAITS, WATER_CUTS, FERRY_ROUTES, FERRY_PORT, SEA_DUTY, FIXED_LINKS, CANALS, RIVERS,
+    CLASS_MUL, NET_W, BIKE_MUL, FOOT_MUL, RAIL_MAIN, RAIL_BRANCH, ANTARCTIC_AIR, STRAITS, WATER_CUTS, FERRY_ROUTES, FERRY_PORT, SEA_DUTY, FIXED_LINKS, CANALS, RIVERS,
     RAIL_LINES, HSR_LINES, HSR_REGIONS, CITIES, LANDMARKS, LADDERS, RAMP
   };
 })();

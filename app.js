@@ -43,6 +43,12 @@
   const ferryCell = unrle(G.layers.ferry);
 
   /* ================= country profiles ================= */
+  /* Natural Earth's airports stop at 55 S, so the Antarctic fields are
+     hand-added. They carry an opening year, since a runway on the ice is a
+     20th-century thing and the rest of the set is gated only by size. */
+  const AIRPORTS = G.airports.concat(
+    D.ANTARCTIC_AIR.map(a => ({ lon: a.lon, lat: a.lat, r: 0, y: a.y, n: a.n })));
+
   const CPROF = new Map(D.COUNTRY_RAW.map(r => [r[0], { ms: r[1], rq: r[2], ry: r[3], hy: r[4] }]));
   const NC = G.names.length;
   const cName = G.names;
@@ -283,7 +289,9 @@
     const restTab = new Float32Array(49);
     for (let s = 1; s <= 48; s++) restTab[s] = 48 / s;   // 24 / (s/2)
     const flying = M.air && !!D.AIR[ei];
-    const ports = flying ? G.airports.filter(a => a.r <= D.AIR_RANK[ei]) : [];
+    const yr = D.ERAS[ei].y;
+    const ports = flying
+      ? AIRPORTS.filter(a => a.r <= D.AIR_RANK[ei] && (!a.y || a.y <= yr)) : [];
     const NA = ports.length, total = GN + NA;
     const air = flying ? D.AIR[ei] : null;
     const airAt = new Map();
@@ -1387,7 +1395,7 @@
       const a = D.AIR[ei];
       H('Air');
       L(['Chartered, not timetabled. The limit is the aircraft',
-         N(G.airports.filter(x => x.r <= D.AIR_RANK[ei]).length) + ' airfields',
+         N(AIRPORTS.filter(x => x.r <= D.AIR_RANK[ei] && (!x.y || x.y <= E.y)).length) + ' airfields',
          N(a.cruise) + ' km/h, range ' + N(a.range) + ' km',
          HR(a.board) + ' to get airborne, ' + HR(a.stop) + ' a refuelling stop']);
     }
