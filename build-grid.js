@@ -364,7 +364,11 @@ const hsrv = new Uint8Array(GN), hsry = new Uint8Array(GN);   // km/h / 2; year 
       if (!w.geometry || w.geometry.length < 2) continue;
       const tags = w.tags || {};
       const ms = parseFloat(String(tags.maxspeed || '').replace(/[^\d.].*$/, ''));
-      const v = Math.round(Math.max(110, Math.min(300, (isFinite(ms) && ms > 0 ? ms : 270) * 0.70)) / 2);
+      /* OSM carries the speed the track is signalled for. 0.65 of it is what
+         a service that calls at stations makes over a corridor. The hand
+         corridors below are already end-to-end service speeds, taken from
+         real timings, so they are not discounted again. */
+      const v = Math.round(Math.max(110, Math.min(300, (isFinite(ms) && ms > 0 ? ms : 270) * 0.65)) / 2);
       const mid = w.geometry[w.geometry.length >> 1];
       const y = Math.max(1, Math.min(255, yearOf(tags, mid.lon, mid.lat) - 1900));
       ways++;
@@ -475,12 +479,20 @@ const hsrv = new Uint8Array(GN), hsry = new Uint8Array(GN);   // km/h / 2; year 
   const HSR_BOX = [[103, 22, 122, 41, 160, 2015]];
   let hc = 0;
   const put = (c, kmh, y) => { const v = Math.round(kmh / 2); if (!hsrv[c]) hc++; if (v > hsrv[c]) hsrv[c] = v; if (!hsry[c] || y < hsry[c]) hsry[c] = y; };
+  /* A hand corridor is the speed a service makes over the whole corridor, so
+     it governs rather than competing with OSM's line speeds. Taking the
+     maximum threw the curated value away wherever a fast fragment touched
+     the cell: Frankfurt to Nuremberg is 125 km/h end to end with its stops,
+     but the Hannover-Wurzburg line ends in one cell and the Nuremberg-
+     Ingolstadt line starts in another, so the 92 conventional km between
+     them ran at 200. Brussels to Vienna lost two hours that way. */
+  const set = (c, kmh, y) => { const v = Math.round(kmh / 2); if (!hsrv[c]) hc++; hsrv[c] = v; if (!hsry[c] || y < hsry[c]) hsry[c] = y; };
   for (const ln of HSR_HAND) {
     const y = ln.y - 1900;
     for (let k = 1; k < ln.p.length; k++) {
       const [x0, y0] = ln.p[k - 1], [x1, y1] = ln.p[k];
       const n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0) / (RES * 0.3)));
-      for (let t = 0; t <= n; t++) put(cellOf(x0 + (x1 - x0) * t / n, y0 + (y1 - y0) * t / n), ln.v, y);
+      for (let t = 0; t <= n; t++) set(cellOf(x0 + (x1 - x0) * t / n, y0 + (y1 - y0) * t / n), ln.v, y);
     }
   }
   for (const [l0, a0, l1, a1, v, y] of HSR_BOX)

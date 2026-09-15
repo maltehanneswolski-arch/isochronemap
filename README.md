@@ -112,12 +112,12 @@ city-centre journeys between 80 origin cities: Transitous (an open routing
 service over open GTFS feeds, fastest surface itinerary over four Tuesday
 departures) for 228 of them, operator timetables plus 0.4 h of station access
 for the 36 it has no feed for, and 5 where its answer needed a floor or a
-ceiling. Result: 85% of pairs within a quarter of the real time, 96% within
-40%, median ratio 0.99.
+ceiling. Result: 87% of pairs within a quarter of the real time, 97% within
+40%, median ratio 0.98.
 
-The median is near 1 at every distance: 1.03 under 150 km, 0.98 from 150 to
-350, 0.97 from 350 to 700, 1.03 beyond. The scatter is worst on the short
-hops, 70% within a quarter against 90% over 350 km, because one access
+The median is near 1 at every distance: 1.02 under 150 km, 0.98 from 150 to
+350, 0.96 from 350 to 700, 1.00 beyond. The scatter is worst on the short
+hops, 73% within a quarter against 92% over 350 km, because one access
 figure cannot fit both a Shinkansen pair whose stations are central (Osaka to
 Kyoto is 25 minutes door to door) and a European journey that needs two
 changes to cover the same ground.

@@ -411,7 +411,10 @@ window.ISO = (function () {
   /* What a scheduled service makes of the track it runs on. The high-speed
      layer carries line speed from OSM's maxspeed; a train that calls at
      stations never makes that over a whole corridor. */
-  const HSR_SERVICE = 0.93;
+  /* The service discount now lives in build-grid.js, applied to OpenStreetMap
+     line speeds only, so the hand corridors keep the end-to-end timings they
+     were measured from. Left here as a global trim, normally 1. */
+  const HSR_SERVICE = 1.0;
 
   /* --- water that the coarse grid would otherwise close up -------------
      The Bering Strait is 82 km wide and rasterises shut, land-bridging Asia

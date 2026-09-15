@@ -1499,8 +1499,9 @@
         HR(D.RAIL_CHANGE[ei]) + ' to change where the high-speed line ends, ' + HR(D.RAIL_BORDER[ei]) + ' at a frontier'];
       if (E.y >= 1964) r.push('High-speed track from ' +
         A('https://wiki.openstreetmap.org/wiki/Key:highspeed', 'OpenStreetMap') +
-        ', run at 75% of its line speed' +
-        '<ul><li>320 km/h LGV: 240</li><li>300 km/h ICE line: 225</li></ul>');
+        ', run at 65% of its line speed' +
+        '<ul><li>a train that calls at stations never makes what the track is signalled for</li>' +
+        '<li>126 corridors carry their measured end-to-end timing instead</li></ul>');
       if (E.y >= 1900) r.push('Anchored on published timings' +
         '<ul><li>Trans-Siberian 70\u201390 km/h</li>' +
         (E.y >= 1950 ? '<li>Rajdhani 83\u201398</li>' : '') + '</ul>');
@@ -1509,7 +1510,7 @@
         A('https://my.vanderbilt.edu/jeremyatack/data-downloads/', 'Atack\u2019s survey') +
         ' of 76\u2009849 segments 1826\u20131911');
       if (ei === 7) r.push('Checked against 269 real journeys today (' +
-        A('https://transitous.org', 'Transitous') + '): 85% within a quarter, 96% within 40%, median 0.99');
+        A('https://transitous.org', 'Transitous') + '): 87% within a quarter, 97% within 40%, median 0.98');
       L(r);
     }
 
