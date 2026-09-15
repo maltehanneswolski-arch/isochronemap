@@ -1454,7 +1454,7 @@
         (E.y >= 1950 ? '<li>Rajdhani 83\u201398</li>' : '') + '</ul>');
       if (E.y >= 1950) r.push('Still no working line: Central African Republic, Chad, Somalia, Bhutan');
       if (ei === 7) r.push('Checked against 166 real journeys today (' +
-        A('https://transitous.org', 'Transitous') + ', operator timetables): 92% within a quarter, median 0.94');
+        A('https://transitous.org', 'Transitous') + ', operator timetables): 90% within a quarter, 99% within 40%, median 0.93');
       L(r);
     }
 

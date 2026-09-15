@@ -62,7 +62,7 @@ Peking at seven weeks in the same model.
 | Ferry routes (314) | Natural Earth 10m roads, ferry class |
 | Terrain (222 ranges, 58 deserts) | Natural Earth 10m geography regions |
 | Airfields (2,829) | [OurAirports](https://ourairports.com/data/) (public domain), large and medium with scheduled service, plus Natural Earth 10m |
-| High-speed rail (3,534 cells) | [OpenStreetMap](https://wiki.openstreetmap.org/wiki/Key:highspeed) `highspeed=yes` track via Overpass, with a hand list of corridors carrying speeds and opening years |
+| High-speed rail (4,899 cells) | [OpenStreetMap](https://wiki.openstreetmap.org/wiki/Key:highspeed) `highspeed=yes` track via Overpass (146,083 ways, all 82 boxes), with a hand list of corridors carrying speeds and opening years |
 | Fixed links | Channel Tunnel, Great Belt, Øresund, Seikan, Kanmon, Bosphorus, King Fahd, portal to portal |
 | Real journey times (166 pairs) | [Transitous](https://transitous.org) over open GTFS, and operator timetables |
 | Place labels (1,100) | Natural Earth 10m populated places |
@@ -80,11 +80,11 @@ most of what the early maps look like.
 Scheduled transport in 2026 is checked against 166 real city-centre to
 city-centre journeys: Transitous (an open routing service over open GTFS
 feeds, fastest of three Tuesday departures) where its feeds reach, operator
-timetables plus 0.4 h of station access elsewhere. Result: 92% of pairs within
-a quarter of the real time, 99% within 40%, median ratio 0.94. Brussels to
-Vienna reads 8.4 h against 9.5-10 by ICE and Railjet; Paris to Marseille 3.5
-against 3.5; Tokyo to Osaka 2.6 against 2.75; Beijing to Shanghai 5.1 against
-4.7. The widest misses are Alpine passes, where the railway and the road wind
+timetables plus 0.4 h of station access elsewhere. Result: 90% of pairs within
+a quarter of the real time, 99% within 40%, median ratio 0.93. Brussels to
+Vienna reads 8.0 h against 9.5-10 by ICE and Railjet; Paris to Marseille 3.5
+against 3.5; Tokyo to Osaka 2.5 against 2.75; Beijing to Guangzhou 8.1 against 8.2;
+Beijing to Xi'an 4.7 against 4.7. The widest misses are Alpine passes, where the railway and the road wind
 far beyond the straight line the grid measures, and Indian trunk lines.
 
 ```bash
