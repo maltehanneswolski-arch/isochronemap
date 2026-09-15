@@ -12,10 +12,10 @@
     48.2082,
     16.3738
    ],
-   "hours": 9.9,
+   "hours": 11.48,
    "transitous": 11.48,
    "sched": 9.5,
-   "src": "timetable",
+   "src": "transitous",
    "via": "IC 2230 > EST 9411 > ICE 225 > RE5 (79029) > WB 927 > U3"
   },
   {
@@ -46,10 +46,10 @@
     48.1351,
     11.582
    ],
-   "hours": 6.4,
+   "hours": 6.72,
    "transitous": 6.72,
    "sched": 6.0,
-   "src": "timetable",
+   "src": "transitous",
    "via": "IC 2232 > EST 9423 > RE7 (17418) > ICE 919 > S5"
   },
   {
@@ -63,10 +63,10 @@
     52.3676,
     4.9041
    ],
-   "hours": 2.3,
+   "hours": 2.43,
    "transitous": 2.43,
    "sched": 1.9,
-   "src": "timetable",
+   "src": "transitous",
    "via": "10 > EST 9303 > 53"
   },
   {
@@ -114,10 +114,10 @@
     47.3769,
     8.5417
    ],
-   "hours": 6.6,
+   "hours": 6.67,
    "transitous": 6.67,
    "sched": 6.2,
-   "src": "timetable",
+   "src": "transitous",
    "via": "4 > EST 9462 > TGV INOUI 2425 > TER 96269 > IR37"
   },
   {
@@ -131,10 +131,10 @@
     50.0755,
     14.4378
    ],
-   "hours": 9.9,
+   "hours": 10.35,
    "transitous": 10.35,
    "sched": 9.5,
-   "src": "timetable",
+   "src": "transitous",
    "via": "IC 4509 > ICE 15 > ICE 627 > RE22 (59493) > FlixBus 283 > B > 10"
   },
   {
@@ -165,10 +165,10 @@
     49.6116,
     6.1319
    ],
-   "hours": 3.4,
+   "hours": 3.45,
    "transitous": 3.45,
    "sched": 3.0,
-   "src": "timetable",
+   "src": "transitous",
    "via": "4 > FlixBus 299 > 22"
   },
   {
@@ -182,10 +182,10 @@
     45.764,
     4.8357
    ],
-   "hours": 2.35,
+   "hours": 2.38,
    "transitous": 2.38,
    "sched": 1.95,
-   "src": "timetable",
+   "src": "transitous",
    "via": "1 > OUIGO 7803 > TB11"
   },
   {
@@ -216,10 +216,10 @@
     44.8378,
     -0.5792
    ],
-   "hours": 2.5,
+   "hours": 2.77,
    "transitous": 2.77,
    "sched": 2.1,
-   "src": "timetable",
+   "src": "transitous",
    "via": "4 > OUIGO 7673 > F"
   },
   {
@@ -233,10 +233,10 @@
     48.5734,
     7.7521
    ],
-   "hours": 2.2,
+   "hours": 2.38,
    "transitous": 2.38,
    "sched": 1.8,
-   "src": "timetable",
+   "src": "transitous",
    "via": "1 > 4 > ICE 9573 > G"
   },
   {
@@ -250,10 +250,10 @@
     50.8466,
     4.3528
    ],
-   "hours": 1.8,
+   "hours": 1.92,
    "transitous": 1.92,
    "sched": 1.4,
-   "src": "timetable",
+   "src": "transitous",
    "via": "1 > D > EST 9329 > 10"
   },
   {
@@ -284,10 +284,10 @@
     52.3676,
     4.9041
    ],
-   "hours": 3.7,
+   "hours": 3.95,
    "transitous": 3.95,
    "sched": 3.3,
-   "src": "timetable",
+   "src": "transitous",
    "via": "1 > D > EST 9329 > 53"
   },
   {
@@ -301,10 +301,10 @@
     50.1109,
     8.6821
    ],
-   "hours": 4.1,
+   "hours": 4.28,
    "transitous": 4.28,
    "sched": 3.7,
-   "src": "timetable",
+   "src": "transitous",
    "via": "11 > 5 > ICE 9563 > ICE 276 > U4"
   },
   {
@@ -335,10 +335,10 @@
     41.3874,
     2.1686
    ],
-   "hours": 7.1,
+   "hours": 7.17,
    "transitous": 7.17,
    "sched": 6.7,
-   "src": "timetable",
+   "src": "transitous",
    "via": "1 > TGV INOUI 9713 > R1"
   },
   {
@@ -352,10 +352,10 @@
     45.4642,
     9.19
    ],
-   "hours": 7.6,
+   "hours": 7.93,
    "transitous": 7.93,
    "sched": 7.2,
-   "src": "timetable",
+   "src": "transitous",
    "via": "1 > TGV Lyria 9203 > EC 19 > EC 19 > 3"
   },
   {
@@ -386,10 +386,10 @@
     47.2184,
     -1.5536
    ],
-   "hours": 2.4,
+   "hours": 2.62,
    "transitous": 2.62,
    "sched": 2.0,
-   "src": "timetable",
+   "src": "transitous",
    "via": "1 > 4 > TGV INOUI 8805 > 11"
   },
   {
@@ -403,10 +403,10 @@
     48.1173,
     -1.6778
    ],
-   "hours": 1.85,
+   "hours": 2.08,
    "transitous": 2.08,
    "sched": 1.45,
-   "src": "timetable",
+   "src": "transitous",
    "via": "1 > 13 > TGV INOUI 8719 > 12"
   },
   {
@@ -420,10 +420,10 @@
     50.6292,
     3.0573
    ],
-   "hours": 1.45,
+   "hours": 1.63,
    "transitous": 1.63,
    "sched": 1.05,
-   "src": "timetable",
+   "src": "transitous",
    "via": "1 > D > TGV INOUI 7007 > M1"
   },
   {
@@ -437,10 +437,10 @@
     43.6047,
     1.4442
    ],
-   "hours": 4.7,
+   "hours": 5.05,
    "transitous": 5.05,
    "sched": 4.3,
-   "src": "timetable",
+   "src": "transitous",
    "via": "1 > 13 > TGV INOUI 8511 > A"
   },
   {
@@ -471,10 +471,10 @@
     46.2044,
     6.1432
    ],
-   "hours": 3.5,
+   "hours": 3.62,
    "transitous": 3.62,
    "sched": 3.1,
-   "src": "timetable",
+   "src": "transitous",
    "via": "1 > TGV Lyria 9777 > 14"
   },
   {
@@ -505,10 +505,10 @@
     53.4808,
     -2.2426
    ],
-   "hours": 2.5,
+   "hours": 2.63,
    "transitous": 2.63,
    "sched": 2.1,
-   "src": "timetable",
+   "src": "transitous",
    "via": "29 > Northern > Avanti > 2"
   },
   {
@@ -522,10 +522,10 @@
     52.4862,
     -1.8904
    ],
-   "hours": 1.7,
+   "hours": 1.85,
    "transitous": 1.85,
    "sched": 1.3,
-   "src": "timetable",
+   "src": "transitous",
    "via": "Northern > Avanti > 82 > 65"
   },
   {
@@ -539,10 +539,10 @@
     55.8642,
     -4.2518
    ],
-   "hours": 4.9,
+   "hours": 4.97,
    "transitous": 4.97,
    "sched": 4.5,
-   "src": "timetable",
+   "src": "transitous",
    "via": "29 > Northern > Avanti > Subway"
   },
   {
@@ -556,10 +556,10 @@
     51.4816,
     -3.1791
    ],
-   "hours": 2.25,
+   "hours": 2.35,
    "transitous": 2.35,
    "sched": 1.85,
-   "src": "timetable",
+   "src": "transitous",
    "via": "Bakerloo > GWR > C1"
   },
   {
@@ -590,10 +590,10 @@
     48.1351,
     11.582
    ],
-   "hours": 4.3,
+   "hours": 4.55,
    "transitous": 4.55,
    "sched": 3.9,
-   "src": "timetable",
+   "src": "transitous",
    "via": "S9 > ICE 1163 > ICE 723 > S3"
   },
   {
@@ -607,10 +607,10 @@
     53.5511,
     9.9937
    ],
-   "hours": 2.15,
+   "hours": 2.23,
    "transitous": 2.23,
    "sched": 1.75,
-   "src": "timetable",
+   "src": "transitous",
    "via": "M4 > S5 > ICE 606 > S7"
   },
   {
@@ -658,10 +658,10 @@
     48.2082,
     16.3738
    ],
-   "hours": 8.4,
+   "hours": 8.77,
    "transitous": 8.77,
    "sched": 8.0,
-   "src": "timetable",
+   "src": "transitous",
    "via": "M4 > S7 > ICE 171 > FlixBus 060 > U3"
   },
   {
@@ -675,10 +675,10 @@
     50.1109,
     8.6821
    ],
-   "hours": 4.3,
+   "hours": 4.38,
    "transitous": 4.38,
    "sched": 3.9,
-   "src": "timetable",
+   "src": "transitous",
    "via": "U5 > ICE 839 > U5"
   },
   {
@@ -709,10 +709,10 @@
     51.3397,
     12.3731
    ],
-   "hours": 1.6,
+   "hours": 1.7,
    "transitous": 1.7,
    "sched": 1.2,
-   "src": "timetable",
+   "src": "transitous",
    "via": "M4 > S5 > ICE 595 > S3"
   },
   {
@@ -743,10 +743,10 @@
     52.3759,
     9.732
    ],
-   "hours": 2.0,
+   "hours": 2.02,
    "transitous": 2.02,
    "sched": 1.6,
-   "src": "timetable",
+   "src": "transitous",
    "via": "M4 > S5 > ICE 142 > 10"
   },
   {
@@ -777,10 +777,10 @@
     50.9375,
     6.9603
    ],
-   "hours": 1.5,
+   "hours": 1.52,
    "transitous": 1.52,
    "sched": 1.1,
-   "src": "timetable",
+   "src": "transitous",
    "via": "U4 > ICE 726 > 9"
   },
   {
@@ -794,10 +794,10 @@
     48.1351,
     11.582
    ],
-   "hours": 3.6,
+   "hours": 3.68,
    "transitous": 3.68,
    "sched": 3.2,
-   "src": "timetable",
+   "src": "transitous",
    "via": "U5 > ICE 621 > S4"
   },
   {
@@ -811,10 +811,10 @@
     53.5511,
     9.9937
    ],
-   "hours": 4.0,
+   "hours": 4.13,
    "transitous": 4.13,
    "sched": 3.6,
-   "src": "timetable",
+   "src": "transitous",
    "via": "U4 > ICE 74 > S3"
   },
   {
@@ -828,10 +828,10 @@
     48.2082,
     16.3738
    ],
-   "hours": 6.9,
+   "hours": 8.05,
    "transitous": 8.05,
    "sched": 6.5,
-   "src": "timetable",
+   "src": "transitous",
    "via": "U5 > ICE 621 > ICE 119 > RJX 19915 > CJX 22950 > U1"
   },
   {
@@ -845,10 +845,10 @@
     47.3769,
     8.5417
    ],
-   "hours": 4.3,
+   "hours": 4.33,
    "transitous": 4.33,
    "sched": 3.9,
-   "src": "timetable",
+   "src": "transitous",
    "via": "U4 > EC 151"
   },
   {
@@ -913,10 +913,10 @@
     52.3676,
     4.9041
    ],
-   "hours": 4.3,
+   "hours": 4.35,
    "transitous": 4.35,
    "sched": 3.9,
-   "src": "timetable",
+   "src": "transitous",
    "via": "U5 > ICE 220 > Intercity > 51"
   },
   {
@@ -930,10 +930,10 @@
     48.2082,
     16.3738
    ],
-   "hours": 4.4,
+   "hours": 4.55,
    "transitous": 4.55,
    "sched": 4.0,
-   "src": "timetable",
+   "src": "transitous",
    "via": "S3 > WB 961 > U3"
   },
   {
@@ -947,10 +947,10 @@
     47.3769,
     8.5417
    ],
-   "hours": 3.9,
+   "hours": 4.03,
    "transitous": 4.03,
    "sched": 3.5,
-   "src": "timetable",
+   "src": "transitous",
    "via": "S8 > ECE 98"
   },
   {
@@ -964,10 +964,10 @@
     47.8095,
     13.055
    ],
-   "hours": 1.9,
+   "hours": 2.12,
    "transitous": 2.12,
    "sched": 1.5,
-   "src": "timetable",
+   "src": "transitous",
    "via": "S5 > RJ 113 > 21"
   },
   {
@@ -1015,10 +1015,10 @@
     49.4521,
     11.0767
    ],
-   "hours": 1.4,
+   "hours": 1.58,
    "transitous": 1.58,
    "sched": 1.0,
-   "src": "timetable",
+   "src": "transitous",
    "via": "S4 > ICE 720 > U1"
   },
   {
@@ -1049,10 +1049,10 @@
     50.0755,
     14.4378
    ],
-   "hours": 4.4,
+   "hours": 4.52,
    "transitous": 4.52,
    "sched": 4.0,
-   "src": "timetable",
+   "src": "transitous",
    "via": "U3 > FlixBus N906 > A"
   },
   {
@@ -1066,10 +1066,10 @@
     47.3769,
     8.5417
    ],
-   "hours": 8.3,
+   "hours": 8.42,
    "transitous": 8.42,
    "sched": 7.9,
-   "src": "timetable",
+   "src": "transitous",
    "via": "U1 > RJX 62 > ECE 98"
   },
   {
@@ -1083,10 +1083,10 @@
     47.8095,
     13.055
    ],
-   "hours": 2.8,
+   "hours": 2.97,
    "transitous": 2.97,
    "sched": 2.4,
-   "src": "timetable",
+   "src": "transitous",
    "via": "U1 > RJX 13474 > 22"
   },
   {
@@ -1253,10 +1253,10 @@
     46.2044,
     6.1432
    ],
-   "hours": 3.1,
+   "hours": 3.23,
    "transitous": 3.23,
    "sched": 2.7,
-   "src": "timetable",
+   "src": "transitous",
    "via": "IC5 > IR90 > 14"
   },
   {
@@ -1287,10 +1287,10 @@
     47.2692,
     11.4041
    ],
-   "hours": 3.9,
+   "hours": 4.5,
    "transitous": 4.5,
    "sched": 3.5,
-   "src": "timetable",
+   "src": "transitous",
    "via": "IC3 > IR13 > SV430 > RJX 13483 > 504"
   },
   {
@@ -1321,10 +1321,10 @@
     45.4408,
     12.3155
    ],
-   "hours": 2.6,
+   "hours": 2.8,
    "transitous": 2.8,
    "sched": 2.2,
-   "src": "timetable",
+   "src": "transitous",
    "via": "3 > FR 9737 > 81F"
   },
   {
@@ -1355,10 +1355,10 @@
     43.7696,
     11.2558
    ],
-   "hours": 2.15,
+   "hours": 2.3,
    "transitous": 2.3,
    "sched": 1.75,
-   "src": "timetable",
+   "src": "transitous",
    "via": "3 > FR 9583 > 6"
   },
   {
@@ -1372,10 +1372,10 @@
     40.8518,
     14.2681
    ],
-   "hours": 4.65,
+   "hours": 4.8,
    "transitous": 4.8,
    "sched": 4.25,
-   "src": "timetable",
+   "src": "transitous",
    "via": "3 > FR 9625"
   },
   {
@@ -1406,10 +1406,10 @@
     43.7696,
     11.2558
    ],
-   "hours": 1.9,
+   "hours": 1.98,
    "transitous": 1.98,
    "sched": 1.5,
-   "src": "timetable",
+   "src": "transitous",
    "via": "MEA > FR 9540 > 6"
   },
   {
@@ -1440,10 +1440,10 @@
     41.3874,
     2.1686
    ],
-   "hours": 2.9,
+   "hours": 3.45,
    "transitous": 3.45,
    "sched": 2.5,
-   "src": "timetable",
+   "src": "transitous",
    "via": "C4a > AVE 03151 > R1"
   },
   {
@@ -1457,10 +1457,10 @@
     37.3891,
     -5.9845
    ],
-   "hours": 2.75,
+   "hours": 3.05,
    "transitous": 3.05,
    "sched": 2.35,
-   "src": "timetable",
+   "src": "transitous",
    "via": "C3 > AVE 02080 > 32"
   },
   {
@@ -1474,10 +1474,10 @@
     39.4699,
     -0.3763
    ],
-   "hours": 2.1,
+   "hours": 2.38,
    "transitous": 2.38,
    "sched": 1.7,
-   "src": "timetable",
+   "src": "transitous",
    "via": "C4b > AVE 05080 > 31"
   },
   {
@@ -1491,10 +1491,10 @@
     36.7213,
     -4.4214
    ],
-   "hours": 2.8,
+   "hours": 3.25,
    "transitous": 3.25,
    "sched": 2.4,
-   "src": "timetable",
+   "src": "transitous",
    "via": "C4a > AVE 02152 > 20"
   },
   {
@@ -1559,10 +1559,10 @@
     41.1579,
     -8.6291
    ],
-   "hours": 3.2,
+   "hours": 3.47,
    "transitous": 3.47,
    "sched": 2.8,
-   "src": "timetable",
+   "src": "transitous",
    "via": "Vd > Vm > AP > C"
   },
   {
@@ -1661,10 +1661,10 @@
     57.7089,
     11.9746
    ],
-   "hours": 3.4,
+   "hours": 3.72,
    "transitous": 3.72,
    "sched": 3.0,
-   "src": "timetable",
+   "src": "transitous",
    "via": "423"
   },
   {
@@ -1678,10 +1678,10 @@
     55.605,
     13.0038
    ],
-   "hours": 4.8,
+   "hours": 4.87,
    "transitous": 4.87,
    "sched": 4.4,
-   "src": "timetable",
+   "src": "transitous",
    "via": "535"
   },
   {
@@ -1695,10 +1695,10 @@
     59.9139,
     10.7522
    ],
-   "hours": 5.9,
+   "hours": 5.97,
    "transitous": 5.97,
    "sched": 5.5,
-   "src": "timetable",
+   "src": "transitous",
    "via": "629"
   },
   {
@@ -1763,10 +1763,10 @@
     50.0755,
     14.4378
    ],
-   "hours": 7.9,
+   "hours": 8.75,
    "transitous": 8.75,
    "sched": 7.5,
-   "src": "timetable",
+   "src": "transitous",
    "via": "7 > EIC 1400 > 674 > 000202 > EC 142 > A"
   },
   {
@@ -1780,10 +1780,10 @@
     47.4979,
     19.0402
    ],
-   "hours": 6.9,
+   "hours": 7.42,
    "transitous": 7.42,
    "sched": 6.5,
-   "src": "timetable",
+   "src": "transitous",
    "via": "A > C > FlixBus 260 > RJX 19915 > M4 > 41"
   },
   {
@@ -1848,10 +1848,10 @@
     49.8397,
     24.0297
    ],
-   "hours": 5.4,
+   "hours": 7.03,
    "transitous": 7.03,
    "sched": 5.0,
-   "src": "timetable",
+   "src": "transitous",
    "via": "24 > 9 > А43"
   },
   {
@@ -1882,10 +1882,10 @@
     51.8985,
     -8.4756
    ],
-   "hours": 2.9,
+   "hours": 3.12,
    "transitous": 3.12,
    "sched": 2.5,
-   "src": "timetable",
+   "src": "transitous",
    "via": "C4 > InterCity > 208"
   },
   {
@@ -1899,10 +1899,10 @@
     54.5973,
     -5.9301
    ],
-   "hours": 2.5,
+   "hours": 2.52,
    "transitous": 2.52,
    "sched": 2.1,
-   "src": "timetable",
+   "src": "transitous",
    "via": "Red > Dublin Connolly - Belfast Great Central > 513"
   },
   {
@@ -1933,10 +1933,10 @@
     38.9072,
     -77.0369
    ],
-   "hours": 3.25,
+   "hours": 3.75,
    "transitous": 3.75,
    "sched": 2.85,
-   "src": "timetable",
+   "src": "transitous",
    "via": "M22 > 3 > 2151 > R > D70"
   },
   {
@@ -1950,10 +1950,10 @@
     42.3601,
     -71.0589
    ],
-   "hours": 4.1,
+   "hours": 4.48,
    "transitous": 4.48,
    "sched": 3.7,
-   "src": "timetable",
+   "src": "transitous",
    "via": "2 > 2152 > Orange Line"
   },
   {
@@ -1967,10 +1967,10 @@
     41.8781,
     -87.6298
    ],
-   "hours": 19.4,
+   "hours": 22.15,
    "transitous": 22.15,
    "sched": 19.0,
-   "src": "timetable",
+   "src": "transitous",
    "via": "3 > 131 > 40 > 151"
   },
   {
@@ -1984,10 +1984,10 @@
     45.5017,
     -73.5673
    ],
-   "hours": 5.3,
+   "hours": 5.37,
    "transitous": 5.37,
    "sched": 4.9,
-   "src": "timetable",
+   "src": "transitous",
    "via": "1 > VIA Rail"
   },
   {
@@ -2001,10 +2001,10 @@
     34.6937,
     135.5023
    ],
-   "hours": 2.75,
+   "hours": 3.48,
    "transitous": 3.48,
    "sched": 2.35,
-   "src": "timetable",
+   "src": "transitous",
    "via": "渋６６ > 11573054 > 16953594 > 18911714 > のぞみ469号 > 14525634"
   },
   {
@@ -2018,10 +2018,10 @@
     35.1796,
     129.0756
    ],
-   "hours": 2.65,
+   "hours": 2.93,
    "transitous": 2.93,
    "sched": 2.25,
-   "src": "timetable",
+   "src": "transitous",
    "via": "서울1호선 > KTX 43 > 부산1호선"
   },
   {

@@ -130,7 +130,11 @@ window.ISO = (function () {
   const ICE_WATER = [6, 10, 26, 34, 60, 95, 120, 140];
   const RIVER = [110, 200, 260, 280, 300, 300, 300, 300];
   const PORT_H = [24, 14, 8, 7, 5, 4, 3, 3];      // hours lost boarding or landing
-  const RAIL = [0, 500, 950, 1050, 1150, 1300, 1450, 1500];
+  /* Main-line rail, km a day. Trimmed 7% from the line-speed figures these
+     started as: a service that calls at stations never makes the speed its
+     track is signalled for, and the difference showed up as multi-leg
+     journeys coming out a fifth too quick. */
+  const RAIL = [0, 465, 885, 975, 1070, 1210, 1350, 1395];
   const HSR = [0, 0, 0, 0, 0, 2200, 2900, 3200];      // Shinkansen opens 1964
   const FERRY_PORT = 0.55;                      // a ferry berth costs less than an ocean sailing
   const SEA_DUTY = 24;
@@ -388,6 +392,17 @@ window.ISO = (function () {
   /* crossing a frontier by rail: customs and a change of carriage in 1850,
      passports until the 1970s, today mostly a change of train or operator */
   const RAIL_BORDER = [0, 1.0, 0.75, 0.75, 0.75, 0.5, 0.4, 0.4];
+  /* Changing trains. The model used to charge only for boarding the first one
+     and for a frontier, so it happily invented a through working where none
+     runs: Brussels to Vienna came out at 8 h against a real 11.2 over four
+     trains and three changes, one of them a regional service. A journey
+     breaks where the high-speed corridor does, so leaving one costs a wait
+     for whatever comes next. */
+  const RAIL_CHANGE = [0, 1.0, 0.8, 0.7, 0.6, 0.5, 0.45, 0.45];
+  /* What a scheduled service makes of the track it runs on. The high-speed
+     layer carries line speed from OSM's maxspeed; a train that calls at
+     stations never makes that over a whole corridor. */
+  const HSR_SERVICE = 0.93;
 
   /* --- water that the coarse grid would otherwise close up -------------
      The Bering Strait is 82 km wide and rasterises shut, land-bridging Asia
@@ -599,6 +614,6 @@ window.ISO = (function () {
     ERAS, MODES, SEA_TINT, SEA_MIX, PALETTES, FIELD_ALPHA, SATURATE, LINE_WIDTH, LINE_STRENGTH, BEYOND_ALPHA, WATER, WATER_SCHEDULED, FERRY, ICE_WATER, RIVER, PORT_H, RAIL, HSR,
     ROAD_CIRC, RAIL_CIRC, RIVER_CIRC, ROAD_EXP, ROAD_REF, TERRAIN_MUL, AIR, AIR_RANK, COUNTRY_RAW, RAIL_HIST, RAINFOREST,
     CLASS_MUL, NET_W, BIKE_MUL, FOOT_MUL, RAIL_MAIN, RAIL_BRANCH, ANTARCTIC_AIR, STRAITS, WATER_CUTS, FERRY_ROUTES, FERRY_PORT, SEA_DUTY, FIXED_LINKS, CANALS, RIVERS,
-    RAIL_LINES, RAIL_BOARD, RAIL_ALIGHT, RAIL_BORDER, SAIL_CIRC, MAP_ERA, MAP_W, MAP_GAPS_ONLY, CITIES, LANDMARKS, LADDERS, RAMP
+    RAIL_LINES, RAIL_BOARD, RAIL_ALIGHT, RAIL_BORDER, RAIL_CHANGE, HSR_SERVICE, SAIL_CIRC, MAP_ERA, MAP_W, MAP_GAPS_ONLY, CITIES, LANDMARKS, LADDERS, RAMP
   };
 })();

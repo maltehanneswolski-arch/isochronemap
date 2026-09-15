@@ -60,12 +60,18 @@ CURATED = [
  ('Buenos Aires','Rosario',4.0,'coach'),('Bogota','Medellin',9.0,'coach'),('Lima','Cusco',21.0,'coach'),
 ]
 
-# Fastest station-to-station service from the operators' 2025/26 timetables,
-# hours. Transitous searches three departures and does not always find the
-# direct train (Brussels-Vienna came back as 11.5 h with five changes through
-# London, against 9.5 by ICE and Railjet), so where a timetable figure exists
-# the target is the lower of the two, each door to door. Channel crossings
-# carry Eurostar's check-in, half an hour the station-to-station time omits.
+# Station-to-station timings from the operators' timetables, used ONLY where
+# Transitous has no coverage, and as a floor where its answer is impossibly
+# quick.
+#
+# An earlier version took the lower of the two on the grounds that the router
+# sometimes misses the direct train. That was wrong, and it quietly biased the
+# whole truth set: it pulled 61 of 166 targets below the measured journey, by
+# up to 2.75 h, and the model was then tuned to match them. Brussels to Vienna
+# was set to 9.5 h from "ICE and Railjet" when there is no such through
+# working - the real fastest is 11.2 h over four trains and three changes, one
+# of them a regional service. The router was right and the hand figure was a
+# guess. Transitous now wins wherever it returns an itinerary.
 SCHED = {
  ('Brussels','Vienna'):9.5,('Brussels','Frankfurt'):3.0,('Brussels','Munich'):6.0,('Brussels','Amsterdam'):1.9,('Brussels','London'):2.5,
  ('Brussels','Berlin'):6.6,('Brussels','Zurich'):6.2,('Brussels','Prague'):9.5,('Brussels','Cologne'):1.8,('Brussels','Luxembourg'):3.0,
@@ -101,10 +107,9 @@ for p in tr['pairs']:
     if p.get('hours') is None: continue
     sched = SCHED.get((p['from'], p['to']))
     # below 60% of the timetable the router has found something that is not a
-    # surface journey (Oslo-Bergen came back at 2.2 h); above it, the lower wins
-    if sched is None: target = p['hours']
-    elif p['hours'] < 0.6 * sched: target = round(sched + ACCESS, 2)
-    else: target = min(p['hours'], round(sched + ACCESS, 2))
+    # surface journey (Oslo-Bergen came back at 2.2 h); otherwise it stands
+    if sched is not None and p['hours'] < 0.6 * sched: target = round(sched + ACCESS, 2)
+    else: target = p['hours']
     pairs.append({'from': p['from'], 'to': p['to'], 'fromLL': p['fromLL'], 'toLL': p['toLL'],
                   'hours': target, 'transitous': p['hours'], 'sched': sched,
                   'src': 'transitous' if target == p['hours'] else 'timetable',

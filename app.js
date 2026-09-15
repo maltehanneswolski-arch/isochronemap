@@ -303,7 +303,7 @@
         /* a high-speed line is what it is, whatever the legacy network around
            it: its cells run at their own speed from the year they opened */
         if (railMode && hsrV[c] && hsrY[c] && yr >= 1900 + hsrY[c]) {
-          const hv = hsrV[c] * 2 / D.RAIL_CIRC * (M.air ? 0.8 : 1);
+          const hv = hsrV[c] * 2 * D.HSR_SERVICE / D.RAIL_CIRC * (M.air ? 0.8 : 1);
           if (hv > v) { v = hv; vd = tDuty; onR = 1; hsrOn[c] = 1; }
         }
         const uv = usRivY[c];
@@ -358,6 +358,7 @@
     // the first train of a journey costs the walk to the station and the wait
     const board = (M.rail || M.best) ? D.RAIL_BOARD[ei] : 0, alight = board ? D.RAIL_ALIGHT : 0;
     const border = board ? D.RAIL_BORDER[ei] : 0;
+    const change = board ? D.RAIL_CHANGE[ei] : 0;
     // duty hours only ever take a handful of values, so 24/dEdge is a table
     const restTab = new Float32Array(49);
     for (let s = 1; s <= 48; s++) restTab[s] = 48 / s;   // 24 / (s/2)
@@ -449,6 +450,9 @@
               const ru = u === start ? 0 : railOn[u], rv = railOn[v];
               if (rv !== ru) nc += rv ? board : alight;
               else if (rv && ctryRaw[u] !== ctryRaw[v] && ctryRaw[u] && ctryRaw[v]) nc += border;
+              // stepping off a high-speed corridor onto ordinary track is
+              // where a real journey changes trains, and waits for one
+              else if (rv && hsrOn[u] && !hsrOn[v]) nc += change;
             }
             if (linkWait[v] && !linkWait[u]) nc += linkWait[v];
             if (nc < dist[v]) { dist[v] = nc; move[v] = m1; push(nc, v); }
@@ -1482,7 +1486,8 @@
       const r = ['37\u2009487 cells, main lines and branches separated',
         'Each country gets its own opening year and service quality',
         'Main line ' + N(D.RAIL[ei]) + ' km/day',
-        HR(D.RAIL_BOARD[ei]) + ' to board the first train, ' + HR(D.RAIL_ALIGHT) + ' to alight, ' + HR(D.RAIL_BORDER[ei]) + ' at a frontier'];
+        HR(D.RAIL_BOARD[ei]) + ' to board the first train, ' + HR(D.RAIL_ALIGHT) + ' to alight',
+        HR(D.RAIL_CHANGE[ei]) + ' to change where the high-speed line ends, ' + HR(D.RAIL_BORDER[ei]) + ' at a frontier'];
       if (E.y >= 1964) r.push('High-speed track from ' +
         A('https://wiki.openstreetmap.org/wiki/Key:highspeed', 'OpenStreetMap') +
         ', run at 75% of its line speed' +
@@ -1495,7 +1500,7 @@
         A('https://my.vanderbilt.edu/jeremyatack/data-downloads/', 'Atack\u2019s survey') +
         ' of 76\u2009849 segments 1826\u20131911');
       if (ei === 7) r.push('Checked against 166 real journeys today (' +
-        A('https://transitous.org', 'Transitous') + ', operator timetables): 90% within a quarter, 99% within 40%, median 0.93');
+        A('https://transitous.org', 'Transitous') + '): 90% within a quarter, 97% within 40%, median 0.96');
       L(r);
     }
 
