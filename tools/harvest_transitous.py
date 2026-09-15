@@ -50,6 +50,11 @@ def best_of(a, b):
             legs = [l for l in it['legs'] if l.get('mode') != 'WALK']
             if not legs:                       # a walk is not a journey
                 continue
+            # Some national feeds carry domestic flights: Oslo to Bergen came
+            # back as FLY2 in 2.2 h against a 6.5 h train. This set is surface
+            # transport, so an itinerary that flies is not one of its journeys
+            if any((l.get('mode') or '').upper() == 'AIRPLANE' for l in legs):
+                continue
             h = it['duration'] / 3600.0
             if best is None or h < best['hours']:
                 best = {'hours': round(h, 2), 'transfers': it.get('transfers'),

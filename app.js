@@ -1993,8 +1993,31 @@
     }
     return rows;
   }
+  /* The 100-route check: model against the eight-departure measurement. */
+  async function verify(k0, k1) {
+    const cal = await (await fetch('data/verify100.json')).json();
+    const rows = cal.routes.filter(r => r.hours);
+    const byFrom = new Map();
+    for (const q of rows) {
+      if (!byFrom.has(q.from)) byFrom.set(q.from, []);
+      byFrom.get(q.from).push(q);
+    }
+    const out = [];
+    for (const fr of [...byFrom.keys()].slice(k0 || 0, k1 || 1e9)) {
+      const ps = byFrom.get(fr), [la, lo] = ps[0].fromLL;
+      const f = getField(lo, la, 4, 7);
+      for (const q of ps) {
+        const t = f.dist[landCellOf(q.toLL[1], q.toLL[0])];
+        out.push({ from: q.from, to: q.to, real: q.hours, model: +t.toFixed(2),
+                   ratio: +(t / q.hours).toFixed(2), changes: q.changes,
+                   km: Math.round(gcDist(q.fromLL[1], q.fromLL[0], q.toLL[1], q.toLL[0])),
+                   via: q.via });
+      }
+    }
+    return out;
+  }
   if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname))
-    window.__iso = { S, setOrigin, recompute, draw, fieldLadder, timeAt, fieldCache, getField, landCellOf, calibrate, calibrateEspon };
+    window.__iso = { S, setOrigin, recompute, draw, fieldLadder, timeAt, fieldCache, getField, landCellOf, calibrate, calibrateEspon, verify };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
