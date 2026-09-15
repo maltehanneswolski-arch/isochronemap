@@ -111,11 +111,26 @@ Scheduled transport in 2026 is checked against 166 real city-centre to
 city-centre journeys: Transitous (an open routing service over open GTFS
 feeds, fastest of three Tuesday departures) where its feeds reach, operator
 timetables plus 0.4 h of station access elsewhere. Result: 90% of pairs within
-a quarter of the real time, 99% within 40%, median ratio 0.93. Brussels to
-Vienna reads 8.0 h against 9.5-10 by ICE and Railjet; Paris to Marseille 3.5
-against 3.5; Tokyo to Osaka 2.5 against 2.75; Beijing to Guangzhou 8.1 against 8.2;
-Beijing to Xi'an 4.7 against 4.7. The widest misses are Alpine passes, where the railway and the road wind
-far beyond the straight line the grid measures, and Indian trunk lines.
+a quarter of the real time, 97% within 40%, median ratio 0.96.
+
+Those targets are what the router returns. An earlier version took the lower
+of the router and a hand-written timetable, on the theory that three sampled
+departures can miss the direct train. That is true sometimes and it was
+applied always, which is a mistake worth recording: it pulled 61 of the 166
+targets below the measured journey, by up to 2.75 h, and the model was then
+tuned to match them. Brussels to Vienna had been set to 9.5 h from "ICE and
+Railjet" when no such through working exists - the real fastest is 11.2 h
+over four trains and three changes, one of them a regional service. The hand
+timings now only fill gaps in the router's coverage, or floor an answer that
+is impossibly quick.
+
+The residual that remains is connections. The model assumes you always catch
+the best one, so a journey that is really four trains and three changes still
+comes out about a fifth quick: Brussels to Vienna reads 9.0 h against 11.5.
+Single-corridor journeys are close - Paris to Marseille 3.5 against 3.5, Milan
+to Rome 3.3 against 3.4, Madrid to Barcelona 3.1 against 3.5. The other wide
+misses are Alpine passes, where the railway and the road wind far beyond the
+straight line the grid measures.
 
 There is a second set for the year 2000, which nothing else could check:
 ESPON's NUTS-3 travel time matrices for 2001, 1,419 pairs between region
