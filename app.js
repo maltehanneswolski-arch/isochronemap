@@ -646,8 +646,11 @@
   function stageSize() {
     DPR = Math.min(2, window.devicePixelRatio || 1);
     const de = document.documentElement;
-    Wc = de.clientWidth || window.innerWidth;
-    Hc = de.clientHeight || window.innerHeight;
+    /* A hidden or still-laying-out stage measures zero, and a canvas of zero
+       width cannot be drawn from: every later drawImage throws and the globe
+       is left blank. Hold the last good size until there is a real one. */
+    Wc = Math.max(1, de.clientWidth || window.innerWidth || Wc);
+    Hc = Math.max(1, de.clientHeight || window.innerHeight || Hc);
     for (const c of [sky, cv]) { c.width = Wc * DPR; c.height = Hc * DPR; }
     skyC.setTransform(DPR, 0, 0, DPR, 0, 0);
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -673,8 +676,8 @@
     cx = (Wc - gutter) * 0.5;
     const head = mob ? 54 : 0;                 // the masthead sits in this strip
     cy = mob ? head + (Hc - peek - head) * 0.5 : (Hc - foot) * 0.5;
-    const fit = mob ? Math.min(Wc * 0.96, (Hc - peek - head) * 0.96) / 2
-                    : Math.min((Wc - gutter) * 0.88, (Hc - foot) * 0.84) / 2;
+    const fit = Math.max(1, mob ? Math.min(Wc * 0.96, (Hc - peek - head) * 0.96) / 2
+                                : Math.min((Wc - gutter) * 0.88, (Hc - foot) * 0.84) / 2);
     if (!S.fitted) { S.scale = fit; S.fitted = true; }
     else S.scale = Math.max(fit * 0.78, Math.min(S.scale, fit * 12));
     S.fit = fit;
@@ -990,7 +993,7 @@
   function drawFieldGL() {
     const ramp = rampOf(), NB = ramp.length;
     GL.upload(bandGrid(), NB + 6);
-    const w = Math.round(Wc * DPR), h = Math.round(Hc * DPR);
+    const w = Math.max(1, Math.round(Wc * DPR)), h = Math.max(1, Math.round(Hc * DPR));
     GL.render(w, h, [cx * DPR, cy * DPR], S.scale * DPR,
       [S.rotL, S.rotP], ramp, S.reveal);
     ctx.save();
@@ -1076,7 +1079,7 @@
     const bKey = (S.fieldGen | 0) + '|' + S.palette + '|' + S.tKey + '|' + (rev >= NB ? 'full' : rev.toFixed(3));
     if (bKey === S.bufKey) { blit(); return; }
     S.bufKey = bKey;
-    if (buf.width !== bw || buf.height !== bh) { buf.width = bw; buf.height = bh; }
+    if (buf.width !== bw || buf.height !== bh) { buf.width = Math.max(1, bw); buf.height = Math.max(1, bh); }
     let img = S.img;
     if (!img || img.width !== bw || img.height !== bh) { img = S.img = bufC.createImageData(bw, bh); }
     const px = img.data;
