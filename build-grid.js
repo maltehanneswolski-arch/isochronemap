@@ -315,12 +315,47 @@ const hsrv = new Uint8Array(GN), hsry = new Uint8Array(GN);   // km/h / 2; year 
     [11.2, 41.8, 12.6, 43.8, 1992],                                    // Direttissima Roma-Firenze
     [-6.1, 37.3, -3.6, 40.5, 1992]                                     // Madrid-Sevilla
   ];
-  const yearOf = (tags, lon, lat) => {
+  /* 57% of the ways carry start_date. Rather than call the rest 2015, the
+     dated ones are collected onto a 2-degree lattice first and an undated way
+     takes the median year of its own neighbourhood; the boxes below cover the
+     corridors that opened before 2000 where a whole region would otherwise
+     read modern, and 2015 is only the last resort. */
+  const dated = new Map();
+  const latKey = (lon, lat) => ((lat + 90) >> 1) * 256 + ((lon + 180) >> 1);
+  const yearTag = tags => {
     const sd = (tags.start_date || tags.opening_date || '').match(/\d{4}/);
-    if (sd) return +sd[0];
-    for (const [l0, a0, l1, a1, y] of EARLY) if (lon >= l0 && lon <= l1 && lat >= a0 && lat <= a1) return y;
+    const y = sd ? +sd[0] : 0;
+    return (y >= 1960 && y <= 2035) ? y : 0;
+  };
+  const yearOf = (tags, lon, lat) => {
+    const y = yearTag(tags);
+    if (y) return y;
+    for (const [l0, a0, l1, a1, yy] of EARLY) if (lon >= l0 && lon <= l1 && lat >= a0 && lat <= a1) return yy;
+    for (const r of [0, 1, 2]) {                      // widen the neighbourhood
+      const near = [];
+      for (let dx = -r; dx <= r; dx++) for (let dy = -r; dy <= r; dy++) {
+        const v = dated.get(latKey(lon + dx * 2, lat + dy * 2));
+        if (v) near.push(...v);
+      }
+      if (near.length >= 3) { near.sort((p, q) => p - q); return near[near.length >> 1]; }
+    }
     return 2015;
   };
+  // first pass: where the dated ways are
+  for (const f of fs.readdirSync('data').filter(n => /^osm_hsr_.*\.json$/.test(n))) {
+    let d;
+    try { d = JSON.parse(fs.readFileSync('data/' + f, 'utf8')); } catch (e) { continue; }
+    for (const w of d.elements || []) {
+      if (!w.geometry || !w.geometry.length) continue;
+      const y = yearTag(w.tags || {});
+      if (!y) continue;
+      const m = w.geometry[w.geometry.length >> 1], k = latKey(m.lon, m.lat);
+      if (!dated.has(k)) dated.set(k, []);
+      dated.get(k).push(y);
+    }
+  }
+  console.log('  dated neighbourhoods', dated.size);
+
   let ways = 0, cells = 0;
   for (const f of fs.readdirSync('data').filter(n => /^osm_hsr_.*\.json$/.test(n))) {
     let d;
@@ -454,8 +489,38 @@ const hsrv = new Uint8Array(GN), hsry = new Uint8Array(GN);   // km/h / 2; year 
   console.log('  + hand corridors', HSR_HAND.length, ' new cells', hc, ' total', hsrv.reduce((a, b) => a + (b ? 1 : 0), 0));
 }
 
+/* Jeremy Atack's historical transportation GIS (Vanderbilt, public): every
+   American railway segment 1826-1911 with the year it was in operation by,
+   and every steamboat-navigated river with the year navigation began. The
+   model had no dated American network and took the country's single 1830
+   opening year, so by 1850 the whole United States was on rail; the real
+   figure is 8 570 track miles in 1850 against 180 557 in 1900, and where
+   they were matters more than how many. tools/convert_atack.py reduces the
+   shapefiles to this grid. 255 marks a cell inside the surveyed area that
+   no line had reached by 1911, so it cannot fall back on the country rule. */
+console.log('\u00b7 American rail and river years (Atack)');
+const usrail = new Uint8Array(GN), usriv = new Uint8Array(GN);
+{
+  const p = 'data/atack_years.json';
+  if (!fs.existsSync(p)) console.log('  no atack_years.json - run tools/convert_atack.py');
+  else {
+    const A = JSON.parse(fs.readFileSync(p, 'utf8'));
+    const put = (arr, o) => { let n = 0; for (const k in o) { const y = o[k] - 1800; if (y > 0 && y < 255) { arr[+k] = y; n++; } } return n; };
+    const nr = put(usrail, A.rail), nv = put(usriv, A.river);
+    // the surveyed area: the contiguous states, so a cell the survey covers
+    // and no line reached stays off the network rather than inheriting 1830
+    let box = 0;
+    for (let j = rowOf(49.4); j <= rowOf(24.5); j++)
+      for (let lon = -125; lon <= -66.5; lon += RES) {
+        const c = j * GW + colOf(lon);
+        if (land[c] && !usrail[c]) { usrail[c] = 255; box++; }
+      }
+    console.log('  rail cells', nr, ' river cells', nv, ' surveyed but never reached', box);
+  }
+}
+
 const layers = { land: rle(land), ctry: rle(ctry), terr: rle(terr), road: rle(road), rail: rle(rail), ferry: rle(ferry),
-  hsrv: rle(hsrv), hsry: rle(hsry) };
+  hsrv: rle(hsrv), hsry: rle(hsry), usrail: rle(usrail), usriv: rle(usriv) };
 for (const k in layers) console.log('  ', k, (layers[k].length / 1024).toFixed(0) + ' KB');
 
 fs.writeFileSync('grid.js',

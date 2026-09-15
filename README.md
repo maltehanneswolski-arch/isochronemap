@@ -65,6 +65,10 @@ Peking at seven weeks in the same model.
 | High-speed rail (4,899 cells) | [OpenStreetMap](https://wiki.openstreetmap.org/wiki/Key:highspeed) `highspeed=yes` track via Overpass (146,083 ways, all 82 boxes), with a hand list of corridors carrying speeds and opening years |
 | Fixed links | Channel Tunnel, Great Belt, Øresund, Seikan, Kanmon, Bosphorus, King Fahd, portal to portal |
 | Real journey times (166 pairs) | [Transitous](https://transitous.org) over open GTFS, and operator timetables |
+| American rail 1826-1911 (8,703 cells, dated) | [Atack](https://my.vanderbilt.edu/jeremyatack/data-downloads/), 76,849 segments each with the year it was in operation by |
+| American steamboat rivers (1,376 cells, dated) | [Atack](https://my.vanderbilt.edu/jeremyatack/data-downloads/), 226 rivers with the year navigation began |
+| Sail speed (111,120 day-runs) | [CLIWOC](https://en.wikipedia.org/wiki/CLIWOC) logbooks 1662-1855, via [Open History Map](https://github.com/openhistorymap/cliwoc) |
+| European road and rail times, 2001 (2,829 pairs) | [ESPON indicator 1542](https://database.espon.eu/indicator/1542/), NUTS-3 centroids from [GISCO](https://gisco-services.ec.europa.eu/distribution/v2/nuts/) |
 | Place labels (1,100) | Natural Earth 10m populated places |
 | Road speed by country | [IMF Mean Speed score](https://www.imf.org/en/Publications/WP/Issues/2022/05/13/Road-Quality-and-Mean-Speed-Score-517801) (Moszoro & Soto 2022), 161 countries |
 | Road class speeds | [Van Etten 2020, WACV](https://openaccess.thecvf.com/content_WACV_2020/papers/Van_Etten_City-Scale_Road_Extraction_from_Satellite_Imagery_v2_Road_Speeds_and_WACV_2020_paper.pdf) |
@@ -72,7 +76,9 @@ Peking at seven weeks in the same model.
 | 18th-c. sailing times | [Royal Museums Greenwich](https://www.rmg.co.uk/stories/maritime-history/library-archive/18th-century-sailing-times-between-english-channel-coast) |
 
 Railways, canals and fixed links open on their real dates: Suez 1869, Panama
-1914, the Channel Tunnel 1994. Before 1869 every ship rounds the Cape, which is
+1914, the Channel Tunnel 1994. In the United States every line opens on the
+date Atack's survey gives it, so 1850 reaches the Appalachians and not the
+Pacific. Before 1869 every ship rounds the Cape, which is
 most of what the early maps look like.
 
 ## Calibration
@@ -87,13 +93,22 @@ against 3.5; Tokyo to Osaka 2.5 against 2.75; Beijing to Guangzhou 8.1 against 8
 Beijing to Xi'an 4.7 against 4.7. The widest misses are Alpine passes, where the railway and the road wind
 far beyond the straight line the grid measures, and Indian trunk lines.
 
+There is a second set for the year 2000, which nothing else could check:
+ESPON's NUTS-3 travel time matrices for 2001, 1,419 pairs between region
+centroids. Against their rail matrix the model's median ratio is 1.02 and 82%
+of pairs fall within a quarter. Those are modelled times rather than
+itineraries, so it is one model against another, but it is a peer-reviewed
+one and it covers the era end to end.
+
 ```bash
-python tools/harvest_transitous.py     # fetch real journeys (resumes)
+python tools/harvest_transitous.py     # real 2026 journeys (resumes)
 python tools/make_calibration.py       # write calibration.json
+python tools/make_espon.py             # write calibration_espon.json (2001)
 ```
 
 Then on a local server, in the console: `await __iso.calibrate()` returns
-model against real for every pair.
+model against real for every pair, and `await __iso.calibrateEspon(0,30,4)`
+does the same for 2000.
 
 ## Files
 
@@ -106,7 +121,8 @@ model against real for every pair.
 | `geo.js` | coastline and border geometry for drawing |
 | `build-grid.js` | regenerates `grid.js` and `geo.js` from Natural Earth, OurAirports and the OSM pull |
 | `calibration.json` | the real journeys the model is checked against |
-| `tools/` | the harvesters for Transitous and Overpass, and the calibration assembler |
+| `calibration_espon.json` | ESPON's 2001 NUTS-3 road and rail times, for the 2000 plate |
+| `tools/` | the harvesters (Transitous, Overpass, MAP friction), the shapefile and PDF readers, and the calibration assemblers |
 
 ## Rebuilding the data
 

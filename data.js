@@ -95,7 +95,20 @@ window.ISO = (function () {
      net progress from a hull doing 5. Ships sail through the night, so their
      duty day is the full 24 h. Modern ships are barely faster than 1950:
      nobody crosses an ocean for speed any more. */
-  const WATER = [135, 360, 620, 660, 700, 700, 700, 700];      // open-sea passage, km/day
+  /* Open-sea passage, km a day, along the track actually sailed. For the age
+     of sail the figure is measured: 111 120 day-runs reconstructed from the
+     CLIWOC logbook database (287 114 logbooks, Dutch, English, French and
+     Spanish ships 1750-1855) give a median 205 km between one day's noon
+     position and the next in the second half of the 18th century, rising to
+     248 by the 1800s. Steam figures are from published passage times. */
+  const WATER = [205, 360, 620, 660, 700, 700, 700, 700];
+  /* A sailing ship does not go where it is pointed: it works the trades, and
+     the Atlantic is crossed by going the long way round. Measured over 878
+     CLIWOC passages of eight days or more, the track sailed is 1.56 times the
+     straight line between where it started and where it ended. The grid
+     routes near enough straight, so the day-run is divided by this. Steam
+     holds a course, so it pays only the ordinary sea circuity. */
+  const SAIL_CIRC = [1.56, 1.25, 1.06, 1.05, 1.05, 1.04, 1.04, 1.04];
   const WATER_SCHEDULED = [1.0, 1.25, 1.3, 1.3, 1.25, 1.1, 1.0, 1.0];
   const FERRY = [120, 250, 450, 540, 650, 800, 880, 900];
   const ICE_WATER = [6, 10, 26, 34, 60, 95, 120, 140];
@@ -570,6 +583,6 @@ window.ISO = (function () {
     ERAS, MODES, SEA_TINT, SEA_MIX, PALETTES, FIELD_ALPHA, SATURATE, LINE_WIDTH, LINE_STRENGTH, BEYOND_ALPHA, WATER, WATER_SCHEDULED, FERRY, ICE_WATER, RIVER, PORT_H, RAIL, HSR,
     ROAD_CIRC, RAIL_CIRC, RIVER_CIRC, ROAD_EXP, ROAD_REF, TERRAIN_MUL, AIR, AIR_RANK, COUNTRY_RAW, RAIL_HIST, RAINFOREST,
     CLASS_MUL, NET_W, BIKE_MUL, FOOT_MUL, RAIL_MAIN, RAIL_BRANCH, ANTARCTIC_AIR, STRAITS, WATER_CUTS, FERRY_ROUTES, FERRY_PORT, SEA_DUTY, FIXED_LINKS, CANALS, RIVERS,
-    RAIL_LINES, RAIL_BOARD, RAIL_ALIGHT, RAIL_BORDER, CITIES, LANDMARKS, LADDERS, RAMP
+    RAIL_LINES, RAIL_BOARD, RAIL_ALIGHT, RAIL_BORDER, SAIL_CIRC, CITIES, LANDMARKS, LADDERS, RAMP
   };
 })();

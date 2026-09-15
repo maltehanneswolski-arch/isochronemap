@@ -79,6 +79,10 @@
   /* high-speed track from OpenStreetMap, baked per cell in grid.js */
   const hsrV = unrle(G.layers.hsrv || '');       // km/h / 2 through the cell, 0 = none
   const hsrY = unrle(G.layers.hsry || '');       // opening year - 1900
+  /* Atack's dated American network: year - 1800, and 255 for a cell the
+     survey covered that no railway had reached by 1911. */
+  const usRailY = unrle(G.layers.usrail || '');
+  const usRivY = unrle(G.layers.usriv || '');
   const canalYear = new Int16Array(GN);
   const linkYear = new Int16Array(GN);
   const linkWait = new Float32Array(GN);        // check-in at a tunnel portal, hours
@@ -173,7 +177,7 @@
     const hsrOn = new Uint8Array(GN);             // ...a high-speed train's
     const netW = D.NET_W[ei], CM = D.CLASS_MUL, circ = D.ROAD_CIRC;
     const oceanOK = M.sea === 'ship';
-    const seaBase = D.WATER[ei] * (M.rail ? D.WATER_SCHEDULED[ei] : 1);
+    const seaBase = D.WATER[ei] * (M.rail ? D.WATER_SCHEDULED[ei] : 1) / (D.SAIL_CIRC[ei] || 1);
     const fry = D.FERRY[ei], ice = D.ICE_WATER[ei], riv = D.RIVER[ei] / D.RIVER_CIRC;
     const ids = best ? D.MODES.filter(m => !m.best && !m.air && m.since <= ei).map(m => m.id) : [M.id];
     const tDuty = byId.transit.duty[ei];
@@ -266,8 +270,15 @@
         const rc = railCls[c], tk = trunkYear[c];
         let rs = 0;
         if (railBase > 0) {
+          const uy = usRailY[c];
           if (tk <= yr) rs = 2;
-          else if (rc && yr >= (rc === 2 ? ryA[k] : ryA[k] + 25)) rs = rc;
+          else if (uy) {
+            /* Inside Atack's survey the year is known, so it governs: a cell
+               the line reached carries rail from that year, and one it never
+               reached (255) has none until the network is rebuilt after it. */
+            if (uy !== 255) rs = yr >= 1800 + uy ? (rc || 1) : 0;
+            else rs = (rc && yr >= 1925) ? rc : 0;
+          } else if (rc && yr >= (rc === 2 ? ryA[k] : ryA[k] + 25)) rs = rc;
         }
         const o = ((k * 6 + terr[c]) * 5 + roadCls[c]) * 3 + rs;
         let v = luS[o], vd = luD[o];
@@ -278,7 +289,9 @@
           const hv = hsrV[c] * 2 / D.RAIL_CIRC * (M.air ? 0.8 : 1);
           if (hv > v) { v = hv; vd = tDuty; onR = 1; hsrOn[c] = 1; }
         }
-        if (rivSpeed && river[c] && rivSpeed > v) { v = rivSpeed; vd = D.SEA_DUTY; onR = 0; hsrOn[c] = 0; }
+        const uv = usRivY[c];
+        const riverOpen = uv ? yr >= 1800 + uv : !!river[c];
+        if (rivSpeed && riverOpen && rivSpeed > v) { v = rivSpeed; vd = D.SEA_DUTY; onR = 0; hsrOn[c] = 0; }
         sp[c] = v; duty[c] = vd; railOn[c] = onR;
       }
     }
@@ -1180,7 +1193,9 @@
   }
 
   function drawScene() {
-    const r = S.scale, zoom = r / (S.fit || r);
+    // the stage can be measured at zero while the page is still laying out,
+    // and a radial gradient with a negative radius throws
+    const r = Math.max(1, S.scale), zoom = r / (S.fit || r);
     proj.translate([cx, cy]).scale(r).rotate([S.rotL, S.rotP, 0]);
     ctx.clearRect(0, 0, Wc, Hc);
 
@@ -1453,6 +1468,9 @@
         '<ul><li>Trans-Siberian 70\u201390 km/h</li>' +
         (E.y >= 1950 ? '<li>Rajdhani 83\u201398</li>' : '') + '</ul>');
       if (E.y >= 1950) r.push('Still no working line: Central African Republic, Chad, Somalia, Bhutan');
+      if (E.y <= 1911) r.push('American lines open on their real dates, from ' +
+        A('https://my.vanderbilt.edu/jeremyatack/data-downloads/', 'Atack\u2019s survey') +
+        ' of 76\u2009849 segments 1826\u20131911');
       if (ei === 7) r.push('Checked against 166 real journeys today (' +
         A('https://transitous.org', 'Transitous') + ', operator timetables): 90% within a quarter, 99% within 40%, median 0.93');
       L(r);
@@ -1468,7 +1486,11 @@
 
     H('Water');
     if (M.sea === 'ship')
-      L(['Open sea ' + N(D.WATER[ei]) + ' km/day, around the clock',
+      L([(E.y < 1850
+          ? 'Open sea ' + N(D.WATER[ei]) + ' km a day sailed, from 111\u2009120 day-runs in the ' +
+            A('https://en.wikipedia.org/wiki/CLIWOC', 'CLIWOC') + ' logbooks' +
+            '<ul><li>a sailing track is 1.56 times the straight line, so ' + Math.round(D.WATER[ei] / D.SAIL_CIRC[ei]) + ' km a day is made good</li></ul>'
+          : 'Open sea ' + N(Math.round(D.WATER[ei] / D.SAIL_CIRC[ei])) + ' km/day, around the clock'),
          'Navigable rivers ' + N(D.RIVER[ei]) + ' km/day',
          HR(D.PORT_H[ei]) + ' to board or land',
          E.y < 1869 ? 'No Suez, no Panama. Every ship rounds the Cape' : 'Suez open from 1869, Panama from 1914'
@@ -1907,8 +1929,31 @@
     }
     return rows;
   }
+  /* The same check against ESPON's NUTS-3 matrices for 2001, which is the
+     only thing the 2000 plate can be measured against. Those are modelled
+     times, not itineraries, so this is one model against another. */
+  async function calibrateEspon(k0, k1, mode) {
+    const cal = await (await fetch('calibration_espon.json')).json();
+    const byFrom = new Map();
+    for (const q of cal.pairs) {
+      if (!byFrom.has(q.from)) byFrom.set(q.from, []);
+      byFrom.get(q.from).push(q);
+    }
+    const rows = [];
+    for (const fr of [...byFrom.keys()].slice(k0 || 0, k1 || 1e9)) {
+      const ps = byFrom.get(fr), [la, lo] = ps[0].fromLL;
+      const f = getField(lo, la, mode == null ? 4 : mode, 6);      // 2000
+      for (const q of ps) {
+        const t = f.dist[landCellOf(q.toLL[1], q.toLL[0])];
+        const real = mode === 3 ? q.road : q.rail;
+        rows.push({ from: q.fromName, to: q.toName, km: q.km, real, model: +t.toFixed(2),
+                    ratio: +(t / real).toFixed(2) });
+      }
+    }
+    return rows;
+  }
   if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname))
-    window.__iso = { S, setOrigin, recompute, draw, fieldLadder, timeAt, fieldCache, getField, landCellOf, calibrate };
+    window.__iso = { S, setOrigin, recompute, draw, fieldLadder, timeAt, fieldCache, getField, landCellOf, calibrate, calibrateEspon };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
