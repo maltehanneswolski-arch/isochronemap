@@ -356,9 +356,15 @@
     const M = D.MODES[mi], { sp, duty, wet, inv, railOn, hsrOn } = buildSpeed(mi, ei);
     const port = D.PORT_H[ei];
     // the first train of a journey costs the walk to the station and the wait
-    const board = (M.rail || M.best) ? D.RAIL_BOARD[ei] : 0, alight = board ? D.RAIL_ALIGHT : 0;
-    const border = board ? D.RAIL_BORDER[ei] : 0;
-    const change = board ? D.RAIL_CHANGE[ei] : 0;
+    /* Scheduled transport pays its access once at the origin, below, so it
+       does not also pay to board the first train; the fastest-route and air
+       modes, which can start by car, pay on joining the railway instead. */
+    const onRails = !!(M.rail || M.best);
+    const isTransit = M.id === 'transit';
+    const board = onRails && !isTransit ? D.RAIL_BOARD[ei] : 0;
+    const alight = onRails ? D.RAIL_ALIGHT : 0;
+    const border = onRails ? D.RAIL_BORDER[ei] : 0;
+    const change = onRails ? D.RAIL_CHANGE[ei] : 0;
     // duty hours only ever take a handful of values, so 24/dEdge is a table
     const restTab = new Float32Array(49);
     for (let s = 1; s <= 48; s++) restTab[s] = 48 / s;   // 24 / (s/2)
@@ -414,7 +420,10 @@
     };
 
     const start = landCellOf(oLon, oLat);
-    dist[start] = 0; move[start] = 0; push(0, start);
+    /* Scheduled transport is not available on demand: the clock starts when
+       you set off for the stop, not when the vehicle moves. */
+    const access = M.id === 'transit' ? D.TRANSIT_ACCESS[ei] : 0;
+    dist[start] = access; move[start] = 0; push(access, start);
 
     while (nOpen > 0) {
       while (bHead[ci] < 0) { cur++; if (++ci === NBUK) ci = 0; }
@@ -446,7 +455,7 @@
             }
             let nc = du + add;
             if (wu !== wet[v]) nc += port * ((ferryCell[u] || ferryCell[v]) ? D.FERRY_PORT : 1);
-            if (board) {
+            if (onRails) {
               const ru = u === start ? 0 : railOn[u], rv = railOn[v];
               if (rv !== ru) nc += rv ? board : alight;
               else if (rv && ctryRaw[u] !== ctryRaw[v] && ctryRaw[u] && ctryRaw[v]) nc += border;
@@ -1486,7 +1495,7 @@
       const r = ['37\u2009487 cells, main lines and branches separated',
         'Each country gets its own opening year and service quality',
         'Main line ' + N(D.RAIL[ei]) + ' km/day',
-        HR(D.RAIL_BOARD[ei]) + ' to board the first train, ' + HR(D.RAIL_ALIGHT) + ' to alight',
+        HR(D.TRANSIT_ACCESS[ei]) + ' to reach the stop and wait for a departure',
         HR(D.RAIL_CHANGE[ei]) + ' to change where the high-speed line ends, ' + HR(D.RAIL_BORDER[ei]) + ' at a frontier'];
       if (E.y >= 1964) r.push('High-speed track from ' +
         A('https://wiki.openstreetmap.org/wiki/Key:highspeed', 'OpenStreetMap') +
@@ -1499,8 +1508,8 @@
       if (E.y <= 1911) r.push('American lines open on their real dates, from ' +
         A('https://my.vanderbilt.edu/jeremyatack/data-downloads/', 'Atack\u2019s survey') +
         ' of 76\u2009849 segments 1826\u20131911');
-      if (ei === 7) r.push('Checked against 166 real journeys today (' +
-        A('https://transitous.org', 'Transitous') + '): 90% within a quarter, 97% within 40%, median 0.96');
+      if (ei === 7) r.push('Checked against 269 real journeys today (' +
+        A('https://transitous.org', 'Transitous') + '): 85% within a quarter, 96% within 40%, median 0.99');
       L(r);
     }
 
@@ -1952,7 +1961,10 @@
       const f = getField(lo, la, mode == null ? 4 : mode, era == null ? 7 : era);
       for (const q of ps) {
         const t = f.dist[landCellOf(q.toLL[1], q.toLL[0])];
-        rows.push({ from: q.from, to: q.to, real: q.hours, model: +t.toFixed(2), ratio: +(t / q.hours).toFixed(2), src: q.src || 'transitous' });
+        const km = gcDist(q.fromLL[1], q.fromLL[0], q.toLL[1], q.toLL[0]);
+        rows.push({ from: q.from, to: q.to, real: q.hours, model: +t.toFixed(2),
+                    ratio: +(t / q.hours).toFixed(2), src: q.src || 'transitous',
+                    changes: q.changes, km: Math.round(km), via: q.via });
       }
     }
     return rows;

@@ -151,7 +151,7 @@ window.ISO = (function () {
   /* A cyclist cannot use a motorway and a walker gains nothing from one. */
   const BIKE_MUL = [0.35, 0.78, 1.00, 1.00, 0.92];
   const FOOT_MUL = [0.55, 0.90, 1.00, 1.00, 0.95];
-  const RAIL_MAIN = 1.15, RAIL_BRANCH = 0.85;
+  const RAIL_MAIN = 1.15, RAIL_BRANCH = 0.95;
 
 
   /* how strongly national road quality bites, by era: in 1750 the gap between
@@ -272,7 +272,7 @@ window.ISO = (function () {
     ['Belarus', 85, .70, 1862, 9999], ['Belgium', 92, .95, 1835, 1997], ['Belize', 67, 0, 9999, 9999],
     ['Benin', 63, .10, 1900, 9999], ['Bhutan', 38, 0, 9999, 9999], ['Bolivia', 50, .20, 1892, 9999],
     ['Bosnia and Herz.', 57, .40, 1872, 9999], ['Botswana', 91, .30, 1897, 9999], ['Brazil', 72, .25, 1854, 9999],
-    ['Brunei', 88, 0, 9999, 9999], ['Bulgaria', 88, 0.5, 1866, 9999], ['Burkina Faso', 63, .15, 1954, 9999],
+    ['Brunei', 88, 0, 9999, 9999], ['Bulgaria', 88, 0.4, 1866, 9999], ['Burkina Faso', 63, .15, 1954, 9999],
     ['Burundi', 51, 0, 9999, 9999], ['Cambodia', 55, .10, 1932, 9999], ['Cameroon', 56, .25, 1911, 9999],
     ['Canada', 106, .30, 1836, 9999], ['Central African Rep.', 61, 0, 9999, 9999], ['Chad', 63, 0, 9999, 9999],
     ['Chile', 92, .35, 1851, 9999], ['China', 90, .90, 1876, 2008], ['Colombia', 57, .10, 1871, 9999],
@@ -296,7 +296,7 @@ window.ISO = (function () {
     ['Kuwait', 85, 0, 9999, 9999], ['Kyrgyzstan', 61, .15, 1924, 9999], ['Laos', 60, .20, 2009, 9999],
     ['Latvia', 77, .55, 1861, 9999], ['Lebanon', 60, 0, 9999, 9999], ['Lesotho', 60, .05, 1905, 9999],
     ['Liberia', 66, .05, 1951, 9999], ['Libya', 90, 0, 9999, 9999], ['Lithuania', 89, .60, 1860, 9999],
-    ['Luxembourg', 92, .90, 1859, 9999], ['Macedonia', 74, .40, 1873, 9999], ['Madagascar', 51, .10, 1909, 9999],
+    ['Luxembourg', 92, .90, 1859, 9999], ['Macedonia', 74, 0.32, 1873, 9999], ['Madagascar', 51, .10, 1909, 9999],
     ['Malawi', 75, .20, 1908, 9999], ['Malaysia', 92, .50, 1885, 9999], ['Mali', 72, .10, 1904, 9999],
     ['Mauritania', 77, .10, 1963, 9999], ['Mexico', 90, .20, 1850, 9999], ['Moldova', 67, .45, 1871, 9999],
     ['Mongolia', 56, .30, 1938, 9999], ['Montenegro', 59, .40, 1908, 9999], ['Morocco', 95, .65, 1911, 2018],
@@ -310,7 +310,7 @@ window.ISO = (function () {
     ['Poland', 92, 0.75, 1842, 2014], ['Portugal', 106, 0.7, 1856, 9999], ['Puerto Rico', 78, .05, 1891, 9999],
     ['Qatar', 82, .20, 2019, 9999], ['Romania', 73, 0.4, 1854, 9999], ['Russia', 76, .70, 1837, 2009],
     ['Rwanda', 47, 0, 9999, 9999], ['S. Sudan', 59, .05, 1962, 9999], ['Saudi Arabia', 106, 0.6, 1951, 2018],
-    ['Senegal', 71, .15, 1885, 9999], ['Serbia', 94, 0.45, 1884, 9999], ['Sierra Leone', 64, .02, 1896, 9999],
+    ['Senegal', 71, .15, 1885, 9999], ['Serbia', 94, 0.32, 1884, 9999], ['Sierra Leone', 64, .02, 1896, 9999],
     ['Slovakia', 93, 0.65, 1840, 9999], ['Slovenia', 90, 0.55, 1846, 9999], ['Solomon Is.', 45, 0, 9999, 9999],
     ['Somalia', 58, 0, 9999, 9999], ['Somaliland', 58, 0, 9999, 9999], ['South Africa', 100, .60, 1860, 9999],
     ['South Korea', 93, .90, 1899, 2004], ['Spain', 103, .85, 1848, 1992], ['Sri Lanka', 50, .40, 1864, 9999],
@@ -389,6 +389,15 @@ window.ISO = (function () {
      alighting. Hours. */
   const RAIL_BOARD = [0, 1.0, 0.75, 0.6, 0.6, 0.5, 0.5, 0.5];
   const RAIL_ALIGHT = 0.15;
+  /* What a scheduled journey costs before it has gone anywhere: getting to
+     the stop and waiting for a departure, and leaving the station at the far
+     end. Charged once at the origin for scheduled transport, whatever the
+     first vehicle is. It used to be charged only on joining the railway,
+     which let the solver put short hops on a coach and pay nothing at all to
+     wait for it - Brussels to Antwerp came out at 0.67 h against a real 1.17.
+     The fastest-route mode does not pay it, because a private car really
+     does leave when you do. */
+  const TRANSIT_ACCESS = [0, 2.0, 1.2, 0.95, 0.85, 0.7, 0.65, 0.6];
   /* crossing a frontier by rail: customs and a change of carriage in 1850,
      passports until the 1970s, today mostly a change of train or operator */
   const RAIL_BORDER = [0, 1.0, 0.75, 0.75, 0.75, 0.5, 0.4, 0.4];
@@ -614,6 +623,6 @@ window.ISO = (function () {
     ERAS, MODES, SEA_TINT, SEA_MIX, PALETTES, FIELD_ALPHA, SATURATE, LINE_WIDTH, LINE_STRENGTH, BEYOND_ALPHA, WATER, WATER_SCHEDULED, FERRY, ICE_WATER, RIVER, PORT_H, RAIL, HSR,
     ROAD_CIRC, RAIL_CIRC, RIVER_CIRC, ROAD_EXP, ROAD_REF, TERRAIN_MUL, AIR, AIR_RANK, COUNTRY_RAW, RAIL_HIST, RAINFOREST,
     CLASS_MUL, NET_W, BIKE_MUL, FOOT_MUL, RAIL_MAIN, RAIL_BRANCH, ANTARCTIC_AIR, STRAITS, WATER_CUTS, FERRY_ROUTES, FERRY_PORT, SEA_DUTY, FIXED_LINKS, CANALS, RIVERS,
-    RAIL_LINES, RAIL_BOARD, RAIL_ALIGHT, RAIL_BORDER, RAIL_CHANGE, HSR_SERVICE, SAIL_CIRC, MAP_ERA, MAP_W, MAP_GAPS_ONLY, CITIES, LANDMARKS, LADDERS, RAMP
+    RAIL_LINES, RAIL_BOARD, RAIL_ALIGHT, RAIL_BORDER, RAIL_CHANGE, TRANSIT_ACCESS, HSR_SERVICE, SAIL_CIRC, MAP_ERA, MAP_W, MAP_GAPS_ONLY, CITIES, LANDMARKS, LADDERS, RAMP
   };
 })();

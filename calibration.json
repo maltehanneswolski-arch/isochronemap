@@ -1,5 +1,5 @@
 {
- "note": "Real fastest scheduled surface journeys, city centre to city centre, 2026. transitous = api.transitous.org over open GTFS, best of three Tuesday departures; timetable = operator timetable station-to-station + 0.4 h access.",
+ "note": "Real fastest scheduled surface journeys, city centre to city centre, 2026. transitous = api.transitous.org over open GTFS, fastest of four Tuesday departures, door to door. timetable = operator timetable station-to-station + 0.4 h access, used only where Transitous has no feed. floored = the router returned something impossibly quick and the timetable stands in.",
  "pairs": [
   {
    "from": "Brussels",
@@ -13,9 +13,9 @@
     16.3738
    ],
    "hours": 11.48,
-   "transitous": 11.48,
-   "sched": 9.5,
    "src": "transitous",
+   "transitous": 11.48,
+   "changes": 5,
    "via": "IC 2230 > EST 9411 > ICE 225 > RE5 (79029) > WB 927 > U3"
   },
   {
@@ -30,9 +30,9 @@
     8.6821
    ],
    "hours": 3.33,
-   "transitous": 3.33,
-   "sched": 3.0,
    "src": "transitous",
+   "transitous": 3.33,
+   "changes": 3,
    "via": "IC 4513 > ICE 17 > U4 > 11"
   },
   {
@@ -47,9 +47,9 @@
     11.582
    ],
    "hours": 6.72,
-   "transitous": 6.72,
-   "sched": 6.0,
    "src": "transitous",
+   "transitous": 6.72,
+   "changes": 4,
    "via": "IC 2232 > EST 9423 > RE7 (17418) > ICE 919 > S5"
   },
   {
@@ -64,9 +64,9 @@
     4.9041
    ],
    "hours": 2.43,
-   "transitous": 2.43,
-   "sched": 1.9,
    "src": "transitous",
+   "transitous": 2.43,
+   "changes": 2,
    "via": "10 > EST 9303 > 53"
   },
   {
@@ -81,9 +81,9 @@
     -0.1278
    ],
    "hours": 2.52,
-   "transitous": 2.52,
-   "sched": 2.5,
    "src": "transitous",
+   "transitous": 2.52,
+   "changes": 2,
    "via": "P 8006 > EST 9147 > Piccadilly"
   },
   {
@@ -98,9 +98,9 @@
     13.405
    ],
    "hours": 6.9,
-   "transitous": 6.9,
-   "sched": 6.6,
    "src": "transitous",
+   "transitous": 6.9,
+   "changes": 3,
    "via": "IC 4507 > ICE 13 > ICE 557 > S7"
   },
   {
@@ -115,9 +115,9 @@
     8.5417
    ],
    "hours": 6.67,
-   "transitous": 6.67,
-   "sched": 6.2,
    "src": "transitous",
+   "transitous": 6.67,
+   "changes": 4,
    "via": "4 > EST 9462 > TGV INOUI 2425 > TER 96269 > IR37"
   },
   {
@@ -132,9 +132,9 @@
     14.4378
    ],
    "hours": 10.35,
-   "transitous": 10.35,
-   "sched": 9.5,
    "src": "transitous",
+   "transitous": 10.35,
+   "changes": 6,
    "via": "IC 4509 > ICE 15 > ICE 627 > RE22 (59493) > FlixBus 283 > B > 10"
   },
   {
@@ -149,9 +149,9 @@
     6.9603
    ],
    "hours": 2.13,
-   "transitous": 2.13,
-   "sched": 1.8,
    "src": "transitous",
+   "transitous": 2.13,
+   "changes": 1,
    "via": "IC 4509 > ICE 15"
   },
   {
@@ -166,9 +166,9 @@
     6.1319
    ],
    "hours": 3.45,
-   "transitous": 3.45,
-   "sched": 3.0,
    "src": "transitous",
+   "transitous": 3.45,
+   "changes": 2,
    "via": "4 > FlixBus 299 > 22"
   },
   {
@@ -183,9 +183,9 @@
     4.8357
    ],
    "hours": 2.38,
-   "transitous": 2.38,
-   "sched": 1.95,
    "src": "transitous",
+   "transitous": 2.38,
+   "changes": 2,
    "via": "1 > OUIGO 7803 > TB11"
   },
   {
@@ -200,9 +200,9 @@
     5.3698
    ],
    "hours": 3.48,
-   "transitous": 3.48,
-   "sched": 3.1,
    "src": "transitous",
+   "transitous": 3.48,
+   "changes": 3,
    "via": "1 > TGV INOUI 6173 > M1 > 32"
   },
   {
@@ -217,9 +217,9 @@
     -0.5792
    ],
    "hours": 2.77,
-   "transitous": 2.77,
-   "sched": 2.1,
    "src": "transitous",
+   "transitous": 2.77,
+   "changes": 2,
    "via": "4 > OUIGO 7673 > F"
   },
   {
@@ -234,9 +234,9 @@
     7.7521
    ],
    "hours": 2.38,
-   "transitous": 2.38,
-   "sched": 1.8,
    "src": "transitous",
+   "transitous": 2.38,
+   "changes": 3,
    "via": "1 > 4 > ICE 9573 > G"
   },
   {
@@ -251,9 +251,9 @@
     4.3528
    ],
    "hours": 1.92,
-   "transitous": 1.92,
-   "sched": 1.4,
    "src": "transitous",
+   "transitous": 1.92,
+   "changes": 3,
    "via": "1 > D > EST 9329 > 10"
   },
   {
@@ -268,9 +268,9 @@
     -0.1278
    ],
    "hours": 2.95,
-   "transitous": 2.95,
-   "sched": 2.8,
    "src": "transitous",
+   "transitous": 2.95,
+   "changes": 3,
    "via": "1 > B > EST 9023 > Piccadilly"
   },
   {
@@ -285,9 +285,9 @@
     4.9041
    ],
    "hours": 3.95,
-   "transitous": 3.95,
-   "sched": 3.3,
    "src": "transitous",
+   "transitous": 3.95,
+   "changes": 3,
    "via": "1 > D > EST 9329 > 53"
   },
   {
@@ -302,9 +302,9 @@
     8.6821
    ],
    "hours": 4.28,
-   "transitous": 4.28,
-   "sched": 3.7,
    "src": "transitous",
+   "transitous": 4.28,
+   "changes": 4,
    "via": "11 > 5 > ICE 9563 > ICE 276 > U4"
   },
   {
@@ -319,9 +319,9 @@
     11.582
    ],
    "hours": 5.82,
-   "transitous": 5.82,
-   "sched": 5.7,
    "src": "transitous",
+   "transitous": 5.82,
+   "changes": 4,
    "via": "11 > 5 > ICE 9577 > ICE 691 > S3"
   },
   {
@@ -336,9 +336,9 @@
     2.1686
    ],
    "hours": 7.17,
-   "transitous": 7.17,
-   "sched": 6.7,
    "src": "transitous",
+   "transitous": 7.17,
+   "changes": 2,
    "via": "1 > TGV INOUI 9713 > R1"
   },
   {
@@ -353,9 +353,9 @@
     9.19
    ],
    "hours": 7.93,
-   "transitous": 7.93,
-   "sched": 7.2,
    "src": "transitous",
+   "transitous": 7.93,
+   "changes": 4,
    "via": "1 > TGV Lyria 9203 > EC 19 > EC 19 > 3"
   },
   {
@@ -370,9 +370,9 @@
     8.5417
    ],
    "hours": 4.42,
-   "transitous": 4.42,
-   "sched": 4.1,
    "src": "transitous",
+   "transitous": 4.42,
+   "changes": 1,
    "via": "1 > TGV Lyria 9219"
   },
   {
@@ -387,9 +387,9 @@
     -1.5536
    ],
    "hours": 2.62,
-   "transitous": 2.62,
-   "sched": 2.0,
    "src": "transitous",
+   "transitous": 2.62,
+   "changes": 3,
    "via": "1 > 4 > TGV INOUI 8805 > 11"
   },
   {
@@ -404,9 +404,9 @@
     -1.6778
    ],
    "hours": 2.08,
-   "transitous": 2.08,
-   "sched": 1.45,
    "src": "transitous",
+   "transitous": 2.08,
+   "changes": 3,
    "via": "1 > 13 > TGV INOUI 8719 > 12"
   },
   {
@@ -421,9 +421,9 @@
     3.0573
    ],
    "hours": 1.63,
-   "transitous": 1.63,
-   "sched": 1.05,
    "src": "transitous",
+   "transitous": 1.63,
+   "changes": 3,
    "via": "1 > D > TGV INOUI 7007 > M1"
   },
   {
@@ -438,9 +438,9 @@
     1.4442
    ],
    "hours": 5.05,
-   "transitous": 5.05,
-   "sched": 4.3,
    "src": "transitous",
+   "transitous": 5.05,
+   "changes": 3,
    "via": "1 > 13 > TGV INOUI 8511 > A"
   },
   {
@@ -455,9 +455,9 @@
     7.262
    ],
    "hours": 6.05,
-   "transitous": 6.05,
-   "sched": 5.7,
    "src": "transitous",
+   "transitous": 6.05,
+   "changes": 2,
    "via": "1 > TGV INOUI 6165 > L1"
   },
   {
@@ -472,9 +472,9 @@
     6.1432
    ],
    "hours": 3.62,
-   "transitous": 3.62,
-   "sched": 3.1,
    "src": "transitous",
+   "transitous": 3.62,
+   "changes": 2,
    "via": "1 > TGV Lyria 9777 > 14"
   },
   {
@@ -489,9 +489,9 @@
     -3.1883
    ],
    "hours": 4.5,
-   "transitous": 4.5,
-   "sched": 4.3,
    "src": "transitous",
+   "transitous": 4.5,
+   "changes": 2,
    "via": "Bakerloo > Victoria > LNER"
   },
   {
@@ -506,9 +506,9 @@
     -2.2426
    ],
    "hours": 2.63,
-   "transitous": 2.63,
-   "sched": 2.1,
    "src": "transitous",
+   "transitous": 2.63,
+   "changes": 3,
    "via": "29 > Northern > Avanti > 2"
   },
   {
@@ -523,9 +523,9 @@
     -1.8904
    ],
    "hours": 1.85,
-   "transitous": 1.85,
-   "sched": 1.3,
    "src": "transitous",
+   "transitous": 1.85,
+   "changes": 3,
    "via": "Northern > Avanti > 82 > 65"
   },
   {
@@ -540,9 +540,9 @@
     -4.2518
    ],
    "hours": 4.97,
-   "transitous": 4.97,
-   "sched": 4.5,
    "src": "transitous",
+   "transitous": 4.97,
+   "changes": 3,
    "via": "29 > Northern > Avanti > Subway"
   },
   {
@@ -557,9 +557,9 @@
     -3.1791
    ],
    "hours": 2.35,
-   "transitous": 2.35,
-   "sched": 1.85,
    "src": "transitous",
+   "transitous": 2.35,
+   "changes": 2,
    "via": "Bakerloo > GWR > C1"
   },
   {
@@ -574,9 +574,9 @@
     4.9041
    ],
    "hours": 4.55,
-   "transitous": 4.55,
-   "sched": 4.5,
    "src": "transitous",
+   "transitous": 4.55,
+   "changes": 3,
    "via": "29 > Piccadilly > EST 9114 > 53"
   },
   {
@@ -591,9 +591,9 @@
     11.582
    ],
    "hours": 4.55,
-   "transitous": 4.55,
-   "sched": 3.9,
    "src": "transitous",
+   "transitous": 4.55,
+   "changes": 3,
    "via": "S9 > ICE 1163 > ICE 723 > S3"
   },
   {
@@ -608,9 +608,9 @@
     9.9937
    ],
    "hours": 2.23,
-   "transitous": 2.23,
-   "sched": 1.75,
    "src": "transitous",
+   "transitous": 2.23,
+   "changes": 3,
    "via": "M4 > S5 > ICE 606 > S7"
   },
   {
@@ -625,9 +625,9 @@
     21.0122
    ],
    "hours": 5.62,
-   "transitous": 5.62,
-   "sched": 5.3,
    "src": "transitous",
+   "transitous": 5.62,
+   "changes": 4,
    "via": "200 > S9 > RE1 (33773) > EIC 247 Berlin-Warszawa-Express > 175"
   },
   {
@@ -642,9 +642,9 @@
     14.4378
    ],
    "hours": 4.03,
-   "transitous": 4.03,
-   "sched": 4.1,
    "src": "transitous",
+   "transitous": 4.03,
+   "changes": 5,
    "via": "M4 > S7 > ICE 171 > FlixBus N67 > C > A"
   },
   {
@@ -659,9 +659,9 @@
     16.3738
    ],
    "hours": 8.77,
-   "transitous": 8.77,
-   "sched": 8.0,
    "src": "transitous",
+   "transitous": 8.77,
+   "changes": 4,
    "via": "M4 > S7 > ICE 171 > FlixBus 060 > U3"
   },
   {
@@ -676,9 +676,9 @@
     8.6821
    ],
    "hours": 4.38,
-   "transitous": 4.38,
-   "sched": 3.9,
    "src": "transitous",
+   "transitous": 4.38,
+   "changes": 2,
    "via": "U5 > ICE 839 > U5"
   },
   {
@@ -693,9 +693,9 @@
     6.9603
    ],
    "hours": 4.7,
-   "transitous": 4.7,
-   "sched": 4.3,
    "src": "transitous",
+   "transitous": 4.7,
+   "changes": 1,
    "via": "U5 > ICE 652"
   },
   {
@@ -710,9 +710,9 @@
     12.3731
    ],
    "hours": 1.7,
-   "transitous": 1.7,
-   "sched": 1.2,
    "src": "transitous",
+   "transitous": 1.7,
+   "changes": 3,
    "via": "M4 > S5 > ICE 595 > S3"
   },
   {
@@ -727,9 +727,9 @@
     13.7373
    ],
    "hours": 2.15,
-   "transitous": 2.15,
-   "sched": 1.9,
    "src": "transitous",
+   "transitous": 2.15,
+   "changes": 3,
    "via": "M4 > S7 > ICE 171 > 11"
   },
   {
@@ -744,9 +744,9 @@
     9.732
    ],
    "hours": 2.02,
-   "transitous": 2.02,
-   "sched": 1.6,
    "src": "transitous",
+   "transitous": 2.02,
+   "changes": 3,
    "via": "M4 > S5 > ICE 142 > 10"
   },
   {
@@ -761,9 +761,9 @@
     12.5683
    ],
    "hours": 7.4,
-   "transitous": 7.4,
-   "sched": 7.0,
    "src": "transitous",
+   "transitous": 7.4,
+   "changes": 4,
    "via": "M4 > S3 > ICE 870 > ECE > M4"
   },
   {
@@ -778,9 +778,9 @@
     6.9603
    ],
    "hours": 1.52,
-   "transitous": 1.52,
-   "sched": 1.1,
    "src": "transitous",
+   "transitous": 1.52,
+   "changes": 2,
    "via": "U4 > ICE 726 > 9"
   },
   {
@@ -795,9 +795,9 @@
     11.582
    ],
    "hours": 3.68,
-   "transitous": 3.68,
-   "sched": 3.2,
    "src": "transitous",
+   "transitous": 3.68,
+   "changes": 2,
    "via": "U5 > ICE 621 > S4"
   },
   {
@@ -812,9 +812,9 @@
     9.9937
    ],
    "hours": 4.13,
-   "transitous": 4.13,
-   "sched": 3.6,
    "src": "transitous",
+   "transitous": 4.13,
+   "changes": 2,
    "via": "U4 > ICE 74 > S3"
   },
   {
@@ -829,9 +829,9 @@
     16.3738
    ],
    "hours": 8.05,
-   "transitous": 8.05,
-   "sched": 6.5,
    "src": "transitous",
+   "transitous": 8.05,
+   "changes": 5,
    "via": "U5 > ICE 621 > ICE 119 > RJX 19915 > CJX 22950 > U1"
   },
   {
@@ -846,9 +846,9 @@
     8.5417
    ],
    "hours": 4.33,
-   "transitous": 4.33,
-   "sched": 3.9,
    "src": "transitous",
+   "transitous": 4.33,
+   "changes": 1,
    "via": "U4 > EC 151"
   },
   {
@@ -863,9 +863,9 @@
     9.1829
    ],
    "hours": 1.67,
-   "transitous": 1.67,
-   "sched": 1.3,
    "src": "transitous",
+   "transitous": 1.67,
+   "changes": 2,
    "via": "U5 > ICE 579 > U15"
   },
   {
@@ -880,9 +880,9 @@
     7.5886
    ],
    "hours": 3.18,
-   "transitous": 3.18,
-   "sched": 2.9,
    "src": "transitous",
+   "transitous": 3.18,
+   "changes": 2,
    "via": "U4 > EC 151 > 6"
   },
   {
@@ -897,9 +897,9 @@
     11.0767
    ],
    "hours": 2.42,
-   "transitous": 2.42,
-   "sched": 2.1,
    "src": "transitous",
+   "transitous": 2.42,
+   "changes": 2,
    "via": "U5 > ICE 721 > U1"
   },
   {
@@ -914,9 +914,9 @@
     4.9041
    ],
    "hours": 4.35,
-   "transitous": 4.35,
-   "sched": 3.9,
    "src": "transitous",
+   "transitous": 4.35,
+   "changes": 3,
    "via": "U5 > ICE 220 > Intercity > 51"
   },
   {
@@ -931,9 +931,9 @@
     16.3738
    ],
    "hours": 4.55,
-   "transitous": 4.55,
-   "sched": 4.0,
    "src": "transitous",
+   "transitous": 4.55,
+   "changes": 2,
    "via": "S3 > WB 961 > U3"
   },
   {
@@ -948,9 +948,9 @@
     8.5417
    ],
    "hours": 4.03,
-   "transitous": 4.03,
-   "sched": 3.5,
    "src": "transitous",
+   "transitous": 4.03,
+   "changes": 1,
    "via": "S8 > ECE 98"
   },
   {
@@ -965,9 +965,9 @@
     13.055
    ],
    "hours": 2.12,
-   "transitous": 2.12,
-   "sched": 1.5,
    "src": "transitous",
+   "transitous": 2.12,
+   "changes": 2,
    "via": "S5 > RJ 113 > 21"
   },
   {
@@ -982,9 +982,9 @@
     11.4041
    ],
    "hours": 2.1,
-   "transitous": 2.1,
-   "sched": 1.75,
    "src": "transitous",
+   "transitous": 2.1,
+   "changes": 3,
    "via": "S2 > RJ 81 > REX 5319 > 6"
   },
   {
@@ -999,9 +999,9 @@
     9.1829
    ],
    "hours": 2.32,
-   "transitous": 2.32,
-   "sched": 2.0,
    "src": "transitous",
+   "transitous": 2.32,
+   "changes": 2,
    "via": "S2 > ICE 1010 > U15"
   },
   {
@@ -1016,9 +1016,9 @@
     11.0767
    ],
    "hours": 1.58,
-   "transitous": 1.58,
-   "sched": 1.0,
    "src": "transitous",
+   "transitous": 1.58,
+   "changes": 2,
    "via": "S4 > ICE 720 > U1"
   },
   {
@@ -1033,9 +1033,9 @@
     19.0402
    ],
    "hours": 2.97,
-   "transitous": 2.97,
-   "sched": 2.6,
    "src": "transitous",
+   "transitous": 2.97,
+   "changes": 3,
    "via": "U1 > RJX 65 > M4 > 19"
   },
   {
@@ -1050,9 +1050,9 @@
     14.4378
    ],
    "hours": 4.52,
-   "transitous": 4.52,
-   "sched": 4.0,
    "src": "transitous",
+   "transitous": 4.52,
+   "changes": 2,
    "via": "U3 > FlixBus N906 > A"
   },
   {
@@ -1067,9 +1067,9 @@
     8.5417
    ],
    "hours": 8.42,
-   "transitous": 8.42,
-   "sched": 7.9,
    "src": "transitous",
+   "transitous": 8.42,
+   "changes": 2,
    "via": "U1 > RJX 62 > ECE 98"
   },
   {
@@ -1084,9 +1084,9 @@
     13.055
    ],
    "hours": 2.97,
-   "transitous": 2.97,
-   "sched": 2.4,
    "src": "transitous",
+   "transitous": 2.97,
+   "changes": 2,
    "via": "U1 > RJX 13474 > 22"
   },
   {
@@ -1101,9 +1101,9 @@
     15.4395
    ],
    "hours": 2.77,
-   "transitous": 2.77,
-   "sched": 2.5,
    "src": "transitous",
+   "transitous": 2.77,
+   "changes": 2,
    "via": "U1 > S4 > FlixBus 096"
   },
   {
@@ -1118,9 +1118,9 @@
     17.1077
    ],
    "hours": 1.33,
-   "transitous": 1.33,
-   "sched": 1.0,
    "src": "transitous",
+   "transitous": 1.33,
+   "changes": 3,
    "via": "U1 > U2 > REX 2512 > 93"
   },
   {
@@ -1135,9 +1135,9 @@
     12.3155
    ],
    "hours": 7.53,
-   "transitous": 7.53,
-   "sched": 7.5,
    "src": "transitous",
+   "transitous": 7.53,
+   "changes": 2,
    "via": "U1 > RJX 135 > 53E"
   },
   {
@@ -1152,9 +1152,9 @@
     15.9819
    ],
    "hours": 5.35,
-   "transitous": 5.35,
-   "sched": 6.5,
    "src": "transitous",
+   "transitous": 5.35,
+   "changes": 2,
    "via": "U3 > FlixBus 903 > 8"
   },
   {
@@ -1169,9 +1169,9 @@
     14.5058
    ],
    "hours": 5.47,
-   "transitous": 5.47,
-   "sched": 6.0,
    "src": "transitous",
+   "transitous": 5.47,
+   "changes": 2,
    "via": "U1 > FlixBus 907 > 09"
   },
   {
@@ -1186,9 +1186,9 @@
     19.945
    ],
    "hours": 5.88,
-   "transitous": 5.88,
-   "sched": 6.9,
    "src": "transitous",
+   "transitous": 5.88,
+   "changes": 3,
    "via": "U1 > EC 202 > 704 > 304"
   },
   {
@@ -1203,10 +1203,10 @@
     21.0122
    ],
    "hours": 7.88,
-   "transitous": 7.88,
-   "sched": 7.5,
    "src": "transitous",
-   "via": "U1 > EC 204 > EC 204 > 000419 > IC 130 Batory > RE2 11113 Łukowiak > 127"
+   "transitous": 7.88,
+   "changes": 6,
+   "via": "U1 > EC 204 > EC 204 > 000419 > IC 130 Batory > RE2 11113 Łukowiak > 1"
   },
   {
    "from": "Zurich",
@@ -1220,9 +1220,9 @@
     9.19
    ],
    "hours": 3.65,
-   "transitous": 3.65,
-   "sched": 3.3,
    "src": "transitous",
+   "transitous": 3.65,
+   "changes": 2,
    "via": "IC2 > RE80 > 3"
   },
   {
@@ -1237,9 +1237,9 @@
     7.4474
    ],
    "hours": 1.28,
-   "transitous": 1.28,
-   "sched": 0.95,
    "src": "transitous",
+   "transitous": 1.28,
+   "changes": 2,
    "via": "6 > IC1 > 12"
   },
   {
@@ -1254,9 +1254,9 @@
     6.1432
    ],
    "hours": 3.23,
-   "transitous": 3.23,
-   "sched": 2.7,
    "src": "transitous",
+   "transitous": 3.23,
+   "changes": 2,
    "via": "IC5 > IR90 > 14"
   },
   {
@@ -1271,9 +1271,9 @@
     7.5886
    ],
    "hours": 1.28,
-   "transitous": 1.28,
-   "sched": 0.9,
    "src": "transitous",
+   "transitous": 1.28,
+   "changes": 1,
    "via": "TGV Lyria 9218 > 6"
   },
   {
@@ -1288,9 +1288,9 @@
     11.4041
    ],
    "hours": 4.5,
-   "transitous": 4.5,
-   "sched": 3.5,
    "src": "transitous",
+   "transitous": 4.5,
+   "changes": 4,
    "via": "IC3 > IR13 > SV430 > RJX 13483 > 504"
   },
   {
@@ -1305,9 +1305,9 @@
     12.4964
    ],
    "hours": 3.38,
-   "transitous": 3.38,
-   "sched": 3.0,
    "src": "transitous",
+   "transitous": 3.38,
+   "changes": 2,
    "via": "3 > FR 9604 > MEA"
   },
   {
@@ -1322,9 +1322,9 @@
     12.3155
    ],
    "hours": 2.8,
-   "transitous": 2.8,
-   "sched": 2.2,
    "src": "transitous",
+   "transitous": 2.8,
+   "changes": 2,
    "via": "3 > FR 9737 > 81F"
   },
   {
@@ -1339,9 +1339,9 @@
     7.6869
    ],
    "hours": 1.25,
-   "transitous": 1.25,
-   "sched": 0.9,
    "src": "transitous",
+   "transitous": 1.25,
+   "changes": 2,
    "via": "3 > FR 9584 > 13"
   },
   {
@@ -1356,9 +1356,9 @@
     11.2558
    ],
    "hours": 2.3,
-   "transitous": 2.3,
-   "sched": 1.75,
    "src": "transitous",
+   "transitous": 2.3,
+   "changes": 2,
    "via": "3 > FR 9583 > 6"
   },
   {
@@ -1373,9 +1373,9 @@
     14.2681
    ],
    "hours": 4.8,
-   "transitous": 4.8,
-   "sched": 4.25,
    "src": "transitous",
+   "transitous": 4.8,
+   "changes": 1,
    "via": "3 > FR 9625"
   },
   {
@@ -1390,9 +1390,9 @@
     14.2681
    ],
    "hours": 1.42,
-   "transitous": 1.42,
-   "sched": 1.15,
    "src": "transitous",
+   "transitous": 1.42,
+   "changes": 1,
    "via": "MEA > FR 9625"
   },
   {
@@ -1407,9 +1407,9 @@
     11.2558
    ],
    "hours": 1.98,
-   "transitous": 1.98,
-   "sched": 1.5,
    "src": "transitous",
+   "transitous": 1.98,
+   "changes": 2,
    "via": "MEA > FR 9540 > 6"
   },
   {
@@ -1424,9 +1424,9 @@
     12.3155
    ],
    "hours": 3.87,
-   "transitous": 3.87,
-   "sched": 3.7,
    "src": "transitous",
+   "transitous": 3.87,
+   "changes": 3,
    "via": "MEA > FR 9626 > FR 9416 > 53E"
   },
   {
@@ -1441,9 +1441,9 @@
     2.1686
    ],
    "hours": 3.45,
-   "transitous": 3.45,
-   "sched": 2.5,
    "src": "transitous",
+   "transitous": 3.45,
+   "changes": 2,
    "via": "C4a > AVE 03151 > R1"
   },
   {
@@ -1458,9 +1458,9 @@
     -5.9845
    ],
    "hours": 3.05,
-   "transitous": 3.05,
-   "sched": 2.35,
    "src": "transitous",
+   "transitous": 3.05,
+   "changes": 2,
    "via": "C3 > AVE 02080 > 32"
   },
   {
@@ -1475,9 +1475,9 @@
     -0.3763
    ],
    "hours": 2.38,
-   "transitous": 2.38,
-   "sched": 1.7,
    "src": "transitous",
+   "transitous": 2.38,
+   "changes": 2,
    "via": "C4b > AVE 05080 > 31"
   },
   {
@@ -1492,9 +1492,9 @@
     -4.4214
    ],
    "hours": 3.25,
-   "transitous": 3.25,
-   "sched": 2.4,
    "src": "transitous",
+   "transitous": 3.25,
+   "changes": 2,
    "via": "C4a > AVE 02152 > 20"
   },
   {
@@ -1509,9 +1509,9 @@
     -2.935
    ],
    "hours": 4.48,
-   "transitous": 4.48,
-   "sched": 4.9,
    "src": "transitous",
+   "transitous": 4.48,
+   "changes": 3,
    "via": "C4b > Intercity 04687 > ALSA - Bur-Bil > Línea De Metro Bilbao"
   },
   {
@@ -1526,9 +1526,9 @@
     -9.1393
    ],
    "hours": 7.98,
-   "transitous": 7.98,
-   "sched": 9.5,
    "src": "transitous",
+   "transitous": 7.98,
+   "changes": 4,
    "via": "C4b > C5 > BlaBlaCar Bus > Linha da Azambuja > Vd"
   },
   {
@@ -1543,9 +1543,9 @@
     -0.3763
    ],
    "hours": 3.1,
-   "transitous": 3.1,
-   "sched": 2.7,
    "src": "transitous",
+   "transitous": 3.1,
+   "changes": 2,
    "via": "R1 > EUROMED 01161 > 8"
   },
   {
@@ -1560,9 +1560,9 @@
     -8.6291
    ],
    "hours": 3.47,
-   "transitous": 3.47,
-   "sched": 2.8,
    "src": "transitous",
+   "transitous": 3.47,
+   "changes": 3,
    "via": "Vd > Vm > AP > C"
   },
   {
@@ -1577,9 +1577,9 @@
     18.0686
    ],
    "hours": 5.52,
-   "transitous": 5.52,
-   "sched": 5.2,
    "src": "transitous",
+   "transitous": 5.52,
+   "changes": 1,
    "via": "806 > 530"
   },
   {
@@ -1594,9 +1594,9 @@
     9.9937
    ],
    "hours": 4.77,
-   "transitous": 4.77,
-   "sched": 4.7,
    "src": "transitous",
+   "transitous": 4.77,
+   "changes": 2,
    "via": "M3 > RJ > S1"
   },
   {
@@ -1611,9 +1611,9 @@
     10.2039
    ],
    "hours": 3.02,
-   "transitous": 3.02,
-   "sched": 2.7,
    "src": "transitous",
+   "transitous": 3.02,
+   "changes": 2,
    "via": "M3 > ICL > 4A"
   },
   {
@@ -1628,9 +1628,9 @@
     13.0038
    ],
    "hours": 0.93,
-   "transitous": 0.93,
-   "sched": 0.6,
    "src": "transitous",
+   "transitous": 0.93,
+   "changes": 1,
    "via": "M4 > 803"
   },
   {
@@ -1645,9 +1645,9 @@
     10.7522
    ],
    "hours": 7.18,
-   "transitous": 7.18,
-   "sched": 7.8,
    "src": "transitous",
+   "transitous": 7.18,
+   "changes": 3,
    "via": "M4 > 802 > 486 > 390"
   },
   {
@@ -1662,9 +1662,9 @@
     11.9746
    ],
    "hours": 3.72,
-   "transitous": 3.72,
-   "sched": 3.0,
    "src": "transitous",
+   "transitous": 3.72,
+   "changes": 0,
    "via": "423"
   },
   {
@@ -1679,9 +1679,9 @@
     13.0038
    ],
    "hours": 4.87,
-   "transitous": 4.87,
-   "sched": 4.4,
    "src": "transitous",
+   "transitous": 4.87,
+   "changes": 0,
    "via": "535"
   },
   {
@@ -1696,9 +1696,9 @@
     10.7522
    ],
    "hours": 5.97,
-   "transitous": 5.97,
-   "sched": 5.5,
    "src": "transitous",
+   "transitous": 5.97,
+   "changes": 0,
    "via": "629"
   },
   {
@@ -1713,9 +1713,9 @@
     5.3221
    ],
    "hours": 7.15,
+   "src": "floored",
    "transitous": 2.22,
-   "sched": 6.75,
-   "src": "timetable",
+   "changes": 2,
    "via": "FLY1 > Oslo-Bergen > FB50"
   },
   {
@@ -1730,9 +1730,9 @@
     19.945
    ],
    "hours": 2.7,
-   "transitous": 2.7,
-   "sched": 2.3,
    "src": "transitous",
+   "transitous": 2.7,
+   "changes": 2,
    "via": "7 > EIP 5304 > 3"
   },
   {
@@ -1747,9 +1747,9 @@
     18.6466
    ],
    "hours": 2.8,
-   "transitous": 2.8,
-   "sched": 2.7,
    "src": "transitous",
+   "transitous": 2.8,
+   "changes": 2,
    "via": "9 > EIP 3510 > 10"
   },
   {
@@ -1764,9 +1764,9 @@
     14.4378
    ],
    "hours": 8.75,
-   "transitous": 8.75,
-   "sched": 7.5,
    "src": "transitous",
+   "transitous": 8.75,
+   "changes": 5,
    "via": "7 > EIC 1400 > 674 > 000202 > EC 142 > A"
   },
   {
@@ -1781,9 +1781,9 @@
     19.0402
    ],
    "hours": 7.42,
-   "transitous": 7.42,
-   "sched": 6.5,
    "src": "transitous",
+   "transitous": 7.42,
+   "changes": 5,
    "via": "A > C > FlixBus 260 > RJX 19915 > M4 > 41"
   },
   {
@@ -1798,9 +1798,9 @@
     26.1025
    ],
    "hours": 15.1,
-   "transitous": 15.1,
-   "sched": 15.0,
    "src": "transitous",
+   "transitous": 15.1,
+   "changes": 3,
    "via": "16 > 100E > FlixBus 962 > M3"
   },
   {
@@ -1815,9 +1815,9 @@
     15.9819
    ],
    "hours": 4.57,
-   "transitous": 4.57,
-   "sched": 6.0,
    "src": "transitous",
+   "transitous": 4.57,
+   "changes": 3,
    "via": "19 > M4 > FlixBus 976 > 8"
   },
   {
@@ -1832,9 +1832,9 @@
     23.761
    ],
    "hours": 1.87,
-   "transitous": 1.87,
-   "sched": 1.5,
    "src": "transitous",
+   "transitous": 1.87,
+   "changes": 1,
    "via": "IC 47 > 1"
   },
   {
@@ -1849,9 +1849,9 @@
     24.0297
    ],
    "hours": 7.03,
-   "transitous": 7.03,
-   "sched": 5.0,
    "src": "transitous",
+   "transitous": 7.03,
+   "changes": 2,
    "via": "24 > 9 > А43"
   },
   {
@@ -1866,9 +1866,9 @@
     -4.2518
    ],
    "hours": 1.07,
-   "transitous": 1.07,
-   "sched": 0.8,
    "src": "transitous",
+   "transitous": 1.07,
+   "changes": 1,
    "via": "ScotRail > X19"
   },
   {
@@ -1883,9 +1883,9 @@
     -8.4756
    ],
    "hours": 3.12,
-   "transitous": 3.12,
-   "sched": 2.5,
    "src": "transitous",
+   "transitous": 3.12,
+   "changes": 2,
    "via": "C4 > InterCity > 208"
   },
   {
@@ -1900,9 +1900,9 @@
     -5.9301
    ],
    "hours": 2.52,
-   "transitous": 2.52,
-   "sched": 2.1,
    "src": "transitous",
+   "transitous": 2.52,
+   "changes": 2,
    "via": "Red > Dublin Connolly - Belfast Great Central > 513"
   },
   {
@@ -1917,9 +1917,9 @@
     -3.1883
    ],
    "hours": 3.45,
-   "transitous": 3.45,
-   "sched": 3.3,
    "src": "transitous",
+   "transitous": 3.45,
+   "changes": 2,
    "via": "37 > 143 > TPE"
   },
   {
@@ -1934,9 +1934,9 @@
     -77.0369
    ],
    "hours": 3.75,
-   "transitous": 3.75,
-   "sched": 2.85,
    "src": "transitous",
+   "transitous": 3.75,
+   "changes": 4,
    "via": "M22 > 3 > 2151 > R > D70"
   },
   {
@@ -1951,9 +1951,9 @@
     -71.0589
    ],
    "hours": 4.48,
-   "transitous": 4.48,
-   "sched": 3.7,
    "src": "transitous",
+   "transitous": 4.48,
+   "changes": 2,
    "via": "2 > 2152 > Orange Line"
   },
   {
@@ -1968,9 +1968,9 @@
     -87.6298
    ],
    "hours": 22.15,
-   "transitous": 22.15,
-   "sched": 19.0,
    "src": "transitous",
+   "transitous": 22.15,
+   "changes": 3,
    "via": "3 > 131 > 40 > 151"
   },
   {
@@ -1985,9 +1985,9 @@
     -73.5673
    ],
    "hours": 5.37,
-   "transitous": 5.37,
-   "sched": 4.9,
    "src": "transitous",
+   "transitous": 5.37,
+   "changes": 1,
    "via": "1 > VIA Rail"
   },
   {
@@ -2002,9 +2002,9 @@
     135.5023
    ],
    "hours": 3.48,
-   "transitous": 3.48,
-   "sched": 2.35,
    "src": "transitous",
+   "transitous": 3.48,
+   "changes": 5,
    "via": "渋６６ > 11573054 > 16953594 > 18911714 > のぞみ469号 > 14525634"
   },
   {
@@ -2019,9 +2019,9 @@
     129.0756
    ],
    "hours": 2.93,
-   "transitous": 2.93,
-   "sched": 2.25,
    "src": "transitous",
+   "transitous": 2.93,
+   "changes": 2,
    "via": "서울1호선 > KTX 43 > 부산1호선"
   },
   {
@@ -2036,165 +2036,1931 @@
     144.9631
    ],
    "hours": 11.2,
-   "transitous": 11.2,
-   "sched": 11.0,
    "src": "transitous",
+   "transitous": 11.2,
+   "changes": 2,
    "via": "T4 > 621 > Craigieburn"
   },
   {
+   "from": "London",
+   "to": "Leeds",
+   "fromLL": [
+    51.5074,
+    -0.1278
+   ],
+   "toLL": [
+    53.8008,
+    -1.5491
+   ],
+   "hours": 2.6,
+   "src": "transitous",
+   "transitous": 2.6,
+   "changes": 2,
+   "via": "24 > Piccadilly > LNER"
+  },
+  {
+   "from": "London",
+   "to": "Liverpool",
+   "fromLL": [
+    51.5074,
+    -0.1278
+   ],
+   "toLL": [
+    53.4084,
+    -2.9916
+   ],
+   "hours": 2.77,
+   "src": "transitous",
+   "transitous": 2.77,
+   "changes": 3,
+   "via": "Northern > Avanti > Wirral line > Northern line"
+  },
+  {
+   "from": "London",
+   "to": "Newcastle",
+   "fromLL": [
+    51.5074,
+    -0.1278
+   ],
+   "toLL": [
+    54.9783,
+    -1.6178
+   ],
+   "hours": 3.13,
+   "src": "transitous",
+   "transitous": 3.13,
+   "changes": 3,
+   "via": "Bakerloo > Victoria > LNER > YEL"
+  },
+  {
+   "from": "London",
+   "to": "Bristol",
+   "fromLL": [
+    51.5074,
+    -0.1278
+   ],
+   "toLL": [
+    51.4545,
+    -2.5879
+   ],
+   "hours": 1.97,
+   "src": "transitous",
+   "transitous": 1.97,
+   "changes": 2,
+   "via": "Bakerloo > GWR > 72"
+  },
+  {
+   "from": "London",
+   "to": "York",
+   "fromLL": [
+    51.5074,
+    -0.1278
+   ],
+   "toLL": [
+    53.96,
+    -1.0873
+   ],
+   "hours": 2.15,
+   "src": "transitous",
+   "transitous": 2.15,
+   "changes": 2,
+   "via": "Bakerloo > Victoria > LNER"
+  },
+  {
+   "from": "London",
+   "to": "Sheffield",
+   "fromLL": [
+    51.5074,
+    -0.1278
+   ],
+   "toLL": [
+    53.3811,
+    -1.4701
+   ],
+   "hours": 2.6,
+   "src": "transitous",
+   "transitous": 2.6,
+   "changes": 4,
+   "via": "Bakerloo > Victoria > LNER > Northern > X1"
+  },
+  {
+   "from": "Manchester",
+   "to": "Birmingham",
+   "fromLL": [
+    53.4808,
+    -2.2426
+   ],
+   "toLL": [
+    52.4862,
+    -1.8904
+   ],
+   "hours": 2.07,
+   "src": "transitous",
+   "transitous": 2.07,
+   "changes": 3,
+   "via": "192 > CrossCountry > Metro > 997"
+  },
+  {
+   "from": "Manchester",
+   "to": "Liverpool",
+   "fromLL": [
+    53.4808,
+    -2.2426
+   ],
+   "toLL": [
+    53.4084,
+    -2.9916
+   ],
+   "hours": 1.07,
+   "src": "transitous",
+   "transitous": 1.07,
+   "changes": 3,
+   "via": "Green Line > TPE > Wirral line > Wirral line"
+  },
+  {
+   "from": "Manchester",
+   "to": "Leeds",
+   "fromLL": [
+    53.4808,
+    -2.2426
+   ],
+   "toLL": [
+    53.8008,
+    -1.5491
+   ],
+   "hours": 1.5,
+   "src": "transitous",
+   "transitous": 1.5,
+   "changes": 1,
+   "via": "FlixBus UK073 > X6"
+  },
+  {
+   "from": "Edinburgh",
+   "to": "Newcastle",
+   "fromLL": [
+    55.9533,
+    -3.1883
+   ],
+   "toLL": [
+    54.9783,
+    -1.6178
+   ],
+   "hours": 1.73,
+   "src": "transitous",
+   "transitous": 1.73,
+   "changes": 1,
+   "via": "Lumo > GRN"
+  },
+  {
+   "from": "Birmingham",
+   "to": "Bristol",
+   "fromLL": [
+    52.4862,
+    -1.8904
+   ],
+   "toLL": [
+    51.4545,
+    -2.5879
+   ],
+   "hours": 1.82,
+   "src": "transitous",
+   "transitous": 1.82,
+   "changes": 3,
+   "via": "67 > 16A > CrossCountry > 8"
+  },
+  {
+   "from": "Dublin",
+   "to": "Galway",
+   "fromLL": [
+    53.3498,
+    -6.2603
+   ],
+   "toLL": [
+    53.2707,
+    -9.0568
+   ],
+   "hours": 2.85,
+   "src": "transitous",
+   "transitous": 2.85,
+   "changes": 1,
+   "via": "761 > 401"
+  },
+  {
+   "from": "Paris",
+   "to": "Montpellier",
+   "fromLL": [
+    48.8566,
+    2.3522
+   ],
+   "toLL": [
+    43.6108,
+    3.8767
+   ],
+   "hours": 3.87,
+   "src": "transitous",
+   "transitous": 3.87,
+   "changes": 2,
+   "via": "1 > OUIGO 7885 > 1"
+  },
+  {
+   "from": "Paris",
+   "to": "Dijon",
+   "fromLL": [
+    48.8566,
+    2.3522
+   ],
+   "toLL": [
+    47.322,
+    5.0415
+   ],
+   "hours": 2.02,
+   "src": "transitous",
+   "transitous": 2.02,
+   "changes": 2,
+   "via": "1 > TGV Lyria 9223 > T1"
+  },
+  {
+   "from": "Lyon",
+   "to": "Marseille",
+   "fromLL": [
+    45.764,
+    4.8357
+   ],
+   "toLL": [
+    43.2965,
+    5.3698
+   ],
+   "hours": 2.18,
+   "src": "transitous",
+   "transitous": 2.18,
+   "changes": 4,
+   "via": "A > B > OUIGO 7835 > M1 > 83"
+  },
+  {
+   "from": "Lyon",
+   "to": "Bordeaux",
+   "fromLL": [
+    45.764,
+    4.8357
+   ],
+   "toLL": [
+    44.8378,
+    -0.5792
+   ],
+   "hours": 5.07,
+   "src": "transitous",
+   "transitous": 5.07,
+   "changes": 3,
+   "via": "C13 > TGV INOUI 5382 > TGV INOUI 12265 > F"
+  },
+  {
+   "from": "Lyon",
+   "to": "Strasbourg",
+   "fromLL": [
+    45.764,
+    4.8357
+   ],
+   "toLL": [
+    48.5734,
+    7.7521
+   ],
+   "hours": 4.27,
+   "src": "transitous",
+   "transitous": 4.27,
+   "changes": 3,
+   "via": "A > B > ICE 9583 > G"
+  },
+  {
+   "from": "Marseille",
+   "to": "Nice",
+   "fromLL": [
+    43.2965,
+    5.3698
+   ],
+   "toLL": [
+    43.7102,
+    7.262
+   ],
+   "hours": 2.92,
+   "src": "transitous",
+   "transitous": 2.92,
+   "changes": 5,
+   "via": "83 > M1 > FlixBus 404 > 12+ > TER 17471 > L1"
+  },
+  {
+   "from": "Bordeaux",
+   "to": "Toulouse",
+   "fromLL": [
+    44.8378,
+    -0.5792
+   ],
+   "toLL": [
+    43.6047,
+    1.4442
+   ],
+   "hours": 2.85,
+   "src": "transitous",
+   "transitous": 2.85,
+   "changes": 3,
+   "via": "A > D > TGV INOUI 8511 > A"
+  },
+  {
+   "from": "Lille",
+   "to": "Brussels",
+   "fromLL": [
+    50.6292,
+    3.0573
+   ],
+   "toLL": [
+    50.8466,
+    4.3528
+   ],
+   "hours": 1.08,
+   "src": "transitous",
+   "transitous": 1.08,
+   "changes": 2,
+   "via": "M1 > TGV INOUI 9852 > 10"
+  },
+  {
+   "from": "Brussels",
+   "to": "Antwerp",
+   "fromLL": [
+    50.8466,
+    4.3528
+   ],
+   "toLL": [
+    51.2194,
+    4.4025
+   ],
+   "hours": 1.17,
+   "src": "transitous",
+   "transitous": 1.17,
+   "changes": 1,
+   "via": "IC 2014 > 11"
+  },
+  {
+   "from": "Brussels",
+   "to": "Liege",
+   "fromLL": [
+    50.8466,
+    4.3528
+   ],
+   "toLL": [
+    50.6326,
+    5.5797
+   ],
+   "hours": 1.2,
+   "src": "transitous",
+   "transitous": 1.2,
+   "changes": 2,
+   "via": "IC 4507 > ICE 13 > 60"
+  },
+  {
+   "from": "Amsterdam",
+   "to": "Rotterdam",
+   "fromLL": [
+    52.3676,
+    4.9041
+   ],
+   "toLL": [
+    51.9244,
+    4.4777
+   ],
+   "hours": 1.1,
+   "src": "transitous",
+   "transitous": 1.1,
+   "changes": 3,
+   "via": "14 > 52 > ICD 1818 > D"
+  },
+  {
+   "from": "Amsterdam",
+   "to": "Groningen",
+   "fromLL": [
+    52.3676,
+    4.9041
+   ],
+   "toLL": [
+    53.2194,
+    6.5665
+   ],
+   "hours": 2.5,
+   "src": "transitous",
+   "transitous": 2.5,
+   "changes": 3,
+   "via": "53 > Intercity > Intercity > 61"
+  },
+  {
+   "from": "Amsterdam",
+   "to": "Eindhoven",
+   "fromLL": [
+    52.3676,
+    4.9041
+   ],
+   "toLL": [
+    51.4416,
+    5.4697
+   ],
+   "hours": 1.67,
+   "src": "transitous",
+   "transitous": 1.67,
+   "changes": 4,
+   "via": "14 > 51 > Intercity > Intercity > 403"
+  },
+  {
+   "from": "Berlin",
+   "to": "Nuremberg",
+   "fromLL": [
+    52.52,
+    13.405
+   ],
+   "toLL": [
+    49.4521,
+    11.0767
+   ],
+   "hours": 3.18,
+   "src": "transitous",
+   "transitous": 3.18,
+   "changes": 3,
+   "via": "M4 > S5 > ICE 1505 > U1"
+  },
+  {
+   "from": "Berlin",
+   "to": "Stuttgart",
+   "fromLL": [
+    52.52,
+    13.405
+   ],
+   "toLL": [
+    48.7758,
+    9.1829
+   ],
+   "hours": 5.18,
+   "src": "transitous",
+   "transitous": 5.18,
+   "changes": 2,
+   "via": "S9 > ICE 1163 > U12"
+  },
+  {
+   "from": "Berlin",
+   "to": "Bremen",
+   "fromLL": [
+    52.52,
+    13.405
+   ],
+   "toLL": [
+    53.0793,
+    8.8017
+   ],
+   "hours": 3.38,
+   "src": "transitous",
+   "transitous": 3.38,
+   "changes": 4,
+   "via": "M4 > S5 > ICE 954 > ICE 1674 > 1"
+  },
+  {
+   "from": "Berlin",
+   "to": "Erfurt",
+   "fromLL": [
+    52.52,
+    13.405
+   ],
+   "toLL": [
+    50.9787,
+    11.0328
+   ],
+   "hours": 2.1,
+   "src": "transitous",
+   "transitous": 2.1,
+   "changes": 2,
+   "via": "M4 > S5 > ICE 1503"
+  },
+  {
+   "from": "Hamburg",
+   "to": "Munich",
+   "fromLL": [
+    53.5511,
+    9.9937
+   ],
+   "toLL": [
+    48.1351,
+    11.582
+   ],
+   "hours": 6.18,
+   "src": "transitous",
+   "transitous": 6.18,
+   "changes": 2,
+   "via": "S3 > ICE 1185 > S8"
+  },
+  {
+   "from": "Hamburg",
+   "to": "Cologne",
+   "fromLL": [
+    53.5511,
+    9.9937
+   ],
+   "toLL": [
+    50.9375,
+    6.9603
+   ],
+   "hours": 4.0,
+   "src": "transitous",
+   "transitous": 4.0,
+   "changes": 2,
+   "via": "S1 > ICE 927 > 5"
+  },
+  {
+   "from": "Hamburg",
+   "to": "Frankfurt",
+   "fromLL": [
+    53.5511,
+    9.9937
+   ],
+   "toLL": [
+    50.1109,
+    8.6821
+   ],
+   "hours": 4.15,
+   "src": "transitous",
+   "transitous": 4.15,
+   "changes": 2,
+   "via": "S1 > ICE 575 > U4"
+  },
+  {
+   "from": "Hamburg",
+   "to": "Bremen",
+   "fromLL": [
+    53.5511,
+    9.9937
+   ],
+   "toLL": [
+    53.0793,
+    8.8017
+   ],
+   "hours": 1.27,
+   "src": "transitous",
+   "transitous": 1.27,
+   "changes": 2,
+   "via": "S1 > ICE 205 > 27"
+  },
+  {
+   "from": "Hamburg",
+   "to": "Hanover",
+   "fromLL": [
+    53.5511,
+    9.9937
+   ],
+   "toLL": [
+    52.3759,
+    9.732
+   ],
+   "hours": 1.58,
+   "src": "transitous",
+   "transitous": 1.58,
+   "changes": 2,
+   "via": "S3 > ICE 1185 > 500"
+  },
+  {
+   "from": "Hamburg",
+   "to": "Kiel",
+   "fromLL": [
+    53.5511,
+    9.9937
+   ],
+   "toLL": [
+    54.3233,
+    10.1228
+   ],
+   "hours": 1.65,
+   "src": "transitous",
+   "transitous": 1.65,
+   "changes": 2,
+   "via": "U1 > RE7 (11258) > 91"
+  },
+  {
+   "from": "Hamburg",
+   "to": "Copenhagen",
+   "fromLL": [
+    53.5511,
+    9.9937
+   ],
+   "toLL": [
+    55.6761,
+    12.5683
+   ],
+   "hours": 4.87,
+   "src": "transitous",
+   "transitous": 4.87,
+   "changes": 2,
+   "via": "S7 > RJ > M4"
+  },
+  {
+   "from": "Frankfurt",
+   "to": "Hanover",
+   "fromLL": [
+    50.1109,
+    8.6821
+   ],
+   "toLL": [
+    52.3759,
+    9.732
+   ],
+   "hours": 2.7,
+   "src": "transitous",
+   "transitous": 2.7,
+   "changes": 2,
+   "via": "U4 > ICE 770 > 500"
+  },
+  {
+   "from": "Frankfurt",
+   "to": "Dusseldorf",
+   "fromLL": [
+    50.1109,
+    8.6821
+   ],
+   "toLL": [
+    51.2277,
+    6.7735
+   ],
+   "hours": 2.02,
+   "src": "transitous",
+   "transitous": 2.02,
+   "changes": 3,
+   "via": "U4 > S8 > ICE 1012 > U78"
+  },
+  {
+   "from": "Frankfurt",
+   "to": "Freiburg",
+   "fromLL": [
+    50.1109,
+    8.6821
+   ],
+   "toLL": [
+    47.999,
+    7.8421
+   ],
+   "hours": 2.43,
+   "src": "transitous",
+   "transitous": 2.43,
+   "changes": 1,
+   "via": "U4 > EC 151"
+  },
+  {
+   "from": "Cologne",
+   "to": "Dusseldorf",
+   "fromLL": [
+    50.9375,
+    6.9603
+   ],
+   "toLL": [
+    51.2277,
+    6.7735
+   ],
+   "hours": 0.75,
+   "src": "transitous",
+   "transitous": 0.75,
+   "changes": 1,
+   "via": "ICE 1020 > U77"
+  },
+  {
+   "from": "Leipzig",
+   "to": "Dresden",
+   "fromLL": [
+    51.3397,
+    12.3731
+   ],
+   "toLL": [
+    51.0504,
+    13.7373
+   ],
+   "hours": 1.52,
+   "src": "transitous",
+   "transitous": 1.52,
+   "changes": 3,
+   "via": "S5 > ICE 1651 > S1 > 2"
+  },
+  {
+   "from": "Vienna",
+   "to": "Linz",
+   "fromLL": [
+    48.2082,
+    16.3738
+   ],
+   "toLL": [
+    48.3069,
+    14.2858
+   ],
+   "hours": 1.78,
+   "src": "transitous",
+   "transitous": 1.78,
+   "changes": 2,
+   "via": "U3 > IC 1118 > 1"
+  },
+  {
+   "from": "Vienna",
+   "to": "Innsbruck",
+   "fromLL": [
+    48.2082,
+    16.3738
+   ],
+   "toLL": [
+    47.2692,
+    11.4041
+   ],
+   "hours": 5.03,
+   "src": "transitous",
+   "transitous": 5.03,
+   "changes": 2,
+   "via": "U1 > RJX 19950 > F"
+  },
+  {
+   "from": "Vienna",
+   "to": "Klagenfurt",
+   "fromLL": [
+    48.2082,
+    16.3738
+   ],
+   "toLL": [
+    46.6247,
+    14.305
+   ],
+   "hours": 3.58,
+   "src": "transitous",
+   "transitous": 3.58,
+   "changes": 2,
+   "via": "U1 > RJX 637 > A"
+  },
+  {
+   "from": "Zurich",
+   "to": "Lugano",
+   "fromLL": [
+    47.3769,
+    8.5417
+   ],
+   "toLL": [
+    46.0037,
+    8.9511
+   ],
+   "hours": 2.2,
+   "src": "transitous",
+   "transitous": 2.2,
+   "changes": 1,
+   "via": "EC 13 > 2650"
+  },
+  {
+   "from": "Geneva",
+   "to": "Lausanne",
+   "fromLL": [
+    46.2044,
+    6.1432
+   ],
+   "toLL": [
+    46.5197,
+    6.6323
+   ],
+   "hours": 0.98,
+   "src": "transitous",
+   "transitous": 0.98,
+   "changes": 1,
+   "via": "18 > EC 143"
+  },
+  {
+   "from": "Bern",
+   "to": "Lausanne",
+   "fromLL": [
+    46.948,
+    7.4474
+   ],
+   "toLL": [
+    46.5197,
+    6.6323
+   ],
+   "hours": 1.5,
+   "src": "transitous",
+   "transitous": 1.5,
+   "changes": 1,
+   "via": "12 > IC1"
+  },
+  {
    "from": "Milan",
-   "to": "Bologna",
+   "to": "Genoa",
    "fromLL": [
     45.4642,
     9.19
    ],
    "toLL": [
-    44.4949,
-    11.3426
+    44.4056,
+    8.9463
    ],
-   "hours": 1.45,
-   "sched": 1.05,
-   "src": "timetable",
-   "via": "timetable only"
+   "hours": 2.08,
+   "src": "transitous",
+   "transitous": 2.08,
+   "changes": 2,
+   "via": "3 > IC 665 > 45"
   },
   {
    "from": "Rome",
-   "to": "Bologna",
+   "to": "Bari",
    "fromLL": [
     41.9028,
     12.4964
    ],
    "toLL": [
-    44.4949,
-    11.3426
+    41.1171,
+    16.8719
    ],
-   "hours": 2.4,
-   "sched": 2.0,
-   "src": "timetable",
-   "via": "timetable only"
+   "hours": 4.55,
+   "src": "transitous",
+   "transitous": 4.55,
+   "changes": 1,
+   "via": "MEA > FR 9511"
   },
   {
-   "from": "Athens",
-   "to": "Thessaloniki",
+   "from": "Rome",
+   "to": "Turin",
    "fromLL": [
-    37.9838,
-    23.7275
+    41.9028,
+    12.4964
    ],
    "toLL": [
-    40.6401,
-    22.9444
+    45.0703,
+    7.6869
    ],
-   "hours": 4.4,
-   "sched": 4.0,
-   "src": "timetable",
-   "via": "timetable only"
+   "hours": 4.37,
+   "src": "transitous",
+   "transitous": 4.37,
+   "changes": 3,
+   "via": "MEA > FR 9634 > FR 9532 > 56"
   },
   {
-   "from": "Istanbul",
-   "to": "Ankara",
+   "from": "Rome",
+   "to": "Pisa",
    "fromLL": [
-    41.0082,
-    28.9784
+    41.9028,
+    12.4964
    ],
    "toLL": [
-    39.9334,
-    32.8597
+    43.7228,
+    10.4017
    ],
-   "hours": 4.6,
-   "sched": 4.2,
-   "src": "timetable",
-   "via": "timetable only"
+   "hours": 2.8,
+   "src": "transitous",
+   "transitous": 2.8,
+   "changes": 1,
+   "via": "FA 8556 > 13"
   },
   {
-   "from": "Delhi",
-   "to": "Mumbai",
+   "from": "Florence",
+   "to": "Venice",
    "fromLL": [
-    28.6139,
-    77.209
+    43.7696,
+    11.2558
    ],
    "toLL": [
-    19.076,
-    72.8777
+    45.4408,
+    12.3155
    ],
-   "hours": 15.9,
-   "sched": 15.5,
-   "src": "timetable",
-   "via": "timetable only"
+   "hours": 2.53,
+   "src": "transitous",
+   "transitous": 2.53,
+   "changes": 2,
+   "via": "C2 > FR 9406 > 2"
+  },
+  {
+   "from": "Naples",
+   "to": "Bari",
+   "fromLL": [
+    40.8518,
+    14.2681
+   ],
+   "toLL": [
+    41.1171,
+    16.8719
+   ],
+   "hours": 3.37,
+   "src": "transitous",
+   "transitous": 3.37,
+   "changes": 1,
+   "via": "175 > FlixBus 571"
+  },
+  {
+   "from": "Madrid",
+   "to": "Zaragoza",
+   "fromLL": [
+    40.4168,
+    -3.7038
+   ],
+   "toLL": [
+    41.6488,
+    -0.8891
+   ],
+   "hours": 2.08,
+   "src": "transitous",
+   "transitous": 2.08,
+   "changes": 2,
+   "via": "C4b > AVE 03093 > 51"
+  },
+  {
+   "from": "Madrid",
+   "to": "Alicante",
+   "fromLL": [
+    40.4168,
+    -3.7038
+   ],
+   "toLL": [
+    38.3452,
+    -0.481
+   ],
+   "hours": 2.9,
+   "src": "transitous",
+   "transitous": 2.9,
+   "changes": 2,
+   "via": "C3 > AVE 05912 > L21"
+  },
+  {
+   "from": "Barcelona",
+   "to": "Zaragoza",
+   "fromLL": [
+    41.3874,
+    2.1686
+   ],
+   "toLL": [
+    41.6488,
+    -0.8891
+   ],
+   "hours": 1.98,
+   "src": "transitous",
+   "transitous": 1.98,
+   "changes": 3,
+   "via": "R4 > AVE 03172 > C1 > 23"
+  },
+  {
+   "from": "Barcelona",
+   "to": "Seville",
+   "fromLL": [
+    41.3874,
+    2.1686
+   ],
+   "toLL": [
+    37.3891,
+    -5.9845
+   ],
+   "hours": 6.57,
+   "src": "transitous",
+   "transitous": 6.57,
+   "changes": 3,
+   "via": "R4 > AVE 03150 > AVE 02190 > 21"
+  },
+  {
+   "from": "Seville",
+   "to": "Malaga",
+   "fromLL": [
+    37.3891,
+    -5.9845
+   ],
+   "toLL": [
+    36.7213,
+    -4.4214
+   ],
+   "hours": 2.62,
+   "src": "transitous",
+   "transitous": 2.62,
+   "changes": 3,
+   "via": "21 > AVANT 08155 > AVE 02142 > L1"
+  },
+  {
+   "from": "Valencia",
+   "to": "Alicante",
+   "fromLL": [
+    39.4699,
+    -0.3763
+   ],
+   "toLL": [
+    38.3452,
+    -0.481
+   ],
+   "hours": 2.48,
+   "src": "transitous",
+   "transitous": 2.48,
+   "changes": 3,
+   "via": "C1 > 2 > L710 > C6"
+  },
+  {
+   "from": "Copenhagen",
+   "to": "Odense",
+   "fromLL": [
+    55.6761,
+    12.5683
+   ],
+   "toLL": [
+    55.4038,
+    10.4024
+   ],
+   "hours": 1.53,
+   "src": "transitous",
+   "transitous": 1.53,
+   "changes": 1,
+   "via": "ECE > 35"
+  },
+  {
+   "from": "Copenhagen",
+   "to": "Gothenburg",
+   "fromLL": [
+    55.6761,
+    12.5683
+   ],
+   "toLL": [
+    57.7089,
+    11.9746
+   ],
+   "hours": 3.22,
+   "src": "transitous",
+   "transitous": 3.22,
+   "changes": 2,
+   "via": "M3 > 803 > 490"
+  },
+  {
+   "from": "Stockholm",
+   "to": "Uppsala",
+   "fromLL": [
+    59.3293,
+    18.0686
+   ],
+   "toLL": [
+    59.8586,
+    17.6389
+   ],
+   "hours": 0.97,
+   "src": "transitous",
+   "transitous": 0.97,
+   "changes": 0,
+   "via": "270"
+  },
+  {
+   "from": "Gothenburg",
+   "to": "Malmo",
+   "fromLL": [
+    57.7089,
+    11.9746
+   ],
+   "toLL": [
+    55.605,
+    13.0038
+   ],
+   "hours": 2.5,
+   "src": "transitous",
+   "transitous": 2.5,
+   "changes": 1,
+   "via": "483 > 9"
+  },
+  {
+   "from": "Oslo",
+   "to": "Trondheim",
+   "fromLL": [
+    59.9139,
+    10.7522
+   ],
+   "toLL": [
+    63.4305,
+    10.3951
+   ],
+   "hours": 7.0,
+   "src": "floored",
+   "transitous": 2.28,
+   "changes": 2,
+   "via": "FLY2 > Oslo-Trondheim > FB73"
+  },
+  {
+   "from": "Oslo",
+   "to": "Stavanger",
+   "fromLL": [
+    59.9139,
+    10.7522
+   ],
+   "toLL": [
+    58.97,
+    5.7331
+   ],
+   "hours": 8.2,
+   "src": "floored",
+   "transitous": 2.13,
+   "changes": 2,
+   "via": "FLY2 > Oslo-Stavanger > FB40"
+  },
+  {
+   "from": "Helsinki",
+   "to": "Turku",
+   "fromLL": [
+    60.1699,
+    24.9384
+   ],
+   "toLL": [
+    60.4518,
+    22.2666
+   ],
+   "hours": 2.17,
+   "src": "transitous",
+   "transitous": 2.17,
+   "changes": 1,
+   "via": "FlixBus 3000A > 28"
+  },
+  {
+   "from": "Helsinki",
+   "to": "Oulu",
+   "fromLL": [
+    60.1699,
+    24.9384
+   ],
+   "toLL": [
+    65.0121,
+    25.4651
+   ],
+   "hours": 5.75,
+   "src": "transitous",
+   "transitous": 5.75,
+   "changes": 1,
+   "via": "S 33 > 2"
+  },
+  {
+   "from": "Tampere",
+   "to": "Oulu",
+   "fromLL": [
+    61.4978,
+    23.761
+   ],
+   "toLL": [
+    65.0121,
+    25.4651
+   ],
+   "hours": 4.07,
+   "src": "transitous",
+   "transitous": 4.07,
+   "changes": 2,
+   "via": "30 > S 33 > 2"
+  },
+  {
+   "from": "Riga",
+   "to": "Vilnius",
+   "fromLL": [
+    56.9496,
+    24.1052
+   ],
+   "toLL": [
+    54.6872,
+    25.2797
+   ],
+   "hours": 4.12,
+   "src": "transitous",
+   "transitous": 4.12,
+   "changes": 2,
+   "via": "26 > M-2201 > 46"
+  },
+  {
+   "from": "Tallinn",
+   "to": "Riga",
+   "fromLL": [
+    59.437,
+    24.7536
+   ],
+   "toLL": [
+    56.9496,
+    24.1052
+   ],
+   "hours": 4.8,
+   "src": "transitous",
+   "transitous": 4.8,
+   "changes": 1,
+   "via": "T2 > LV8855"
+  },
+  {
+   "from": "Prague",
+   "to": "Brno",
+   "fromLL": [
+    50.0755,
+    14.4378
+   ],
+   "toLL": [
+    49.1951,
+    16.6068
+   ],
+   "hours": 2.9,
+   "src": "transitous",
+   "transitous": 2.9,
+   "changes": 3,
+   "via": "A > C > FlixBus 850 > 4"
+  },
+  {
+   "from": "Prague",
+   "to": "Ostrava",
+   "fromLL": [
+    50.0755,
+    14.4378
+   ],
+   "toLL": [
+    49.8209,
+    18.2625
+   ],
+   "hours": 3.8,
+   "src": "transitous",
+   "transitous": 3.8,
+   "changes": 4,
+   "via": "A > C > SC 511 > 915008 > 915012"
+  },
+  {
+   "from": "Prague",
+   "to": "Warsaw",
+   "fromLL": [
+    50.0755,
+    14.4378
+   ],
+   "toLL": [
+    52.2297,
+    21.0122
+   ],
+   "hours": 8.3,
+   "src": "transitous",
+   "transitous": 8.3,
+   "changes": 4,
+   "via": "A > B > FlixBus 1300 > EIC 6102 Ślęża > 128"
+  },
+  {
+   "from": "Prague",
+   "to": "Krakow",
+   "fromLL": [
+    50.0755,
+    14.4378
+   ],
+   "toLL": [
+    50.0647,
+    19.945
+   ],
+   "hours": 6.37,
+   "src": "transitous",
+   "transitous": 6.37,
+   "changes": 5,
+   "via": "A > RJ 1013 > EC 202 > EC 202 > 704 > 304"
+  },
+  {
+   "from": "Prague",
+   "to": "Berlin",
+   "fromLL": [
+    50.0755,
+    14.4378
+   ],
+   "toLL": [
+    52.52,
+    13.405
+   ],
+   "hours": 4.37,
+   "src": "transitous",
+   "transitous": 4.37,
+   "changes": 4,
+   "via": "A > C > RJ 176 > S5 > M5"
+  },
+  {
+   "from": "Prague",
+   "to": "Dresden",
+   "fromLL": [
+    50.0755,
+    14.4378
+   ],
+   "toLL": [
+    51.0504,
+    13.7373
+   ],
+   "hours": 2.43,
+   "src": "transitous",
+   "transitous": 2.43,
+   "changes": 3,
+   "via": "A > C > FlixBus 060 > 3"
+  },
+  {
+   "from": "Warsaw",
+   "to": "Poznan",
+   "fromLL": [
+    52.2297,
+    21.0122
+   ],
+   "toLL": [
+    52.4064,
+    16.9252
+   ],
+   "hours": 2.82,
+   "src": "transitous",
+   "transitous": 2.82,
+   "changes": 3,
+   "via": "7 > EIP 1802 > 14 > 8"
+  },
+  {
+   "from": "Warsaw",
+   "to": "Katowice",
+   "fromLL": [
+    52.2297,
+    21.0122
+   ],
+   "toLL": [
+    50.2649,
+    19.0238
+   ],
+   "hours": 3.07,
+   "src": "transitous",
+   "transitous": 3.07,
+   "changes": 2,
+   "via": "25 > EIP 5402 > T6"
+  },
+  {
+   "from": "Warsaw",
+   "to": "Berlin",
+   "fromLL": [
+    52.2297,
+    21.0122
+   ],
+   "toLL": [
+    52.52,
+    13.405
+   ],
+   "hours": 5.68,
+   "src": "transitous",
+   "transitous": 5.68,
+   "changes": 4,
+   "via": "22 > EIC 48 Berlin-Warszawa-Express > 95 > U5 > M4"
+  },
+  {
+   "from": "Krakow",
+   "to": "Katowice",
+   "fromLL": [
+    50.0647,
+    19.945
+   ],
+   "toLL": [
+    50.2649,
+    19.0238
+   ],
+   "hours": 1.55,
+   "src": "transitous",
+   "transitous": 1.55,
+   "changes": 2,
+   "via": "704 > IC 56 Wawel > T46"
+  },
+  {
+   "from": "Budapest",
+   "to": "Bratislava",
+   "fromLL": [
+    47.4979,
+    19.0402
+   ],
+   "toLL": [
+    48.1486,
+    17.1077
+   ],
+   "hours": 2.78,
+   "src": "transitous",
+   "transitous": 2.78,
+   "changes": 4,
+   "via": "19 > M4 > RJX 64 > RRR 1342 > 93"
+  },
+  {
+   "from": "Zagreb",
+   "to": "Ljubljana",
+   "fromLL": [
+    45.815,
+    15.9819
+   ],
+   "toLL": [
+    46.0569,
+    14.5058
+   ],
+   "hours": 2.72,
+   "src": "transitous",
+   "transitous": 2.72,
+   "changes": 2,
+   "via": "6 > FlixBus 402 > 02"
+  },
+  {
+   "from": "Zagreb",
+   "to": "Split",
+   "fromLL": [
+    45.815,
+    15.9819
+   ],
+   "toLL": [
+    43.5081,
+    16.4402
+   ],
+   "hours": 5.6,
+   "src": "transitous",
+   "transitous": 5.6,
+   "changes": 1,
+   "via": "8 > FlixBus 942a"
+  },
+  {
+   "from": "Ljubljana",
+   "to": "Venice",
+   "fromLL": [
+    46.0569,
+    14.5058
+   ],
+   "toLL": [
+    45.4408,
+    12.3155
+   ],
+   "hours": 3.82,
+   "src": "transitous",
+   "transitous": 3.82,
+   "changes": 1,
+   "via": "FlixBus 297 > 53E"
+  },
+  {
+   "from": "Belgrade",
+   "to": "Budapest",
+   "fromLL": [
+    44.7866,
+    20.4489
+   ],
+   "toLL": [
+    47.4979,
+    19.0402
+   ],
+   "hours": 6.8,
+   "src": "transitous",
+   "transitous": 6.8,
+   "changes": 4,
+   "via": "34 > Re 2602 > FlixBus 1910a > M3 > 216"
+  },
+  {
+   "from": "Sofia",
+   "to": "Belgrade",
+   "fromLL": [
+    42.6977,
+    23.3219
+   ],
+   "toLL": [
+    44.7866,
+    20.4489
+   ],
+   "hours": 9.4,
+   "src": "ceilinged",
+   "transitous": 22.57,
+   "changes": 4,
+   "via": "M2 > FlixBus N981 > FlixBus 1900 > 11 > 44"
   },
   {
    "from": "Tokyo",
-   "to": "Fukuoka",
+   "to": "Kyoto",
    "fromLL": [
-    35.6762,
-    139.6503
+    35.6812,
+    139.7671
    ],
    "toLL": [
-    33.5902,
-    130.4017
+    34.9858,
+    135.7588
    ],
-   "hours": 5.27,
-   "src": "timetable",
-   "via": "Nozomi 4.87 h + 0.4 access"
-  },
-  {
-   "from": "Tokyo",
-   "to": "Sendai",
-   "fromLL": [
-    35.6762,
-    139.6503
-   ],
-   "toLL": [
-    38.2682,
-    140.8694
-   ],
-   "hours": 1.9,
-   "src": "timetable",
-   "via": "Hayabusa 1.50 h + 0.4 access"
-  },
-  {
-   "from": "Tokyo",
-   "to": "Aomori",
-   "fromLL": [
-    35.6762,
-    139.6503
-   ],
-   "toLL": [
-    40.8246,
-    140.7406
-   ],
-   "hours": 3.38,
-   "src": "timetable",
-   "via": "Hayabusa 2.98 h + 0.4 access"
-  },
-  {
-   "from": "Tokyo",
-   "to": "Kanazawa",
-   "fromLL": [
-    35.6762,
-    139.6503
-   ],
-   "toLL": [
-    36.5613,
-    136.6562
-   ],
-   "hours": 2.87,
-   "src": "timetable",
-   "via": "Kagayaki 2.47 h + 0.4 access"
+   "hours": 2.28,
+   "src": "transitous",
+   "transitous": 2.28,
+   "changes": 0,
+   "via": "のぞみ39号"
   },
   {
    "from": "Tokyo",
    "to": "Nagoya",
    "fromLL": [
-    35.6762,
-    139.6503
+    35.6812,
+    139.7671
    ],
    "toLL": [
-    35.1815,
-    136.9066
+    35.1706,
+    136.8816
    ],
-   "hours": 1.98,
-   "src": "timetable",
-   "via": "Nozomi 1.58 h + 0.4 access"
+   "hours": 1.78,
+   "src": "transitous",
+   "transitous": 1.78,
+   "changes": 0,
+   "via": "のぞみ177号"
+  },
+  {
+   "from": "Tokyo",
+   "to": "Sendai",
+   "fromLL": [
+    35.6812,
+    139.7671
+   ],
+   "toLL": [
+    38.2601,
+    140.8819
+   ],
+   "hours": 1.58,
+   "src": "transitous",
+   "transitous": 1.58,
+   "changes": 0,
+   "via": "こまち27号"
+  },
+  {
+   "from": "Tokyo",
+   "to": "Hiroshima",
+   "fromLL": [
+    35.6812,
+    139.7671
+   ],
+   "toLL": [
+    34.3975,
+    132.4753
+   ],
+   "hours": 4.1,
+   "src": "transitous",
+   "transitous": 4.1,
+   "changes": 0,
+   "via": "のぞみ39号"
+  },
+  {
+   "from": "Tokyo",
+   "to": "Fukuoka",
+   "fromLL": [
+    35.6812,
+    139.7671
+   ],
+   "toLL": [
+    33.5902,
+    130.4207
+   ],
+   "hours": 5.13,
+   "src": "transitous",
+   "transitous": 5.13,
+   "changes": 0,
+   "via": "のぞみ39号"
+  },
+  {
+   "from": "Tokyo",
+   "to": "Kanazawa",
+   "fromLL": [
+    35.6812,
+    139.7671
+   ],
+   "toLL": [
+    36.578,
+    136.6486
+   ],
+   "hours": 2.53,
+   "src": "transitous",
+   "transitous": 2.53,
+   "changes": 0,
+   "via": "かがやき503号"
+  },
+  {
+   "from": "Tokyo",
+   "to": "Niigata",
+   "fromLL": [
+    35.6812,
+    139.7671
+   ],
+   "toLL": [
+    37.9122,
+    139.0619
+   ],
+   "hours": 1.9,
+   "src": "transitous",
+   "transitous": 1.9,
+   "changes": 0,
+   "via": "とき35号"
+  },
+  {
+   "from": "Osaka",
+   "to": "Kyoto",
+   "fromLL": [
+    34.7024,
+    135.4959
+   ],
+   "toLL": [
+    34.9858,
+    135.7588
+   ],
+   "hours": 0.42,
+   "src": "transitous",
+   "transitous": 0.42,
+   "changes": 1,
+   "via": "サンダーバード41号 > のぞみ184号"
+  },
+  {
+   "from": "Osaka",
+   "to": "Hiroshima",
+   "fromLL": [
+    34.7024,
+    135.4959
+   ],
+   "toLL": [
+    34.3975,
+    132.4753
+   ],
+   "hours": 1.72,
+   "src": "transitous",
+   "transitous": 1.72,
+   "changes": 1,
+   "via": "8441890 > のぞみ31号"
+  },
+  {
+   "from": "Osaka",
+   "to": "Fukuoka",
+   "fromLL": [
+    34.7024,
+    135.4959
+   ],
+   "toLL": [
+    33.5902,
+    130.4207
+   ],
+   "hours": 2.73,
+   "src": "transitous",
+   "transitous": 2.73,
+   "changes": 1,
+   "via": "30200934 > みずほ601号"
+  },
+  {
+   "from": "Osaka",
+   "to": "Nagoya",
+   "fromLL": [
+    34.7024,
+    135.4959
+   ],
+   "toLL": [
+    35.1706,
+    136.8816
+   ],
+   "hours": 1.08,
+   "src": "transitous",
+   "transitous": 1.08,
+   "changes": 1,
+   "via": "30200934 > のぞみ230号"
+  },
+  {
+   "from": "Nagoya",
+   "to": "Kyoto",
+   "fromLL": [
+    35.1706,
+    136.8816
+   ],
+   "toLL": [
+    34.9858,
+    135.7588
+   ],
+   "hours": 0.75,
+   "src": "transitous",
+   "transitous": 0.75,
+   "changes": 0,
+   "via": "のぞみ93号"
+  },
+  {
+   "from": "Seoul",
+   "to": "Daejeon",
+   "fromLL": [
+    37.5547,
+    126.9707
+   ],
+   "toLL": [
+    36.3325,
+    127.434
+   ],
+   "hours": 1.1,
+   "src": "transitous",
+   "transitous": 1.1,
+   "changes": 0,
+   "via": "KTX 53"
+  },
+  {
+   "from": "Seoul",
+   "to": "Gwangju",
+   "fromLL": [
+    37.5547,
+    126.9707
+   ],
+   "toLL": [
+    35.1595,
+    126.8526
+   ],
+   "hours": 2.4,
+   "src": "transitous",
+   "transitous": 2.4,
+   "changes": 3,
+   "via": "KTX-산천 69 > KTX-산천 629 > 송정19 > 지원45"
+  },
+  {
+   "from": "Seoul",
+   "to": "Daegu",
+   "fromLL": [
+    37.5547,
+    126.9707
+   ],
+   "toLL": [
+    35.8797,
+    128.6285
+   ],
+   "hours": 1.73,
+   "src": "transitous",
+   "transitous": 1.73,
+   "changes": 0,
+   "via": "KTX 53"
+  },
+  {
+   "from": "Busan",
+   "to": "Daegu",
+   "fromLL": [
+    35.1151,
+    129.0416
+   ],
+   "toLL": [
+    35.8797,
+    128.6285
+   ],
+   "hours": 0.8,
+   "src": "transitous",
+   "transitous": 0.8,
+   "changes": 0,
+   "via": "KTX 66"
+  },
+  {
+   "from": "Toronto",
+   "to": "Ottawa",
+   "fromLL": [
+    43.6452,
+    -79.3806
+   ],
+   "toLL": [
+    45.4166,
+    -75.7013
+   ],
+   "hours": 4.88,
+   "src": "transitous",
+   "transitous": 4.88,
+   "changes": 1,
+   "via": "VIA Rail > 1"
+  },
+  {
+   "from": "Montreal",
+   "to": "Ottawa",
+   "fromLL": [
+    45.4999,
+    -73.5665
+   ],
+   "toLL": [
+    45.4166,
+    -75.7013
+   ],
+   "hours": 2.58,
+   "src": "transitous",
+   "transitous": 2.58,
+   "changes": 1,
+   "via": "VIA Rail > 1"
+  },
+  {
+   "from": "Montreal",
+   "to": "Quebec City",
+   "fromLL": [
+    45.4999,
+    -73.5665
+   ],
+   "toLL": [
+    46.8139,
+    -71.208
+   ],
+   "hours": 3.5,
+   "src": "transitous",
+   "transitous": 3.5,
+   "changes": 0,
+   "via": "VIA Rail"
+  },
+  {
+   "from": "Toronto",
+   "to": "Quebec City",
+   "fromLL": [
+    43.6452,
+    -79.3806
+   ],
+   "toLL": [
+    46.8139,
+    -71.208
+   ],
+   "hours": 10.02,
+   "src": "transitous",
+   "transitous": 10.02,
+   "changes": 1,
+   "via": "VIA Rail > VIA Rail"
+  },
+  {
+   "from": "Sydney",
+   "to": "Brisbane",
+   "fromLL": [
+    -33.883,
+    151.206
+   ],
+   "toLL": [
+    -27.4653,
+    153.0235
+   ],
+   "hours": 14.92,
+   "src": "transitous",
+   "transitous": 14.92,
+   "changes": 1,
+   "via": "31 > 3113"
+  },
+  {
+   "from": "Sydney",
+   "to": "Canberra",
+   "fromLL": [
+    -33.883,
+    151.206
+   ],
+   "toLL": [
+    -35.2809,
+    149.13
+   ],
+   "hours": 5.03,
+   "src": "transitous",
+   "transitous": 5.03,
+   "changes": 1,
+   "via": "633 > 830"
+  },
+  {
+   "from": "Melbourne",
+   "to": "Adelaide",
+   "fromLL": [
+    -37.8183,
+    144.9671
+   ],
+   "toLL": [
+    -34.9285,
+    138.6007
+   ],
+   "hours": 10.9,
+   "src": "ceilinged",
+   "transitous": 21.13,
+   "changes": 2,
+   "via": "Glen Waverley > Seymour > Coach"
+  },
+  {
+   "from": "Melbourne",
+   "to": "Canberra",
+   "fromLL": [
+    -37.8183,
+    144.9671
+   ],
+   "toLL": [
+    -35.2809,
+    149.13
+   ],
+   "hours": 8.93,
+   "src": "transitous",
+   "transitous": 8.93,
+   "changes": 3,
+   "via": "Werribee > Seymour > Coach > S259"
+  },
+  {
+   "from": "New York",
+   "to": "Philadelphia",
+   "fromLL": [
+    40.7506,
+    -73.9935
+   ],
+   "toLL": [
+    39.9556,
+    -75.182
+   ],
+   "hours": 1.38,
+   "src": "transitous",
+   "transitous": 1.38,
+   "changes": 0,
+   "via": "2113"
+  },
+  {
+   "from": "Washington",
+   "to": "Philadelphia",
+   "fromLL": [
+    38.8977,
+    -77.0065
+   ],
+   "toLL": [
+    39.9556,
+    -75.182
+   ],
+   "hours": 1.77,
+   "src": "transitous",
+   "transitous": 1.77,
+   "changes": 0,
+   "via": "2156"
+  },
+  {
+   "from": "Boston",
+   "to": "Philadelphia",
+   "fromLL": [
+    42.3519,
+    -71.0552
+   ],
+   "toLL": [
+    39.9556,
+    -75.182
+   ],
+   "hours": 5.45,
+   "src": "transitous",
+   "transitous": 5.45,
+   "changes": 2,
+   "via": "4 > 2155 > 43"
   },
   {
    "from": "Beijing",
@@ -2209,7 +3975,7 @@
    ],
    "hours": 4.7,
    "src": "timetable",
-   "via": "G fuxing 350 4.30 h + 0.4 access"
+   "via": "G Fuxing, 4.30 h station to station + 0.4 access"
   },
   {
    "from": "Beijing",
@@ -2224,7 +3990,7 @@
    ],
    "hours": 8.23,
    "src": "timetable",
-   "via": "G 7.83 h + 0.4 access"
+   "via": "G, 7.83 h station to station + 0.4 access"
   },
   {
    "from": "Shanghai",
@@ -2239,7 +4005,7 @@
    ],
    "hours": 1.38,
    "src": "timetable",
-   "via": "G 0.98 h + 0.4 access"
+   "via": "G, 0.98 h station to station + 0.4 access"
   },
   {
    "from": "Shanghai",
@@ -2254,7 +4020,7 @@
    ],
    "hours": 1.15,
    "src": "timetable",
-   "via": "G 0.75 h + 0.4 access"
+   "via": "G, 0.75 h station to station + 0.4 access"
   },
   {
    "from": "Beijing",
@@ -2269,7 +4035,7 @@
    ],
    "hours": 4.73,
    "src": "timetable",
-   "via": "G 4.33 h + 0.4 access"
+   "via": "G, 4.33 h station to station + 0.4 access"
   },
   {
    "from": "Guangzhou",
@@ -2284,7 +4050,7 @@
    ],
    "hours": 0.88,
    "src": "timetable",
-   "via": "G 0.48 h + 0.4 access"
+   "via": "G, 0.48 h station to station + 0.4 access"
   },
   {
    "from": "Beijing",
@@ -2299,7 +4065,7 @@
    ],
    "hours": 5.23,
    "src": "timetable",
-   "via": "G 4.83 h + 0.4 access"
+   "via": "G, 4.83 h station to station + 0.4 access"
   },
   {
    "from": "Chengdu",
@@ -2314,7 +4080,7 @@
    ],
    "hours": 1.35,
    "src": "timetable",
-   "via": "G 0.95 h + 0.4 access"
+   "via": "G, 0.95 h station to station + 0.4 access"
   },
   {
    "from": "Wuhan",
@@ -2329,22 +4095,22 @@
    ],
    "hours": 4.07,
    "src": "timetable",
-   "via": "G 3.67 h + 0.4 access"
+   "via": "G, 3.67 h station to station + 0.4 access"
   },
   {
-   "from": "Seoul",
-   "to": "Daejeon",
+   "from": "Shanghai",
+   "to": "Wuhan",
    "fromLL": [
-    37.5665,
-    126.978
+    31.2304,
+    121.4737
    ],
    "toLL": [
-    36.3504,
-    127.3845
+    30.5928,
+    114.3055
    ],
-   "hours": 1.35,
+   "hours": 4.6,
    "src": "timetable",
-   "via": "KTX 0.95 h + 0.4 access"
+   "via": "G, 4.20 h station to station + 0.4 access"
   },
   {
    "from": "Taipei",
@@ -2359,7 +4125,22 @@
    ],
    "hours": 1.97,
    "src": "timetable",
-   "via": "THSR 1.57 h + 0.4 access"
+   "via": "THSR, 1.57 h station to station + 0.4 access"
+  },
+  {
+   "from": "Delhi",
+   "to": "Mumbai",
+   "fromLL": [
+    28.6139,
+    77.209
+   ],
+   "toLL": [
+    19.076,
+    72.8777
+   ],
+   "hours": 15.9,
+   "src": "timetable",
+   "via": "Rajdhani, 15.50 h station to station + 0.4 access"
   },
   {
    "from": "Delhi",
@@ -2374,7 +4155,7 @@
    ],
    "hours": 17.4,
    "src": "timetable",
-   "via": "Rajdhani 17.00 h + 0.4 access"
+   "via": "Rajdhani, 17.00 h station to station + 0.4 access"
   },
   {
    "from": "Mumbai",
@@ -2389,7 +4170,7 @@
    ],
    "hours": 5.82,
    "src": "timetable",
-   "via": "Vande Bharat 5.42 h + 0.4 access"
+   "via": "Vande Bharat, 5.42 h station to station + 0.4 access"
   },
   {
    "from": "Delhi",
@@ -2404,22 +4185,7 @@
    ],
    "hours": 28.4,
    "src": "timetable",
-   "via": "Rajdhani 28.00 h + 0.4 access"
-  },
-  {
-   "from": "Chicago",
-   "to": "Los Angeles",
-   "fromLL": [
-    41.8781,
-    -87.6298
-   ],
-   "toLL": [
-    34.0522,
-    -118.2437
-   ],
-   "hours": 43.4,
-   "src": "timetable",
-   "via": "Southwest Chief 43.00 h + 0.4 access"
+   "via": "Rajdhani, 28.00 h station to station + 0.4 access"
   },
   {
    "from": "Los Angeles",
@@ -2434,7 +4200,7 @@
    ],
    "hours": 7.9,
    "src": "timetable",
-   "via": "coach 7.50 h + 0.4 access"
+   "via": "coach, 7.50 h station to station + 0.4 access"
   },
   {
    "from": "Miami",
@@ -2449,7 +4215,7 @@
    ],
    "hours": 3.9,
    "src": "timetable",
-   "via": "Brightline 3.50 h + 0.4 access"
+   "via": "Brightline, 3.50 h station to station + 0.4 access"
   },
   {
    "from": "Casablanca",
@@ -2464,7 +4230,7 @@
    ],
    "hours": 2.57,
    "src": "timetable",
-   "via": "Al Boraq 2.17 h + 0.4 access"
+   "via": "Al Boraq, 2.17 h station to station + 0.4 access"
   },
   {
    "from": "Cairo",
@@ -2479,7 +4245,7 @@
    ],
    "hours": 2.98,
    "src": "timetable",
-   "via": "Talgo 2.58 h + 0.4 access"
+   "via": "Talgo, 2.58 h station to station + 0.4 access"
   },
   {
    "from": "Nairobi",
@@ -2494,7 +4260,7 @@
    ],
    "hours": 5.15,
    "src": "timetable",
-   "via": "Madaraka 4.75 h + 0.4 access"
+   "via": "Madaraka, 4.75 h station to station + 0.4 access"
   },
   {
    "from": "Johannesburg",
@@ -2509,22 +4275,7 @@
    ],
    "hours": 26.4,
    "src": "timetable",
-   "via": "Shosholoza Meyl 26.00 h + 0.4 access"
-  },
-  {
-   "from": "Sydney",
-   "to": "Brisbane",
-   "fromLL": [
-    -33.8688,
-    151.2093
-   ],
-   "toLL": [
-    -27.4698,
-    153.0251
-   ],
-   "hours": 14.4,
-   "src": "timetable",
-   "via": "XPT 14.00 h + 0.4 access"
+   "via": "Shosholoza Meyl, 26.00 h station to station + 0.4 access"
   },
   {
    "from": "Moscow",
@@ -2539,7 +4290,7 @@
    ],
    "hours": 3.9,
    "src": "timetable",
-   "via": "Sapsan 3.50 h + 0.4 access"
+   "via": "Sapsan, 3.50 h station to station + 0.4 access"
   },
   {
    "from": "Moscow",
@@ -2554,7 +4305,7 @@
    ],
    "hours": 146.4,
    "src": "timetable",
-   "via": "Rossiya 146.00 h + 0.4 access"
+   "via": "Rossiya, 146.00 h station to station + 0.4 access"
   },
   {
    "from": "Mecca",
@@ -2569,7 +4320,7 @@
    ],
    "hours": 2.73,
    "src": "timetable",
-   "via": "Haramain 2.33 h + 0.4 access"
+   "via": "Haramain, 2.33 h station to station + 0.4 access"
   },
   {
    "from": "Riyadh",
@@ -2584,7 +4335,22 @@
    ],
    "hours": 4.57,
    "src": "timetable",
-   "via": "SAR 4.17 h + 0.4 access"
+   "via": "SAR, 4.17 h station to station + 0.4 access"
+  },
+  {
+   "from": "Istanbul",
+   "to": "Ankara",
+   "fromLL": [
+    41.0082,
+    28.9784
+   ],
+   "toLL": [
+    39.9334,
+    32.8597
+   ],
+   "hours": 4.57,
+   "src": "timetable",
+   "via": "YHT, 4.17 h station to station + 0.4 access"
   },
   {
    "from": "Tehran",
@@ -2599,7 +4365,7 @@
    ],
    "hours": 12.4,
    "src": "timetable",
-   "via": "Pardis/Fadak 12.00 h + 0.4 access"
+   "via": "Pardis, 12.00 h station to station + 0.4 access"
   },
   {
    "from": "Tashkent",
@@ -2614,7 +4380,7 @@
    ],
    "hours": 2.53,
    "src": "timetable",
-   "via": "Afrosiyob 2.13 h + 0.4 access"
+   "via": "Afrosiyob, 2.13 h station to station + 0.4 access"
   },
   {
    "from": "Jakarta",
@@ -2629,7 +4395,7 @@
    ],
    "hours": 1.15,
    "src": "timetable",
-   "via": "Whoosh 0.75 h + 0.4 access"
+   "via": "Whoosh, 0.75 h station to station + 0.4 access"
   },
   {
    "from": "Jakarta",
@@ -2644,7 +4410,7 @@
    ],
    "hours": 8.9,
    "src": "timetable",
-   "via": "Argo Bromo 8.50 h + 0.4 access"
+   "via": "Argo Bromo, 8.50 h station to station + 0.4 access"
   },
   {
    "from": "Bangkok",
@@ -2659,7 +4425,7 @@
    ],
    "hours": 11.4,
    "src": "timetable",
-   "via": "Special Express 11.00 h + 0.4 access"
+   "via": "Special Express, 11.00 h station to station + 0.4 access"
   },
   {
    "from": "Sao Paulo",
@@ -2674,7 +4440,7 @@
    ],
    "hours": 6.4,
    "src": "timetable",
-   "via": "coach 6.00 h + 0.4 access"
+   "via": "coach, 6.00 h station to station + 0.4 access"
   },
   {
    "from": "Mexico City",
@@ -2689,7 +4455,7 @@
    ],
    "hours": 7.4,
    "src": "timetable",
-   "via": "coach ETN 7.00 h + 0.4 access"
+   "via": "coach ETN, 7.00 h station to station + 0.4 access"
   },
   {
    "from": "Buenos Aires",
@@ -2704,7 +4470,7 @@
    ],
    "hours": 4.4,
    "src": "timetable",
-   "via": "coach 4.00 h + 0.4 access"
+   "via": "coach, 4.00 h station to station + 0.4 access"
   },
   {
    "from": "Bogota",
@@ -2719,7 +4485,7 @@
    ],
    "hours": 9.4,
    "src": "timetable",
-   "via": "coach 9.00 h + 0.4 access"
+   "via": "coach, 9.00 h station to station + 0.4 access"
   },
   {
    "from": "Lima",
@@ -2734,7 +4500,7 @@
    ],
    "hours": 21.4,
    "src": "timetable",
-   "via": "coach 21.00 h + 0.4 access"
+   "via": "coach, 21.00 h station to station + 0.4 access"
   }
  ]
 }

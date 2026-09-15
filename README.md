@@ -107,11 +107,20 @@ wants to revisit it.
 
 ## Calibration
 
-Scheduled transport in 2026 is checked against 166 real city-centre to
-city-centre journeys: Transitous (an open routing service over open GTFS
-feeds, fastest of three Tuesday departures) where its feeds reach, operator
-timetables plus 0.4 h of station access elsewhere. Result: 90% of pairs within
-a quarter of the real time, 97% within 40%, median ratio 0.96.
+Scheduled transport in 2026 is checked against 269 real city-centre to
+city-centre journeys between 80 origin cities: Transitous (an open routing
+service over open GTFS feeds, fastest surface itinerary over four Tuesday
+departures) for 228 of them, operator timetables plus 0.4 h of station access
+for the 36 it has no feed for, and 5 where its answer needed a floor or a
+ceiling. Result: 85% of pairs within a quarter of the real time, 96% within
+40%, median ratio 0.99.
+
+The median is near 1 at every distance: 1.03 under 150 km, 0.98 from 150 to
+350, 0.97 from 350 to 700, 1.03 beyond. The scatter is worst on the short
+hops, 70% within a quarter against 90% over 350 km, because one access
+figure cannot fit both a Shinkansen pair whose stations are central (Osaka to
+Kyoto is 25 minutes door to door) and a European journey that needs two
+changes to cover the same ground.
 
 Those targets are what the router returns. An earlier version took the lower
 of the router and a hand-written timetable, on the theory that three sampled
