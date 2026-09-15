@@ -83,6 +83,8 @@
      survey covered that no railway had reached by 1911. */
   const usRailY = unrle(G.layers.usrail || '');
   const usRivY = unrle(G.layers.usriv || '');
+  /* measured land speed where nothing else maps a road, km/h */
+  const mapFast = unrle(G.layers.mapf || '');
   const canalYear = new Int16Array(GN);
   const linkYear = new Int16Array(GN);
   const linkWait = new Float32Array(GN);        // check-in at a tunnel portal, hours
@@ -180,6 +182,9 @@
     const seaBase = D.WATER[ei] * (M.rail ? D.WATER_SCHEDULED[ei] : 1) / (D.SAIL_CIRC[ei] || 1);
     const fry = D.FERRY[ei], ice = D.ICE_WATER[ei], riv = D.RIVER[ei] / D.RIVER_CIRC;
     const ids = best ? D.MODES.filter(m => !m.best && !m.air && m.since <= ei).map(m => m.id) : [M.id];
+    // walking and cycling are not held to the road, so they read the median
+    const mFoot = !best && (M.id === 'foot' || M.id === 'bike');
+    const mEra = D.MAP_ERA[ei] * (mFoot ? 0.5 : 1);
     const tDuty = byId.transit.duty[ei];
     const railBase = D.RAIL[ei];
     const railMode = M.rail || best;
@@ -283,6 +288,18 @@
         const o = ((k * 6 + terr[c]) * 5 + roadCls[c]) * 3 + rs;
         let v = luS[o], vd = luD[o];
         let onR = luR[o];
+        /* Where the friction surface has a reading, lean on it: it measures
+           road, slope and land cover together, which is what the country,
+           class and terrain terms above are estimating. The road modes take
+           the fastest pixel, walking and cycling the median, since a walker
+           is not held to the road. Scaled back to the year by MAP_ERA. */
+        if (mapFast[c] && !onR && (!D.MAP_GAPS_ONLY || roadCls[c] === 0)) {
+          const meas = mapFast[c] * mEra / D.ROAD_CIRC;
+          if (meas > 0) {
+            const blended = v * (1 - D.MAP_W) + meas * D.MAP_W;
+            if (blended > 0) v = blended;
+          }
+        }
         /* a high-speed line is what it is, whatever the legacy network around
            it: its cells run at their own speed from the year they opened */
         if (railMode && hsrV[c] && hsrY[c] && yr >= 1900 + hsrY[c]) {
@@ -1454,6 +1471,9 @@
        'Class multiplier after ' +
          A('https://openaccess.thecvf.com/content_WACV_2020/papers/Van_Etten_City-Scale_Road_Extraction_from_Satellite_Imagery_v2_Road_Speeds_and_WACV_2020_paper.pdf', 'Van Etten 2020') +
          '<ul><li>motorway 105 km/h</li><li>residential 40</li><li>dirt track 24</li></ul>',
+       'Where no road is mapped, the measured ' +
+         A('https://malariaatlas.org/research-project/accessibility-to-healthcare/', 'MAP friction surface') +
+         ' fills in: 86 037 cells',
        'Terrain cuts it to ' + Math.round(D.TERRAIN_MUL[5][ei] * 100) + '\u2013' +
          Math.round(D.TERRAIN_MUL[2][ei] * 100) + '% (ice to desert)']);
 

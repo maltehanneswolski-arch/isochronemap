@@ -519,8 +519,42 @@ const usrail = new Uint8Array(GN), usriv = new Uint8Array(GN);
   }
 }
 
+/* The Malaria Atlas Project's friction surface (Weiss et al. 2018, 2020):
+   a 30 arc-second raster of minutes per metre for land travel, built from
+   OSM roads, railways, rivers, land cover and slope. It measures what this
+   model assembles from road class times country mean speed times terrain,
+   Carried only where Natural Earth maps no road at all: blending it in
+   everywhere was tried and measurably hurt both truth sets (the fastest
+   pixel in a cell is an optimistic statistic and the routes chained those
+   cells together), while filling the gaps with it is neutral on both and
+   adds a road where there was none across 161 608 cells. km/h, 0 elsewhere.
+   tools/harvest_map_friction.py fetches and reduces it. */
+console.log('\u00b7 friction surface (Malaria Atlas Project)');
+const mapf = new Uint8Array(GN);
+{
+  const p = 'data/map_friction.bin';
+  if (!fs.existsSync(p)) console.log('  no map_friction.bin - run tools/harvest_map_friction.py');
+  else {
+    const buf = fs.readFileSync(p);
+    /* Only the cells Natural Earth has no road for are kept: the measurement
+       is used to fill those gaps and nothing else, so carrying the rest would
+       be a third of a megabyte for nobody. Speeds are rounded to 5 km/h,
+       which costs nothing at this cell size and packs far better. */
+    let n = 0, sum = 0;
+    for (let c = 0; c < GN; c++) {
+      if (!land[c] || road[c] !== 0) continue;
+      const f = buf[c];
+      if (f < 20) continue;            // below this the terrain model already agrees
+      mapf[c] = Math.min(250, Math.round(f / 10) * 10);
+      n++; sum += f;
+    }
+    console.log('  cells with no mapped road but a measured one', n,
+      ' mean', (sum / Math.max(1, n)).toFixed(1), 'km/h');
+  }
+}
+
 const layers = { land: rle(land), ctry: rle(ctry), terr: rle(terr), road: rle(road), rail: rle(rail), ferry: rle(ferry),
-  hsrv: rle(hsrv), hsry: rle(hsry), usrail: rle(usrail), usriv: rle(usriv) };
+  hsrv: rle(hsrv), hsry: rle(hsry), usrail: rle(usrail), usriv: rle(usriv), mapf: rle(mapf) };
 for (const k in layers) console.log('  ', k, (layers[k].length / 1024).toFixed(0) + ' KB');
 
 fs.writeFileSync('grid.js',

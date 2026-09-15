@@ -69,6 +69,7 @@ Peking at seven weeks in the same model.
 | American steamboat rivers (1,376 cells, dated) | [Atack](https://my.vanderbilt.edu/jeremyatack/data-downloads/), 226 rivers with the year navigation began |
 | Sail speed (111,120 day-runs) | [CLIWOC](https://en.wikipedia.org/wiki/CLIWOC) logbooks 1662-1855, via [Open History Map](https://github.com/openhistorymap/cliwoc) |
 | European road and rail times, 2001 (2,829 pairs) | [ESPON indicator 1542](https://database.espon.eu/indicator/1542/), NUTS-3 centroids from [GISCO](https://gisco-services.ec.europa.eu/distribution/v2/nuts/) |
+| Land speed where no road is mapped (86,037 cells) | [MAP friction surface](https://malariaatlas.org/research-project/accessibility-to-healthcare/) 2020 ([Weiss et al.](https://www.nature.com/articles/s41591-020-1059-1)), 30 arc-second, via its WCS |
 | Place labels (1,100) | Natural Earth 10m populated places |
 | Road speed by country | [IMF Mean Speed score](https://www.imf.org/en/Publications/WP/Issues/2022/05/13/Road-Quality-and-Mean-Speed-Score-517801) (Moszoro & Soto 2022), 161 countries |
 | Road class speeds | [Van Etten 2020, WACV](https://openaccess.thecvf.com/content_WACV_2020/papers/Van_Etten_City-Scale_Road_Extraction_from_Satellite_Imagery_v2_Road_Speeds_and_WACV_2020_paper.pdf) |
@@ -80,6 +81,29 @@ Railways, canals and fixed links open on their real dates: Suez 1869, Panama
 date Atack's survey gives it, so 1850 reaches the Appalachians and not the
 Pacific. Before 1869 every ship rounds the Cape, which is
 most of what the early maps look like.
+
+### What the friction surface is and is not used for
+
+The Malaria Atlas Project publishes a 30 arc-second raster of minutes per
+metre for land travel, built from OSM roads, railways, rivers, land cover and
+slope. It is the measured version of what this model assembles from road
+class, country mean speed and terrain, so the obvious move is to swap it in.
+
+That was tried and measured, and it is worse. Blending it across the whole
+grid took the 2026 set from 90% of pairs within a quarter down to 85, and
+ESPON's road matrix from 62% to 55. The reason is the aggregation: one cell
+here is 900 of its pixels, the fastest of them is an optimistic statistic,
+and a least-cost path chains exactly those cells together, so journeys come
+out too quick. Using the median instead fails the other way, since most
+pixels in a cell are off the road.
+
+What does work is filling gaps. Where Natural Earth maps no road at all the
+surface is used directly, which is neutral on both truth sets and adds a road
+where there was none across 86,037 cells - most of them in Russia, Canada,
+the American interior, Australia and Brazil, which is exactly where the
+10m road layer is thin and where there is no truth set to check against.
+`MAP_GAPS_ONLY` in `data.js` turns the full blend back on for anyone who
+wants to revisit it.
 
 ## Calibration
 
@@ -104,6 +128,7 @@ one and it covers the era end to end.
 python tools/harvest_transitous.py     # real 2026 journeys (resumes)
 python tools/make_calibration.py       # write calibration.json
 python tools/make_espon.py             # write calibration_espon.json (2001)
+python tools/harvest_map_friction.py   # MAP friction surface, 318 tiles (~25 min)
 ```
 
 Then on a local server, in the console: `await __iso.calibrate()` returns

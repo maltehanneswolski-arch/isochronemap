@@ -61,7 +61,15 @@ def fetch(lon0, lat0, tries=4):
             with urllib.request.urlopen(req, timeout=300) as r:
                 body = r.read()
             a = np.array(Image.open(io.BytesIO(body)))
-            if a.shape != (STEP * NAT, STEP * NAT):
+            # the product stops at 85 N, so the topmost row of tiles comes
+            # back clipped: fewer rows, and they are the southern part of the
+            # box. Pad the missing north back on so the block stays square.
+            if a.shape[1] != STEP * NAT:
+                raise ValueError('shape %s' % (a.shape,))
+            if a.shape[0] < STEP * NAT:
+                pad = np.zeros((STEP * NAT - a.shape[0], STEP * NAT), a.dtype)
+                a = np.vstack([pad, a])
+            elif a.shape[0] > STEP * NAT:
                 raise ValueError('shape %s' % (a.shape,))
             return a
         except Exception as ex:
@@ -84,6 +92,15 @@ def main():
     print('tiles holding land: %d of %d' % (todo and len(todo) or 0,
           (360 // STEP) * ((LAT_HI - LAT_LO) // STEP)), flush=True)
 
+    out_path = os.path.join(DATA, 'map_friction.bin')
+    only = os.environ.get('MAP_ONLY_LAT')
+    if only and os.path.exists(out_path):         # patch an earlier run
+        buf = np.fromfile(out_path, np.uint8)
+        fast = buf[:GH * GW].reshape(GH, GW).copy()
+        typ = buf[GH * GW:].reshape(GH, GW).copy()
+        todo = [t for t in todo if t[1] == int(only)]
+        print('patching %d tiles at lat %s' % (len(todo), only), flush=True)
+
     done = 0
     for lon0, lat0, r0, c0 in todo:
         a = fetch(lon0, lat0)
@@ -93,8 +110,11 @@ def main():
             continue
         n = int(STEP / RES)                       # 40 cells a side
         blk = a.reshape(n, BLOCK, n, BLOCK)
+        blk = np.where(blk > 0, blk, np.inf)          # padding is "no data"
         mn = blk.min(axis=(1, 3))
         md = np.median(blk, axis=(1, 3))
+        mn = np.where(np.isfinite(mn), mn, 0)
+        md = np.where(np.isfinite(md), md, 0)
         with np.errstate(divide='ignore', invalid='ignore'):
             sf = np.where(mn > 0, 0.06 / mn, 0)   # min/m -> km/h
             st = np.where(md > 0, 0.06 / md, 0)
@@ -106,7 +126,7 @@ def main():
             print('%3d/%d  (%4d,%4d) ok' % (done, len(todo), lon0, lat0), flush=True)
         time.sleep(0.3)
 
-    out = os.path.join(DATA, 'map_friction.bin')
+    out = out_path
     with open(out, 'wb') as f:
         f.write(fast.tobytes()); f.write(typ.tobytes())
     onland = land.astype(bool)

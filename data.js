@@ -109,6 +109,22 @@ window.ISO = (function () {
      routes near enough straight, so the day-run is divided by this. Steam
      holds a course, so it pays only the ordinary sea circuity. */
   const SAIL_CIRC = [1.56, 1.25, 1.06, 1.05, 1.05, 1.04, 1.04, 1.04];
+
+  /* How much of today's measured road speed a given year gets. The friction
+     surface says what each cell manages now; these carry it back, and they
+     are the road mode's own km/h through the eras divided by its modern
+     figure, so the shape of the series is unchanged and only its spatial
+     detail comes from the measurement. MAP_W is how far to trust the
+     measurement against the country-and-class estimate, cell by cell. */
+  const MAP_ERA = [0.08, 0.17, 0.18, 0.30, 0.48, 0.78, 0.94, 1.0];
+  const MAP_W = 0.75;
+  /* Blending the friction surface in everywhere was tried and measured: it
+     made both truth sets worse (2026 fell from 90% of pairs within a quarter
+     to 85, ESPON's road matrix from 62% to 55), because the fastest pixel in
+     a cell is an optimistic statistic and a least-cost path chains exactly
+     those cells. Used only where nothing else maps a road it is neutral on
+     both and fills 86 037 cells that had none. */
+  const MAP_GAPS_ONLY = true;
   const WATER_SCHEDULED = [1.0, 1.25, 1.3, 1.3, 1.25, 1.1, 1.0, 1.0];
   const FERRY = [120, 250, 450, 540, 650, 800, 880, 900];
   const ICE_WATER = [6, 10, 26, 34, 60, 95, 120, 140];
@@ -583,6 +599,6 @@ window.ISO = (function () {
     ERAS, MODES, SEA_TINT, SEA_MIX, PALETTES, FIELD_ALPHA, SATURATE, LINE_WIDTH, LINE_STRENGTH, BEYOND_ALPHA, WATER, WATER_SCHEDULED, FERRY, ICE_WATER, RIVER, PORT_H, RAIL, HSR,
     ROAD_CIRC, RAIL_CIRC, RIVER_CIRC, ROAD_EXP, ROAD_REF, TERRAIN_MUL, AIR, AIR_RANK, COUNTRY_RAW, RAIL_HIST, RAINFOREST,
     CLASS_MUL, NET_W, BIKE_MUL, FOOT_MUL, RAIL_MAIN, RAIL_BRANCH, ANTARCTIC_AIR, STRAITS, WATER_CUTS, FERRY_ROUTES, FERRY_PORT, SEA_DUTY, FIXED_LINKS, CANALS, RIVERS,
-    RAIL_LINES, RAIL_BOARD, RAIL_ALIGHT, RAIL_BORDER, SAIL_CIRC, CITIES, LANDMARKS, LADDERS, RAMP
+    RAIL_LINES, RAIL_BOARD, RAIL_ALIGHT, RAIL_BORDER, SAIL_CIRC, MAP_ERA, MAP_W, MAP_GAPS_ONLY, CITIES, LANDMARKS, LADDERS, RAMP
   };
 })();
