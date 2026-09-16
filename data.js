@@ -125,6 +125,14 @@ window.ISO = (function () {
      those cells. Used only where nothing else maps a road it is neutral on
      both and fills 86 037 cells that had none. */
   const MAP_GAPS_ONLY = true;
+
+  /* How much of the timetable correction to apply. The two truths disagree
+     and both are real: measured against every place reachable from a point,
+     which is what an isochrone map draws, the model runs 19% quick; measured
+     between city centres, which are the best-connected points there are, it
+     is already right. One is not more correct than the other, they are
+     different questions, so the correction is applied at part strength. */
+  const OTA_STRENGTH = 1.0;
   const WATER_SCHEDULED = [1.0, 1.25, 1.3, 1.3, 1.25, 1.1, 1.0, 1.0];
   const FERRY = [120, 250, 450, 540, 650, 800, 880, 900];
   const ICE_WATER = [6, 10, 26, 34, 60, 95, 120, 140];
@@ -638,6 +646,6 @@ window.ISO = (function () {
     ERAS, MODES, SEA_TINT, SEA_MIX, PALETTES, FIELD_ALPHA, SATURATE, LINE_WIDTH, LINE_STRENGTH, BEYOND_ALPHA, WATER, WATER_SCHEDULED, FERRY, ICE_WATER, RIVER, PORT_H, RAIL, HSR,
     ROAD_CIRC, RAIL_CIRC, RIVER_CIRC, ROAD_EXP, ROAD_REF, TERRAIN_MUL, AIR, AIR_RANK, COUNTRY_RAW, RAIL_HIST, RAINFOREST,
     CLASS_MUL, NET_W, BIKE_MUL, FOOT_MUL, RAIL_MAIN, RAIL_BRANCH, ANTARCTIC_AIR, STRAITS, WATER_CUTS, FERRY_ROUTES, FERRY_PORT, SEA_DUTY, FIXED_LINKS, CANALS, RIVERS,
-    RAIL_LINES, RAIL_BOARD, RAIL_ALIGHT, RAIL_BORDER, RAIL_CHANGE, TRANSIT_ACCESS, HSR_SERVICE, SAIL_CIRC, MAP_ERA, MAP_W, MAP_GAPS_ONLY, CITIES, LANDMARKS, LADDERS, RAMP
+    RAIL_LINES, RAIL_BOARD, RAIL_ALIGHT, RAIL_BORDER, RAIL_CHANGE, TRANSIT_ACCESS, HSR_SERVICE, SAIL_CIRC, MAP_ERA, MAP_W, MAP_GAPS_ONLY, OTA_STRENGTH, CITIES, LANDMARKS, LADDERS, RAMP
   };
 })();

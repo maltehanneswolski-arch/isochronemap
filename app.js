@@ -85,6 +85,13 @@
   const usRivY = unrle(G.layers.usriv || '');
   /* measured land speed where nothing else maps a road, km/h */
   const mapFast = unrle(G.layers.mapf || '');
+  /* What real timetable isochrones say the model gets wrong in each cell,
+     as a percentage: 100 is no change. Learnt from 6 993 measurements of
+     Transitous one-to-all over 19 origins. Applied to the finished field
+     rather than inside the search, because the residual is a property of
+     where you are going - 77% of its variance is explained by the
+     destination cell - and not of the route taken to get there. */
+  const otaFac = unrle(G.layers.otaf || '');
   const canalYear = new Int16Array(GN);
   const linkYear = new Int16Array(GN);
   const linkWait = new Float32Array(GN);        // check-in at a tunnel portal, hours
@@ -510,9 +517,24 @@
     const hit = fieldCache.get(k);
     if (hit) { fieldCache.delete(k); fieldCache.set(k, hit); return hit; }
     const f = computeField(lon, lat, mi, ei);
+    correctField(f, mi, ei);
     fieldCache.set(k, f);
     while (fieldCache.size > CACHE_MAX) fieldCache.delete(fieldCache.keys().next().value);
     return f;
+  }
+
+  /* Scale the finished field by what the timetables measured. Only the
+     scheduled and fastest-route modes in the present day: the correction was
+     learnt from 2026 services and says nothing about a coach in 1900. */
+  function correctField(f, mi, ei) {
+    if (!otaFac.length || ei < 6) return;
+    const M = D.MODES[mi];
+    if (M.id !== 'transit' && !M.best) return;
+    const dist = f.dist;
+    for (let c = 0; c < GN; c++) {
+      const k = otaFac[c];
+      if (k !== 100 && k > 0 && dist[c] < Infinity) dist[c] *= Math.pow(k / 100, D.OTA_STRENGTH);
+    }
   }
 
   function cancelLookahead() { clearTimeout(S.pre); S.pre = 0; }
@@ -1521,7 +1543,9 @@
         A('https://my.vanderbilt.edu/jeremyatack/data-downloads/', 'Atack\u2019s survey') +
         ' of 76\u2009849 segments 1826\u20131911');
       if (ei === 7) r.push('Checked against 317 real journeys today (' +
-        A('https://transitous.org', 'Transitous') + '): 83% within a quarter, 94% within 40%, median 1.01');
+        A('https://transitous.org', 'Transitous') + ')' +
+        '<ul><li>against every place reachable from a point, which is what this map draws: 85% within a quarter, 57% within a tenth</li>' +
+        '<li>between city centres, the best-connected points there are: 72% and 36%</li></ul>');
       L(r);
     }
 
@@ -2050,8 +2074,28 @@
     }
     return out;
   }
+  /* Compare the model against real timetable isochrones: for every origin
+     in data/ota, the fastest real arrival in each grid cell against what the
+     model says for the same cell. Returns one row per measurement. */
+  async function ota() {
+    const idx = await (await fetch('data/ota/index.json')).json();
+    const rows = [];
+    for (const f of idx.files) {
+      if (f === 'index.json') continue;
+      const d = await (await fetch('data/ota/' + f)).json();
+      const [la, lo] = d.originLL;
+      const fld = getField(lo, la, 4, 7);
+      for (const k in d.cells) {
+        const c = +k, real = d.cells[k].m / 60, m = fld.dist[c];
+        if (!isFinite(m) || real <= 0.2) continue;
+        rows.push({ o: d.origin, c, real: +real.toFixed(3), model: +m.toFixed(3),
+                    ratio: +(m / real).toFixed(3), k: d.cells[k].k });
+      }
+    }
+    return rows;
+  }
   if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname))
-    window.__iso = { S, setOrigin, recompute, draw, fieldLadder, timeAt, fieldCache, getField, landCellOf, calibrate, calibrateEspon, verify, world };
+    window.__iso = { S, setOrigin, recompute, draw, fieldLadder, timeAt, fieldCache, getField, landCellOf, calibrate, calibrateEspon, verify, world, ota };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();

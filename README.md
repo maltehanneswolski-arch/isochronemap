@@ -115,6 +115,37 @@ for the 36 it has no feed for, and 5 where its answer needed a floor or a
 ceiling. Result: 84% of pairs within a quarter of the real time, 94% within
 40%, median ratio 0.97. Inside a tenth it is 49%.
 
+### Corrected against real timetable isochrones
+
+MOTIS, which Transitous runs on, answers one-to-all: from a single point it
+returns every stop reachable inside a time budget with the real journey time.
+One query over Vienna comes back with 174 413 of them. Nineteen origins give
+6 993 measurements of the fastest real arrival in a 0.25 degree cell, and
+against those the model ran 19% quick - the median of model over real was
+0.814.
+
+The city-pair checks had missed that, and the reason is worth stating: they
+run city centre to city centre, which are the best-connected points on the
+network, while the map draws reachability to everywhere, including places
+served twice a day. Both figures are real; they are answers to different
+questions.
+
+77% of the variance in that residual is explained by the destination cell
+rather than by the origin-destination pair, so it is a property of the place
+and can be learnt. Held out one origin at a time, a factor learnt from the
+other eighteen moves that origin's cells from 28% inside a tenth to 35%, so
+it transfers rather than fitting itself. The learnt factor is applied to the
+finished field, not inside the search, because that is where it belongs.
+
+The result, on the question this map actually asks: median 0.997, 57% of
+cells inside a tenth where it was 23%, 85% inside a quarter where it was 61%.
+Between city centres it now reads about 9% slow - median 1.09, 36% inside a
+tenth - which is the price of the two truths disagreeing. `OTA_STRENGTH` in
+`data.js` moves between them.
+
+The correction covers Europe and the few other places with feeds. Adding
+origins widens it; `tools/harvest_onetoall.py` takes a list of city names.
+
 ### Where open timetables run out
 
 The global set asks for eight routes from each of 28 origins on every

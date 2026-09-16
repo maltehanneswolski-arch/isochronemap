@@ -565,8 +565,22 @@ const mapf = new Uint8Array(GN);
   }
 }
 
+/* What the real timetables say the model is getting wrong, cell by cell
+   (tools/make_ota_layer.py). 100 means no adjustment. */
+console.log('· timetable correction (Transitous one-to-all)');
+const otaf = new Uint8Array(GN).fill(100);
+{
+  const p = 'data/ota_factor.bin';
+  if (!fs.existsSync(p)) console.log('  no ota_factor.bin - run tools/make_ota_layer.py');
+  else {
+    otaf.set(fs.readFileSync(p));
+    let n = 0; for (let c = 0; c < GN; c++) if (otaf[c] !== 100) n++;
+    console.log('  cells corrected', n);
+  }
+}
+
 const layers = { land: rle(land), ctry: rle(ctry), terr: rle(terr), road: rle(road), rail: rle(rail), ferry: rle(ferry),
-  hsrv: rle(hsrv), hsry: rle(hsry), usrail: rle(usrail), usriv: rle(usriv), mapf: rle(mapf) };
+  hsrv: rle(hsrv), hsry: rle(hsry), usrail: rle(usrail), usriv: rle(usriv), mapf: rle(mapf), otaf: rle(otaf) };
 for (const k in layers) console.log('  ', k, (layers[k].length / 1024).toFixed(0) + ' KB');
 
 fs.writeFileSync('grid.js',
