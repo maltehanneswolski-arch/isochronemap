@@ -107,13 +107,33 @@ wants to revisit it.
 
 ## Calibration
 
-Scheduled transport in 2026 is checked against 269 real city-centre to
-city-centre journeys between 80 origin cities: Transitous (an open routing
+Scheduled transport in 2026 is checked against 317 real city-centre to
+city-centre journeys between 89 origin cities on five continents: Transitous (an open routing
 service over open GTFS feeds, fastest surface itinerary over four Tuesday
 departures) for 228 of them, operator timetables plus 0.4 h of station access
 for the 36 it has no feed for, and 5 where its answer needed a floor or a
-ceiling. Result: 87% of pairs within a quarter of the real time, 97% within
-40%, median ratio 0.98.
+ceiling. Result: 84% of pairs within a quarter of the real time, 94% within
+40%, median ratio 0.97. Inside a tenth it is 49%.
+
+### Where open timetables run out
+
+The global set asks for eight routes from each of 28 origins on every
+inhabited continent. Thirteen of those origins returned nothing at all -
+Moscow, Istanbul, Cairo, Casablanca, Tripoli, Lagos, Nairobi, Johannesburg,
+Mexico City, La Paz, Delhi, Bangkok and Beijing. There is no open feed for
+any of them, so a third of the world cannot be checked this way at all, and
+what the model says there rests on the road and rail layers alone.
+
+Three more had to be thrown out as not real: Sarajevo to Podgorica came back
+as 173 km in 40.2 h, which is 4 km/h. Sampling every three hours over a whole
+day gave the same answer, so it is not a sampling artefact - the Balkan
+international coaches are simply not in open data, and the router stitched
+together village buses instead. Anything implying under 20 km/h door to door
+over 150 km is dropped for that reason.
+
+What the Balkans did show, on the routes that survived, is a genuine error:
+the model had Bosnia running twice as fast as it does. Its rail quality is
+now fitted to the measurements like every other country's.
 
 The median is near 1 at every distance: 1.02 under 150 km, 0.98 from 150 to
 350, 0.96 from 350 to 700, 1.00 beyond. The scatter is worst on the short

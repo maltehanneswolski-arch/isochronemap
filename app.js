@@ -1514,8 +1514,8 @@
       if (E.y <= 1911) r.push('American lines open on their real dates, from ' +
         A('https://my.vanderbilt.edu/jeremyatack/data-downloads/', 'Atack\u2019s survey') +
         ' of 76\u2009849 segments 1826\u20131911');
-      if (ei === 7) r.push('Checked against 269 real journeys today (' +
-        A('https://transitous.org', 'Transitous') + '): 87% within a quarter, 97% within 40%, median 0.98');
+      if (ei === 7) r.push('Checked against 317 real journeys today (' +
+        A('https://transitous.org', 'Transitous') + '): 84% within a quarter, 94% within 40%, median 0.97');
       L(r);
     }
 
@@ -2021,8 +2021,31 @@
     }
     return out;
   }
+  /* The global check: eight routes from each of 28 origins on every
+     inhabited continent, against data/world_measured.json. */
+  async function world(k0, k1) {
+    const w = await (await fetch('data/world_measured_clean.json')).json();
+    const rows = w.routes.filter(r => r.hours);
+    const byFrom = new Map();
+    for (const q of rows) {
+      if (!byFrom.has(q.from)) byFrom.set(q.from, []);
+      byFrom.get(q.from).push(q);
+    }
+    const out = [];
+    for (const fr of [...byFrom.keys()].slice(k0 || 0, k1 || 1e9)) {
+      const ps = byFrom.get(fr), [la, lo] = ps[0].fromLL;
+      const f = getField(lo, la, 4, 7);
+      for (const q of ps) {
+        const t = f.dist[landCellOf(q.toLL[1], q.toLL[0])];
+        out.push({ from: q.from, to: q.to, real: q.hours, model: +t.toFixed(2),
+                   ratio: +(t / q.hours).toFixed(2), changes: q.changes,
+                   km: Math.round(gcDist(q.fromLL[1], q.fromLL[0], q.toLL[1], q.toLL[0])) });
+      }
+    }
+    return out;
+  }
   if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname))
-    window.__iso = { S, setOrigin, recompute, draw, fieldLadder, timeAt, fieldCache, getField, landCellOf, calibrate, calibrateEspon, verify };
+    window.__iso = { S, setOrigin, recompute, draw, fieldLadder, timeAt, fieldCache, getField, landCellOf, calibrate, calibrateEspon, verify, world };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();

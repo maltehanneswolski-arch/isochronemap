@@ -1,5 +1,5 @@
 {
- "note": "Real fastest scheduled surface journeys, city centre to city centre, 2026. transitous = api.transitous.org over open GTFS, fastest of four Tuesday departures, door to door. timetable = operator timetable station-to-station + 0.4 h access, used only where Transitous has no feed. floored = the router returned something impossibly quick and the timetable stands in.",
+ "note": "Real fastest scheduled surface journeys, city centre to city centre, 2026. transitous = api.transitous.org over open GTFS, fastest of four Tuesday departures, door to door. timetable = operator timetable station-to-station + 0.4 h access, used only where Transitous has no feed. floored = the router returned something impossibly quick and the timetable stands in. Includes the global set: eight routes from each of 28 origins on every inhabited continent (tools/world_routes.py).",
  "pairs": [
   {
    "from": "Brussels",
@@ -4501,6 +4501,774 @@
    "hours": 21.4,
    "src": "timetable",
    "via": "coach, 21.00 h station to station + 0.4 access"
+  },
+  {
+   "from": "Brussels",
+   "to": "Paris",
+   "fromLL": [
+    50.8466,
+    4.3528
+   ],
+   "toLL": [
+    48.8566,
+    2.3522
+   ],
+   "hours": 1.9,
+   "src": "transitous",
+   "changes": 3,
+   "via": "4 > EST 9364 > D > 1"
+  },
+  {
+   "from": "London",
+   "to": "Paris",
+   "fromLL": [
+    51.5074,
+    -0.1278
+   ],
+   "toLL": [
+    48.8566,
+    2.3522
+   ],
+   "hours": 2.93,
+   "src": "transitous",
+   "changes": 5,
+   "via": "Bakerloo > Victoria > Northern > EST 9032 > B > 1"
+  },
+  {
+   "from": "London",
+   "to": "Brussels",
+   "fromLL": [
+    51.5074,
+    -0.1278
+   ],
+   "toLL": [
+    50.8466,
+    4.3528
+   ],
+   "hours": 2.47,
+   "src": "transitous",
+   "changes": 3,
+   "via": "29 > Piccadilly > EST 9114 > 4"
+  },
+  {
+   "from": "Berlin",
+   "to": "Brussels",
+   "fromLL": [
+    52.52,
+    13.405
+   ],
+   "toLL": [
+    50.8466,
+    4.3528
+   ],
+   "hours": 6.93,
+   "src": "transitous",
+   "changes": 3,
+   "via": "U5 > ICE 652 > ICE 314 > S8"
+  },
+  {
+   "from": "Vienna",
+   "to": "Munich",
+   "fromLL": [
+    48.2082,
+    16.3738
+   ],
+   "toLL": [
+    48.1351,
+    11.582
+   ],
+   "hours": 4.52,
+   "src": "transitous",
+   "changes": 2,
+   "via": "U3 > WB 964 > S2"
+  },
+  {
+   "from": "Rome",
+   "to": "Milan",
+   "fromLL": [
+    41.9028,
+    12.4964
+   ],
+   "toLL": [
+    45.4642,
+    9.19
+   ],
+   "hours": 3.33,
+   "src": "transitous",
+   "changes": 2,
+   "via": "MEA > FR 9620 > 3"
+  },
+  {
+   "from": "Rome",
+   "to": "Munich",
+   "fromLL": [
+    41.9028,
+    12.4964
+   ],
+   "toLL": [
+    48.1351,
+    11.582
+   ],
+   "hours": 9.25,
+   "src": "transitous",
+   "changes": 3,
+   "via": "MEA > FR 9304 > RJ 86 > S3"
+  },
+  {
+   "from": "Rome",
+   "to": "Vienna",
+   "fromLL": [
+    41.9028,
+    12.4964
+   ],
+   "toLL": [
+    48.2082,
+    16.3738
+   ],
+   "hours": 11.7,
+   "src": "transitous",
+   "changes": 4,
+   "via": "MEA > FR 9634 > FR 9420 > RJX 130 > U1"
+  },
+  {
+   "from": "Rome",
+   "to": "Paris",
+   "fromLL": [
+    41.9028,
+    12.4964
+   ],
+   "toLL": [
+    48.8566,
+    2.3522
+   ],
+   "hours": 11.28,
+   "src": "transitous",
+   "changes": 3,
+   "via": "FR 9630 > EC 20 > TGV Lyria 9234 > 1"
+  },
+  {
+   "from": "Rome",
+   "to": "Barcelona",
+   "fromLL": [
+    41.9028,
+    12.4964
+   ],
+   "toLL": [
+    41.3874,
+    2.1686
+   ],
+   "hours": 16.17,
+   "src": "transitous",
+   "changes": 4,
+   "via": "MEA > FR 9650 > FR 9588 > FlixBus N740 > L1"
+  },
+  {
+   "from": "Madrid",
+   "to": "Porto",
+   "fromLL": [
+    40.4168,
+    -3.7038
+   ],
+   "toLL": [
+    41.1579,
+    -8.6291
+   ],
+   "hours": 8.03,
+   "src": "transitous",
+   "changes": 4,
+   "via": "C4a > AVANT 34101 > 9 > FlixBus N1183 > A"
+  },
+  {
+   "from": "Madrid",
+   "to": "Paris",
+   "fromLL": [
+    40.4168,
+    -3.7038
+   ],
+   "toLL": [
+    48.8566,
+    2.3522
+   ],
+   "hours": 10.33,
+   "src": "transitous",
+   "changes": 3,
+   "via": "C3 > AVE 03301 > TGV INOUI 9708 > 1"
+  },
+  {
+   "from": "Madrid",
+   "to": "Milan",
+   "fromLL": [
+    40.4168,
+    -3.7038
+   ],
+   "toLL": [
+    45.4642,
+    9.19
+   ],
+   "hours": 14.27,
+   "src": "transitous",
+   "changes": 6,
+   "via": "C3 > AVE 03301 > TGV INOUI 9708 > TER 96614 > FlixBus N425 >"
+  },
+  {
+   "from": "Prague",
+   "to": "Bratislava",
+   "fromLL": [
+    50.0755,
+    14.4378
+   ],
+   "toLL": [
+    48.1486,
+    17.1077
+   ],
+   "hours": 4.55,
+   "src": "transitous",
+   "changes": 4,
+   "via": "A > B > 000089 > rj 175 > 93"
+  },
+  {
+   "from": "Prague",
+   "to": "Vienna",
+   "fromLL": [
+    50.0755,
+    14.4378
+   ],
+   "toLL": [
+    48.2082,
+    16.3738
+   ],
+   "hours": 4.38,
+   "src": "transitous",
+   "changes": 3,
+   "via": "A > C > FlixBus 962 > U3"
+  },
+  {
+   "from": "Prague",
+   "to": "Munich",
+   "fromLL": [
+    50.0755,
+    14.4378
+   ],
+   "toLL": [
+    48.1351,
+    11.582
+   ],
+   "hours": 5.17,
+   "src": "transitous",
+   "changes": 3,
+   "via": "A > C > FlixBus 263 > S2"
+  },
+  {
+   "from": "Athens",
+   "to": "Sofia",
+   "fromLL": [
+    37.9838,
+    23.7275
+   ],
+   "toLL": [
+    42.6977,
+    23.3219
+   ],
+   "hours": 16.42,
+   "src": "transitous",
+   "changes": 3,
+   "via": "732 > IC50 > FlixBus N980 > M2"
+  },
+  {
+   "from": "Athens",
+   "to": "Belgrade",
+   "fromLL": [
+    37.9838,
+    23.7275
+   ],
+   "toLL": [
+    44.7866,
+    20.4489
+   ],
+   "hours": 35.22,
+   "src": "transitous",
+   "changes": 6,
+   "via": "732 > IC50 > FlixBus N980 > FlixBus N981 > FlixBus 1900 > Re"
+  },
+  {
+   "from": "Athens",
+   "to": "Bucharest",
+   "fromLL": [
+    37.9838,
+    23.7275
+   ],
+   "toLL": [
+    44.4268,
+    26.1025
+   ],
+   "hours": 23.65,
+   "src": "transitous",
+   "changes": 3,
+   "via": "732 > IC50 > FlixBus N980 > M3"
+  },
+  {
+   "from": "Athens",
+   "to": "Rome",
+   "fromLL": [
+    37.9838,
+    23.7275
+   ],
+   "toLL": [
+    41.9028,
+    12.4964
+   ],
+   "hours": 40.65,
+   "src": "transitous",
+   "changes": 7,
+   "via": "732 > IC50 > FlixBus N980 > FlixBus N981 > FlixBus 907 > FR "
+  },
+  {
+   "from": "Sarajevo",
+   "to": "Zagreb",
+   "fromLL": [
+    43.8563,
+    18.4131
+   ],
+   "toLL": [
+    45.815,
+    15.9819
+   ],
+   "hours": 12.95,
+   "src": "transitous",
+   "changes": 4,
+   "via": "41B > Livno-Bus > FlixBus 974B > 7 > 32"
+  },
+  {
+   "from": "Sarajevo",
+   "to": "Split",
+   "fromLL": [
+    43.8563,
+    18.4131
+   ],
+   "toLL": [
+    43.5081,
+    16.4402
+   ],
+   "hours": 7.03,
+   "src": "transitous",
+   "changes": 1,
+   "via": "1 > Livno-Bus"
+  },
+  {
+   "from": "Sarajevo",
+   "to": "Ljubljana",
+   "fromLL": [
+    43.8563,
+    18.4131
+   ],
+   "toLL": [
+    46.0569,
+    14.5058
+   ],
+   "hours": 17.0,
+   "src": "transitous",
+   "changes": 3,
+   "via": "41B > Livno-Bus > FlixBus 974B > FlixBus 1873"
+  },
+  {
+   "from": "Sarajevo",
+   "to": "Budapest",
+   "fromLL": [
+    43.8563,
+    18.4131
+   ],
+   "toLL": [
+    47.4979,
+    19.0402
+   ],
+   "hours": 17.65,
+   "src": "transitous",
+   "changes": 5,
+   "via": "41B > Livno-Bus > Livno-Bus > FlixBus N976 > M3 > 105"
+  },
+  {
+   "from": "Sarajevo",
+   "to": "Vienna",
+   "fromLL": [
+    43.8563,
+    18.4131
+   ],
+   "toLL": [
+    48.2082,
+    16.3738
+   ],
+   "hours": 18.6,
+   "src": "transitous",
+   "changes": 4,
+   "via": "105 > 17-23 > 000192 > RJ 53 > U1"
+  },
+  {
+   "from": "Washington",
+   "to": "Baltimore",
+   "fromLL": [
+    38.8977,
+    -77.0065
+   ],
+   "toLL": [
+    39.2904,
+    -76.6122
+   ],
+   "hours": 0.8,
+   "src": "transitous",
+   "changes": 1,
+   "via": "2102 > 95"
+  },
+  {
+   "from": "Washington",
+   "to": "New York",
+   "fromLL": [
+    38.8977,
+    -77.0065
+   ],
+   "toLL": [
+    40.7506,
+    -73.9935
+   ],
+   "hours": 3.22,
+   "src": "transitous",
+   "changes": 0,
+   "via": "2150"
+  },
+  {
+   "from": "Washington",
+   "to": "Richmond",
+   "fromLL": [
+    38.8977,
+    -77.0065
+   ],
+   "toLL": [
+    37.5407,
+    -77.436
+   ],
+   "hours": 2.18,
+   "src": "transitous",
+   "changes": 1,
+   "via": "Greyhound US0670 > BRT"
+  },
+  {
+   "from": "Washington",
+   "to": "Pittsburgh",
+   "fromLL": [
+    38.8977,
+    -77.0065
+   ],
+   "toLL": [
+    40.4406,
+    -79.9959
+   ],
+   "hours": 5.88,
+   "src": "transitous",
+   "changes": 1,
+   "via": "Greyhound US0164 > P1"
+  },
+  {
+   "from": "Washington",
+   "to": "Boston",
+   "fromLL": [
+    38.8977,
+    -77.0065
+   ],
+   "toLL": [
+    42.3519,
+    -71.0552
+   ],
+   "hours": 7.18,
+   "src": "transitous",
+   "changes": 1,
+   "via": "2150 > Orange Line"
+  },
+  {
+   "from": "Washington",
+   "to": "Chicago",
+   "fromLL": [
+    38.8977,
+    -77.0065
+   ],
+   "toLL": [
+    41.8786,
+    -87.6251
+   ],
+   "hours": 15.95,
+   "src": "transitous",
+   "changes": 3,
+   "via": "R > Greyhound US0164 > 40 > 7"
+  },
+  {
+   "from": "Washington",
+   "to": "Atlanta",
+   "fromLL": [
+    38.8977,
+    -77.0065
+   ],
+   "toLL": [
+    33.749,
+    -84.388
+   ],
+   "hours": 12.15,
+   "src": "transitous",
+   "changes": 3,
+   "via": "FlixBus N2470 > GOLD > BLUE > 20"
+  },
+  {
+   "from": "New York",
+   "to": "Albany",
+   "fromLL": [
+    40.7506,
+    -73.9935
+   ],
+   "toLL": [
+    42.6526,
+    -73.7562
+   ],
+   "hours": 3.03,
+   "src": "transitous",
+   "changes": 2,
+   "via": "M7 > 233 > 114"
+  },
+  {
+   "from": "New York",
+   "to": "Baltimore",
+   "fromLL": [
+    40.7506,
+    -73.9935
+   ],
+   "toLL": [
+    39.2904,
+    -76.6122
+   ],
+   "hours": 2.72,
+   "src": "transitous",
+   "changes": 1,
+   "via": "2155 > CityLink SILVER"
+  },
+  {
+   "from": "New York",
+   "to": "Pittsburgh",
+   "fromLL": [
+    40.7506,
+    -73.9935
+   ],
+   "toLL": [
+    40.4406,
+    -79.9959
+   ],
+   "hours": 8.2,
+   "src": "transitous",
+   "changes": 3,
+   "via": "2155 > 43 > Greyhound US0421 > 2"
+  },
+  {
+   "from": "New York",
+   "to": "Toronto",
+   "fromLL": [
+    40.7506,
+    -73.9935
+   ],
+   "toLL": [
+    43.6452,
+    -79.3806
+   ],
+   "hours": 10.2,
+   "src": "transitous",
+   "changes": 1,
+   "via": "NEC > FlixBus N2768a"
+  },
+  {
+   "from": "Los Angeles",
+   "to": "San Diego",
+   "fromLL": [
+    34.0522,
+    -118.2437
+   ],
+   "toLL": [
+    32.7157,
+    -117.1611
+   ],
+   "hours": 3.17,
+   "src": "transitous",
+   "changes": 3,
+   "via": "33 > 562 > Green > 992"
+  },
+  {
+   "from": "Los Angeles",
+   "to": "Santa Barbara",
+   "fromLL": [
+    34.0522,
+    -118.2437
+   ],
+   "toLL": [
+    34.4208,
+    -119.6982
+   ],
+   "hours": 3.38,
+   "src": "transitous",
+   "changes": 4,
+   "via": "33 > 761 > Route 16 > Route 6 > 82"
+  },
+  {
+   "from": "Los Angeles",
+   "to": "Las Vegas",
+   "fromLL": [
+    34.0522,
+    -118.2437
+   ],
+   "toLL": [
+    36.1699,
+    -115.1398
+   ],
+   "hours": 5.8,
+   "src": "transitous",
+   "changes": 2,
+   "via": "33 > FlixBus 2030 > RED LINE"
+  },
+  {
+   "from": "Los Angeles",
+   "to": "Phoenix",
+   "fromLL": [
+    34.0522,
+    -118.2437
+   ],
+   "toLL": [
+    33.4484,
+    -112.074
+   ],
+   "hours": 7.58,
+   "src": "transitous",
+   "changes": 3,
+   "via": "33 > Greyhound US1000 > SKYT > A"
+  },
+  {
+   "from": "Los Angeles",
+   "to": "Sacramento",
+   "fromLL": [
+    34.0522,
+    -118.2437
+   ],
+   "toLL": [
+    38.5816,
+    -121.4944
+   ],
+   "hours": 11.15,
+   "src": "transitous",
+   "changes": 2,
+   "via": "33 > Greyhound US0831 > 524"
+  },
+  {
+   "from": "Melbourne",
+   "to": "Geelong",
+   "fromLL": [
+    -37.8183,
+    144.9671
+   ],
+   "toLL": [
+    -38.1499,
+    144.3617
+   ],
+   "hours": 1.15,
+   "src": "transitous",
+   "changes": 2,
+   "via": "Belgrave > Geelong > 55"
+  },
+  {
+   "from": "Melbourne",
+   "to": "Ballarat",
+   "fromLL": [
+    -37.8183,
+    144.9671
+   ],
+   "toLL": [
+    -37.5622,
+    143.8503
+   ],
+   "hours": 1.72,
+   "src": "transitous",
+   "changes": 2,
+   "via": "Belgrave > Ballarat > 24"
+  },
+  {
+   "from": "Melbourne",
+   "to": "Bendigo",
+   "fromLL": [
+    -37.8183,
+    144.9671
+   ],
+   "toLL": [
+    -36.757,
+    144.2794
+   ],
+   "hours": 2.13,
+   "src": "transitous",
+   "changes": 2,
+   "via": "Hurstbridge > Bendigo > 50"
+  },
+  {
+   "from": "Melbourne",
+   "to": "Albury",
+   "fromLL": [
+    -37.8183,
+    144.9671
+   ],
+   "toLL": [
+    -36.0737,
+    146.9135
+   ],
+   "hours": 3.85,
+   "src": "transitous",
+   "changes": 2,
+   "via": "Hurstbridge > 624 > 901"
+  },
+  {
+   "from": "Melbourne",
+   "to": "Sydney",
+   "fromLL": [
+    -37.8183,
+    144.9671
+   ],
+   "toLL": [
+    -33.883,
+    151.206
+   ],
+   "hours": 11.27,
+   "src": "transitous",
+   "changes": 1,
+   "via": "Werribee > 622"
+  },
+  {
+   "from": "Melbourne",
+   "to": "Brisbane",
+   "fromLL": [
+    -37.8183,
+    144.9671
+   ],
+   "toLL": [
+    -27.4653,
+    153.0235
+   ],
+   "hours": 29.43,
+   "src": "transitous",
+   "changes": 7,
+   "via": "Werribee > 622 > 33 > 167 > 700 > L1 > R772 > R888"
+  },
+  {
+   "from": "Sao Paulo",
+   "to": "Campinas",
+   "fromLL": [
+    -23.5505,
+    -46.6333
+   ],
+   "toLL": [
+    -22.9099,
+    -47.0626
+   ],
+   "hours": 2.03,
+   "src": "transitous",
+   "changes": 3,
+   "via": "METRÔ L1 > CPTM L10 > FlixBus BRN0251 > 604"
   }
  ]
 }
