@@ -1622,7 +1622,8 @@
 
   /* ================= controls ================= */
   function buildModes() {
-    $('modeList').innerHTML = D.MODES.map((m, k) =>
+    // a hidden mode still exists in the model; it just is not offered
+    $('modeList').innerHTML = D.MODES.map((m, k) => m.hidden ? '' :
       '<button class="mode" data-m="' + k + '" aria-pressed="false">' +
       '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + m.icon + '"/></svg>' +
       '<span class="lbl"><b>' + m.name + '</b><span data-v="' + k + '"></span></span></button>').join('');
@@ -1668,7 +1669,7 @@
   }
   function syncControls() {
     const ei = S.era;
-    if (D.MODES[S.mode].since > ei) S.mode = 0;
+    if (D.MODES[S.mode].since > ei || D.MODES[S.mode].hidden) S.mode = 0;
     document.querySelectorAll('.mode').forEach(b => {
       const k = +b.dataset.m, m = D.MODES[k], ok = m.since <= ei;
       b.disabled = !ok;

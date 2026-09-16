@@ -14,9 +14,12 @@ as it stands.
 ## What it does
 
 - Eight years: 1750, 1850, 1900, 1925, 1950, 1975, 2000, 2026.
-- Six ways to travel: fastest route, on foot, by bicycle, by road, scheduled
-  transport, by air. Modes that did not exist yet are disabled, with the reason
-  (no bicycle before the 1860s, no powered flight before 1903).
+- Five ways to travel: fastest route, on foot, by bicycle, by road, by air.
+  Modes that did not exist yet are disabled, with the reason (no bicycle
+  before the 1860s, no powered flight before 1903). Public transport is no
+  longer offered on its own, but it is still what the fastest route puts you
+  on where a train beats the alternatives; the `transit` entry in `data.js`
+  remains as the engine's profile for it, marked `hidden`.
 - Five colour schemes, one of them taken from Galton's own hand-tinted green,
   yellow, pink, blue and brown plate.
 

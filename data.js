@@ -68,7 +68,10 @@ window.ISO = (function () {
       duty: [12, 16, 12, 11, 11, 10, 10, 10], since: 0, sea: 'ferry'
     },
     {
-      id: 'transit', name: 'Scheduled transport',
+      /* Not offered as a choice any more, but kept as the engine's profile
+         for public transport: the fastest route still puts you on a train,
+         and it is this entry that says how fast a train goes. */
+      id: 'transit', name: 'Scheduled transport', hidden: true,
       vehicle: ['Stage coach, packet & river boat', 'Railway, steamer & coach',
         'Express train & ocean liner', 'Express train & liner', 'Rail, coach & ferry',
         'Rail, coach & ferry', 'High-speed rail & ferry', 'Rail, metro, coach & ferry'],
