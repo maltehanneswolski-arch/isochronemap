@@ -463,10 +463,16 @@
             if (onRails) {
               const ru = u === start ? 0 : railOn[u], rv = railOn[v];
               if (rv !== ru) nc += rv ? board : alight;
-              else if (rv && ctryRaw[u] !== ctryRaw[v] && ctryRaw[u] && ctryRaw[v]) nc += border;
               // stepping off a high-speed corridor onto ordinary track is
               // where a real journey changes trains, and waits for one
               else if (rv && hsrOn[u] && !hsrOn[v]) nc += change;
+              /* A frontier costs a change of operator whatever you are
+                 travelling on. Charging it only to trains let the search
+                 dodge it: it crossed on a cell with no railway, paid the
+                 15 minutes for getting off, and rejoined beyond. At ten
+                 hours a border the answer stopped moving at all, which is
+                 what a penalty on one edge of a grid always does. */
+              if (border && ctryRaw[u] !== ctryRaw[v] && ctryRaw[u] && ctryRaw[v]) nc += border;
             }
             if (linkWait[v] && !linkWait[u]) nc += linkWait[v];
             if (nc < dist[v]) { dist[v] = nc; move[v] = m1; push(nc, v); }
@@ -1501,7 +1507,7 @@
         'Each country gets its own opening year and service quality',
         'Main line ' + N(D.RAIL[ei]) + ' km/day',
         HR(D.TRANSIT_ACCESS[ei]) + ' to reach the stop and wait for a departure',
-        HR(D.RAIL_CHANGE[ei]) + ' to change where the high-speed line ends, ' + HR(D.RAIL_BORDER[ei]) + ' at a frontier'];
+        HR(D.RAIL_CHANGE[ei]) + ' to change where the high-speed line ends, ' + HR(D.RAIL_BORDER[ei]) + ' to cross a frontier'];
       if (E.y >= 1964) r.push('High-speed track from ' +
         A('https://wiki.openstreetmap.org/wiki/Key:highspeed', 'OpenStreetMap') +
         ', run at 65% of its line speed' +
@@ -1515,7 +1521,7 @@
         A('https://my.vanderbilt.edu/jeremyatack/data-downloads/', 'Atack\u2019s survey') +
         ' of 76\u2009849 segments 1826\u20131911');
       if (ei === 7) r.push('Checked against 317 real journeys today (' +
-        A('https://transitous.org', 'Transitous') + '): 84% within a quarter, 94% within 40%, median 0.97');
+        A('https://transitous.org', 'Transitous') + '): 83% within a quarter, 94% within 40%, median 1.01');
       L(r);
     }
 

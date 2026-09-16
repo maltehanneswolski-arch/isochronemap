@@ -405,7 +405,14 @@ window.ISO = (function () {
   const TRANSIT_ACCESS = [0, 2.0, 1.2, 0.95, 0.85, 0.7, 0.65, 0.6];
   /* crossing a frontier by rail: customs and a change of carriage in 1850,
      passports until the 1970s, today mostly a change of train or operator */
-  const RAIL_BORDER = [0, 1.0, 0.75, 0.75, 0.75, 0.5, 0.4, 0.4];
+  /* Crossing a frontier, on whatever you are travelling. It used to be
+     charged only to trains, which let the search dodge it: it crossed on a
+     cell with no railway, paid the quarter hour for getting off, and
+     rejoined beyond. Ten hours a border then gave the same answer as one
+     and a half, which is what a penalty on a single edge of a grid always
+     does - the path simply goes round it. Charged on any mode it cannot be
+     dodged, and 0.55 h is the best fit over 317 measured journeys. */
+  const RAIL_BORDER = [0, 1.4, 1.1, 1.0, 1.0, 0.7, 0.6, 0.55];
   /* Changing trains. The model used to charge only for boarding the first one
      and for a frontier, so it happily invented a through working where none
      runs: Brussels to Vienna came out at 8 h against a real 11.2 over four
