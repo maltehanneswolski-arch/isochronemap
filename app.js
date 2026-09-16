@@ -206,7 +206,12 @@
       qual[k] = Math.pow(ms / D.ROAD_REF, D.ROAD_EXP[ei]);
       qual1[k] = ms / D.ROAD_REF;               // unexaggerated: what a coach on the main road sees
       // unclaimed land is mostly sea cells bridged by a tunnel: good track
-      rqA[k] = k < NC ? (ei === 4 ? cRQ[k] : cRH[k]) : 0.9;
+      /* RAIL_HIST describes the steam and early-diesel era, so it governs up
+         to 1950 and the modern service quality from 1975 on. This read
+         `ei === 4`, which was 2026 when there were five plates; after the
+         eight-plate rebuild index 4 is 1950, so 1950 was running on modern
+         quality and 1975, 2000 and 2026 on the steam-era table. */
+      rqA[k] = k < NC ? (ei >= 5 ? cRQ[k] : cRH[k]) : 0.9;
       ryA[k] = k < NC ? cRY[k] : 9999;
     }
 
