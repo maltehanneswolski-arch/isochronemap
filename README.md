@@ -11,6 +11,24 @@ chosen means of travel, in a chosen year.
 It is a static site with no build step, so Netlify can deploy this repository
 as it stands.
 
+## Three versions
+
+| Path | What it is |
+|---|---|
+| `/` | the globe, with the coaching changes below applied |
+| `/v1/` | the globe as it stood before them, a full copy that runs on its own (also the git tag `v1-original`) |
+| `/v3/` | the same globe as `/`, opened by a hand-drawn intro (`v3/intro.js`) |
+
+The intro is scroll-driven. A stick figure stands on a line; scrolling takes it
+from walking to running, cycling, driving, sailing and flying. The plane climbs
+out of the frame, and the ground line it leaves curls up into a circle that
+lands on the rim of the globe, with the graticule sketched in, before the map
+appears inside it. The globe is built underneath while you scroll, and if you
+reach the end first the circle waits for it. `Skip the intro` or Escape leave
+at once, and `/v3/?nointro` never shows it. `v3/index.html` is the root page
+with `../` paths and one extra script tag, so a change to the root page has to
+be copied across by hand.
+
 ## What it does
 
 - Eight years: 1750, 1850, 1900, 1925, 1950, 1975, 2000, 2026.
@@ -20,15 +38,25 @@ as it stands.
   longer offered on its own, but it is still what the fastest route puts you
   on where a train beats the alternatives; the `transit` entry in `data.js`
   remains as the engine's profile for it, marked `hidden`.
-- Five colour schemes, one of them taken from Galton's own hand-tinted green,
-  yellow, pink, blue and brown plate.
+- Five colour plates, one of them taken from Galton's own hand-tinted green,
+  yellow, pink, blue and brown chart.
+- Play steps through every year from the first this means of travel had to
+  today, on one colour scale held from the first year so the years compare.
+- Three band edges are named on the map where they cross the line straight
+  down from the origin, and the scale is labelled with the place it is from.
+- Journeys, under Detail, is a then-and-now chart: eight cities at the year on
+  show against the same journey today, on one log scale.
+- The globe takes the keyboard: arrows turn it, plus and minus zoom, Enter
+  travels from the centre of the view. After each solve a screen reader hears
+  one sentence: the means of travel, the place, the year and the reach.
 
 ## On a phone
 
 Below 820px the panel becomes a sheet at the foot of the screen, and the era
 axis moves inside it, so only one thing ever covers the globe. It rests
 showing the place, the means of travel and the years, and is dragged up for
-the scale, the colours, the journey table and the method.
+the scale, the colours, the journeys and the method. A play button leads the
+row of years.
 
 One finger turns the globe and two pinch it. A touch screen has no hover, so a
 tap pins the time to that place with the choice of starting again from there,
@@ -218,6 +246,8 @@ does the same for 2000.
 | File | |
 |---|---|
 | `index.html` | page, styles, markup |
+| `v1/` | the pre-coaching version, complete |
+| `v3/index.html`, `v3/intro.js` | the intro version and its scroll-driven drawing |
 | `app.js` | grid, least-cost solver, renderer, UI |
 | `data.js` | era constants, country profiles, hand-authored geography |
 | `grid.js` | packed 0.25° layers (land, country, terrain, road, rail, ferry) + places + airfields |

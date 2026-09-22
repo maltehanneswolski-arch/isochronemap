@@ -2244,7 +2244,7 @@
      sets window.ISO_HOLD before this script runs gets to choose that moment. */
   const APP = window.ISO_APP = {
     hold: !!window.ISO_HOLD, booted: false, entered: false,
-    geom: () => ({ cx, cy, r: Math.max(1, S.scale), W: Wc, H: Hc, mobile: !!S.mobile }),
+    geom: () => ({ cx, cy, r: Math.max(1, S.scale), W: Wc, H: Hc, mobile: !!S.mobile, rotL: S.rotL, rotP: S.rotP }),
     enter() {
       if (APP.entered) return;
       APP.entered = true; APP.hold = false;
