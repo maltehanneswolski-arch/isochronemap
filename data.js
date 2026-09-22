@@ -12,9 +12,9 @@ window.ISO = (function () {
      interesting century is the one in the middle; the axis carries a break
      mark where the jump in years is larger than the rest. */
   const ERAS = [
-    { y: 1750, tag: 'Turnpike & packet' },
+    { y: 1750, tag: 'Horse and sail' },
     { y: 1850, tag: 'Early steam' },
-    { y: 1900, tag: 'Steel, steam & liner' },
+    { y: 1900, tag: 'Steam at its height' },
     { y: 1925, tag: 'First airlines' },
     { y: 1950, tag: 'Propliner' },
     { y: 1975, tag: 'Jet age' },
@@ -34,7 +34,7 @@ window.ISO = (function () {
   const MODES = [
     {
       id: 'best', name: 'Fastest route',
-      vehicle: ['Coach, packet & river', 'Rail and steamship', 'Express rail & liner',
+      vehicle: ['By coach, packet or barge', 'Rail and steamship', 'Express train, ocean liner',
         'Air, rail, road and sea', 'Air, rail, road and sea', 'Air, rail, road and sea',
         'Air, rail, road and sea', 'Air, rail, road and sea'],
       icon: 'M4 19.5l4.6-8.2 3.4 3.1L20 4.5M20 4.5h-4.6M20 4.5v4.6M4.6 19.5h3',
@@ -43,8 +43,8 @@ window.ISO = (function () {
     },
     {
       id: 'foot', name: 'On foot',
-      vehicle: ['Turnpikes & towpaths', 'Turnpikes', 'Metalled roads', 'Metalled roads',
-        'Sealed roads', 'Paved', 'Paved & mapped', 'Paved & mapped'],
+      vehicle: ['Along the turnpikes', 'Turnpikes', 'Metalled roads', 'Metalled roads',
+        'Sealed roads', 'Paved roads', 'Paved, with a map', 'Paved, with a map'],
       icon: 'M13 3.2a1.6 1.6 0 100.01 0M12.4 7l-3 2.2.9 4.1M10.3 13.3L8 20M10.3 13.3l3.4 2 1.3 4.7M12.4 7l3.3 1.1 2 3.4',
       land: [32, 34, 36, 37, 38, 39, 40, 40],
       duty: [8, 8, 8, 8, 8, 8, 8, 8], since: 0, sea: 'ferry'
@@ -61,8 +61,8 @@ window.ISO = (function () {
     },
     {
       id: 'road', name: 'By road',
-      vehicle: ['Post-chaise & horse', 'Mail coach', 'Early motor car', 'Motor car',
-        'Automobile', 'Car & trunk road', 'Car & motorway', 'Car & motorway'],
+      vehicle: ['Post-chaise, changing horses', 'Mail coach', 'Early motor car', 'Motor car',
+        'Automobile', 'Car on trunk roads', 'Car on the motorway', 'Car on the motorway'],
       icon: 'M4.5 14.5h15M6 14.5l1.6-4.2A1.6 1.6 0 019.1 9.2h5.8a1.6 1.6 0 011.5 1.1l1.6 4.2M7.5 17.6a1.5 1.5 0 100.01 0M16.5 17.6a1.5 1.5 0 100.01 0M4.5 14.5v2.2M19.5 14.5v2.2',
       land: [85, 240, 190, 300, 480, 700, 850, 900],
       duty: [12, 16, 12, 11, 11, 10, 10, 10], since: 0, sea: 'ferry'

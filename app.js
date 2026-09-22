@@ -509,7 +509,7 @@
      the timeline is then usually instant. Any gesture cancels the look-ahead,
      so it never steals a frame from something you are actually doing. */
   const fieldCache = new Map();
-  const CACHE_MAX = 7;                       // ~4 MB of distances apiece
+  const CACHE_MAX = 10;                      // ~4 MB of distances apiece: eight years and a comparison
   const fieldKey = (lon, lat, mi, ei) => lon.toFixed(3) + ',' + lat.toFixed(3) + ',' + mi + ',' + ei;
 
   function getField(lon, lat, mi, ei) {
@@ -541,20 +541,25 @@
 
   function lookahead() {
     cancelLookahead();
+    if (APP.hold || S.playing) return;        // the intro and Play keep the main thread to themselves
     const { lon, lat } = S.origin, mi = S.mode;
     const jobs = [];
-    for (const d of (S.mobile ? [1, -1] : [1, -1, 2, -2])) {          // the years either side first
+    // the year the journeys are compared with comes first, then the years either side
+    const ce = compEra();
+    if (ce !== S.era && D.MODES[mi].since <= ce) jobs.push([lon, lat, mi, ce, true]);
+    for (const d of (S.mobile ? [1, -1] : [1, -1, 2, -2])) {
       const e = S.era + d;
-      if (e >= 0 && e < D.ERAS.length && D.MODES[mi].since <= e) jobs.push([lon, lat, mi, e]);
+      if (e >= 0 && e < D.ERAS.length && e !== ce && D.MODES[mi].since <= e) jobs.push([lon, lat, mi, e]);
     }
     let i = 0;
     const step = () => {
       if (i >= jobs.length || S.interacting) { S.pre = 0; return; }
       const j = jobs[i++];
       if (!fieldCache.has(fieldKey(j[0], j[1], j[2], j[3]))) getField(j[0], j[1], j[2], j[3]);
+      if (j[4] && S.origin.lon === j[0] && S.origin.lat === j[1] && S.mode === j[2]) updateJourneys();
       S.pre = setTimeout(step, 250);
     };
-    S.pre = setTimeout(step, 900);
+    S.pre = setTimeout(step, jobs.length && jobs[0][4] ? 500 : 900);
   }
 
   /* ================= formatting ================= */
@@ -729,15 +734,18 @@
       const tl = $('timeline'), pn = $('panel');
       if (mob) pn.appendChild(tl); else document.body.appendChild(tl);
       if (!mob) document.body.classList.remove('sheet-open');
+      const h = $('hint');
+      if (h) h.textContent = mob ? 'Tap a place for its time, then Start here. Drag to turn, pinch to zoom.'
+        : 'Click anywhere on the globe to travel from there. Drag to turn it, scroll to zoom.';
     }
     const peek = mob ? sheetPeek() : 0;
 
     // the panel holds the right edge at every width above the sheet, so the
     // globe is centred in what is left of the screen
     const gutter = mob ? 0 : (Wc > 1140 ? 302 : 284);
-    const foot = mob || Hc > 620 ? 0 : 86;     // on a short screen the axis is in the way
+    const foot = mob || Hc > 620 ? 0 : 134;    // on a short screen the axis is in the way
     cx = (Wc - gutter) * 0.5;
-    const head = mob ? 54 : 0;                 // the masthead sits in this strip
+    const head = mob ? 58 : 0;                 // the masthead sits in this strip
     cy = mob ? head + (Hc - peek - head) * 0.5 : (Hc - foot) * 0.5;
     const fit = Math.max(1, mob ? Math.min(Wc * 0.96, (Hc - peek - head) * 0.96) / 2
                                 : Math.min((Wc - gutter) * 0.88, (Hc - foot) * 0.84) / 2);
@@ -745,6 +753,8 @@
     else S.scale = Math.max(fit * 0.78, Math.min(S.scale, fit * 12));
     S.fit = fit;
     drawSky(); S.tKey = ''; draw();
+    if ($('axis').querySelector('.era')) fitTags();
+    if (S.field) updateJourneys();
   }
 
   /* How much of the sheet stays on screen when it is down: the handle, the
@@ -790,9 +800,9 @@
   const NICE = [0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4, 6, 8, 12, 18, 24, 36, 48, 72, 96, 120,
     168, 240, 336, 504, 720, 1080, 1440, 2160, 2880, 4320, 5760, 8760, 13140, 17520, 26280];
 
-  function makeLadder(maxT) {
+  function makeLadder(maxT, lo0) {
     const n = D.RAMP.length;
-    const lo = Math.max(NICE[0], maxT / 600);
+    const lo = lo0 || Math.max(NICE[0], maxT / 600);
     const out = [];
     for (let k = 1; k <= n; k++) {
       const target = lo * Math.pow(maxT / lo, k / n);
@@ -843,7 +853,7 @@
 
   function refreshLadder() {
     if (!S.field) return false;
-    const L = fieldLadder(S.field);
+    const L = S.ladderLock || fieldLadder(S.field);
     if (L === S.ladder) return false;
     S.ladder = L; S.tKey = '';
     if (S.legendReady) updateLegend();
@@ -1255,7 +1265,36 @@
     clearTimeout(S.settle);
     S.settle = setTimeout(() => {
       S.interacting = false; S.tKey = ''; S.bufKey = ''; draw();
+      if (!S.pre) lookahead();
     }, 220);
+  }
+
+  /* Three band edges are named where they cross the line running straight
+     down the screen from the origin (up, when the origin sits low), so the
+     colours can be read on the map itself and not only against the key.
+     Only edges the reveal has already reached are named. */
+  function bandMarks(r) {
+    const f = S.field, L = S.ladder;
+    if (!f || !L) return [];
+    const l = (S.origin.lon + S.rotL) * RAD, ph = S.origin.lat * RAD, pp = S.rotP * RAD;
+    if (Math.cos(l) * Math.cos(ph) * Math.cos(pp) - Math.sin(ph) * Math.sin(pp) < 0.15) return [];
+    const o = proj([S.origin.lon, S.origin.lat]);
+    if (!o || !isFinite(o[0])) return [];
+    const dir = o[1] - cy > r * 0.3 ? -1 : 1;
+    const want = [3, 6, 9, 12, 15].filter(i => i < L.length && i + 1 < S.reveal);
+    const out = [];
+    let wi = 0, lastT = -1e9;
+    for (let t = 8; wi < want.length && out.length < 3 && t < 2 * r; t += 2) {
+      const y = o[1] + dir * t;
+      const ll = screenToLonLat(o[0], y);
+      if (!ll) break;
+      const v = f.dist[cellOf(ll[0], ll[1])];
+      if (!(v < Infinity)) continue;
+      let hit = -1;
+      while (wi < want.length && v >= L[want[wi]]) hit = want[wi++];
+      if (hit >= 0 && t - lastT >= 30 && t > 16) { out.push({ x: o[0], y, text: fmtBand(L[hit]) }); lastT = t; }
+    }
+    return out;
   }
 
   function drawScene() {
@@ -1317,6 +1356,11 @@
     });
 
 
+    // the named band edges go down first, so the place names step round them
+    const marks = bandMarks(r);
+    ctx.font = '500 10px "IBM Plex Mono", monospace';
+    for (const m of marks) m.box = [m.x - 4, m.y - 7, ctx.measureText(m.text).width + 14, 14];
+
     // places — more of them the closer you look, never overlapping
     const LG = labelGeom();
     const cosP = Math.cos(S.rotP * RAD), sinP = Math.sin(S.rotP * RAD);
@@ -1329,7 +1373,7 @@
     const nShow = Math.round(Math.min(PLACES.length, 420, 22 + Math.pow(zoom, 1.8) * 28));
     ctx.font = '500 10px "IBM Plex Sans", sans-serif';
     ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-    const placed = [];
+    const placed = marks.map(m => m.box);
     for (let k = 0; k < nShow; k++) {
       const c = PLACES[k];
       const z = LG.z[k];
@@ -1358,6 +1402,21 @@
       ctx.globalAlpha = 1;
     }
 
+    if (marks.length) {
+      ctx.save();
+      ctx.font = '500 10px "IBM Plex Mono", monospace';
+      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      for (const m of marks) {
+        ctx.strokeStyle = T.labelHalo; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(m.x - 3, m.y); ctx.lineTo(m.x + 3, m.y); ctx.stroke();
+        ctx.strokeText(m.text, m.x + 7, m.y + .5);
+        ctx.strokeStyle = T.label; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(m.x - 3, m.y); ctx.lineTo(m.x + 3, m.y); ctx.stroke();
+        ctx.fillStyle = T.label; ctx.fillText(m.text, m.x + 7, m.y + .5);
+      }
+      ctx.restore();
+    }
+
     const op = facing(S.origin.lon, S.origin.lat) > 0 ? proj([S.origin.lon, S.origin.lat]) : null;
     if (op) {
       const t = (performance.now() % 2600) / 2600;
@@ -1375,6 +1434,21 @@
       ctx.stroke();
       ctx.fillStyle = T.originDot;
       ctx.beginPath(); ctx.arc(op[0], op[1], 1.8, 0, TAU); ctx.fill();
+      ctx.restore();
+    }
+
+    // with the keyboard on the globe, the centre of the view is what Enter picks
+    if (S.kbd) {
+      ctx.save();
+      ctx.strokeStyle = T.origin; ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(cx - 15, cy); ctx.lineTo(cx - 5, cy); ctx.moveTo(cx + 5, cy); ctx.lineTo(cx + 15, cy);
+      ctx.moveTo(cx, cy - 15); ctx.lineTo(cx, cy - 5); ctx.moveTo(cx, cy + 5); ctx.lineTo(cx, cy + 15);
+      ctx.stroke();
+      ctx.font = '500 10px "IBM Plex Mono", monospace';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.lineWidth = 3; ctx.strokeStyle = T.labelHalo; ctx.strokeText('Enter: travel from here', cx, cy + 21);
+      ctx.fillStyle = T.label; ctx.fillText('Enter: travel from here', cx, cy + 21);
       ctx.restore();
     }
 
@@ -1467,16 +1541,21 @@
     const pct = landIn / landTot * 100;
     $('statWeek').textContent = stranded ? '\u2014' : (pct < 1 ? pct.toFixed(1) : Math.round(pct)) + '%';
 
-    $('thEra').textContent = yr;
-    const rows = [];
-    for (const name of D.LANDMARKS) {
-      const c = D.CITIES.find(x => x.n === name);
-      if (!c || gcDist(lo, la, c.lon, c.lat) < 500) continue;
-      rows.push(c);
-      if (rows.length >= 8) break;
-    }
-    $('destBody').innerHTML = rows.map(c =>
-      '<tr><td>' + c.n + '</td><td class="num">' + fmtDur(timeAt(f, c.lon, c.lat)) + '</td></tr>').join('');
+    const M = D.MODES[S.mode];
+    const from = S.origin.name.startsWith('At sea') ? 'the marked point' : S.origin.name;
+    $('scaleName').textContent = 'Time from ' + from;
+    // the one sentence a screen reader hears after each solve, and the globe's own name
+    const said = M.name + ' from ' + from + ' in ' + yr + '. ' + (stranded ? 'Nothing can be reached from here.'
+      : 'Farthest point within a day: ' + fmtKm(far).replace(/\u2009/g, ' ') + '. ' +
+        $('statWeek').textContent + ' of the land within a week.');
+    cv.setAttribute('aria-label', said);
+    $('announce').textContent = said;
+    $('checked').innerHTML = M.best && ei === D.ERAS.length - 1
+      ? 'Checked against <a href="https://transitous.org" target="_blank" rel="noopener">real timetables</a>: ' +
+        'of 6\u2009993 places reached from 19 cities, 57% land within a tenth of the true time and 85% within a quarter. ' +
+        'Between city centres, 36% and 72%.'
+      : '';
+    updateJourneys();
 
     S.legendReady = true;
     updateLegend();
@@ -1492,13 +1571,15 @@
       '<div class="rampbar" style="background:linear-gradient(90deg,' + stops + ')"></div>' +
       '<div class="ramplab">' + labs + '</div>' +
       '<div class="lg"><i style="background:rgba(' + R[n - 1].join(',') + ',.5)"></i>' +
-      '<span>beyond ' + fmtBand(L[n - 1]) + '</span></div>';
+      '<span>beyond ' + fmtBand(L[n - 1]) + '</span></div>' +
+      (S.ladderLock ? '<div class="lg held"><i></i><span>Scale held from ' + D.ERAS[S.lockEra].y +
+        ', so the years compare</span></div>' : '');
   }
 
   function updateMethod() {
     const M = D.MODES[S.mode], ei = S.era, E = D.ERAS[ei], b = [];
     const A = (u, t) => '<a href="' + u + '" target="_blank" rel="noopener">' + t + '</a>';
-    const H = t => b.push('<h4>' + t + '</h4>');
+    const H = t => b.push('<h3>' + t + '</h3>');
     const N = n => n.toLocaleString('en').replace(/,/g, '\u2009');
     const HR = h => h < 2 ? Math.round(h * 60) + ' min' : h + ' h';
     const L = items => b.push('<ul>' + items.map(i => '<li>' + i + '</li>').join('') + '</ul>');
@@ -1506,7 +1587,7 @@
     H('Grid');
     L(['0.25\u00b0, 1\u2009036\u2009800 cells',
        'Each cell holds its road class, railway, ferry route, terrain and country',
-       'Quickest route found by least-cost path (Dial\u2019s Dijkstra), after ' +
+       'A least-cost path finds the quickest route (Dial\u2019s Dijkstra), after ' +
          A('https://www.nature.com/articles/nature25181', 'Weiss et al. 2018')]);
 
     H('Roads');
@@ -1542,10 +1623,9 @@
       if (E.y <= 1911) r.push('American lines open on their real dates, from ' +
         A('https://my.vanderbilt.edu/jeremyatack/data-downloads/', 'Atack\u2019s survey') +
         ' of 76\u2009849 segments 1826\u20131911');
-      if (ei === 7) r.push('Checked against 317 real journeys today (' +
-        A('https://transitous.org', 'Transitous') + ')' +
-        '<ul><li>against every place reachable from a point, which is what this map draws: 85% within a quarter, 57% within a tenth</li>' +
-        '<li>between city centres, the best-connected points there are: 72% and 36%</li></ul>');
+      if (ei === 7) r.push('Checked against real timetables from ' + A('https://transitous.org', 'Transitous') +
+        '<ul><li>6\u2009993 places reached from 19 cities, which is what this map draws: 57% within a tenth of the real time, 85% within a quarter</li>' +
+        '<li>317 journeys between city centres, the best-connected points there are: 36% and 72%</li></ul>');
       L(r);
     }
 
@@ -1553,8 +1633,8 @@
       H('Pace');
       L([Math.round(M.land[ei] / M.duty[ei] * 10) / 10 + ' km/h, ' + M.duty[ei] + ' h a day',
          'Short trips run at full speed. Only long ones pay for nights and rests',
-         'Walking set by ' + A('https://en.wikipedia.org/wiki/Tobler%27s_hiking_function', 'Tobler\u2019s hiking function') +
-           ': 5 km/h flat, 2\u20134 over a real day']);
+         A('https://en.wikipedia.org/wiki/Tobler%27s_hiking_function', 'Tobler\u2019s hiking function') +
+           ' sets the walking pace: 5 km/h on the flat, 2\u20134 over a real day']);
     }
 
     H('Water');
@@ -1571,7 +1651,7 @@
            A('https://www.rmg.co.uk/stories/maritime-history/library-archive/18th-century-sailing-times-between-english-channel-coast', 'Royal Museums Greenwich') +
            '<ul><li>30\u201340 days out to the Indies</li><li>50\u201370 back</li></ul>'] : []));
     else
-      L(['You stay on land. Open water takes no colour',
+      L(['You stay on land. Anything across open water is out of reach',
          '314 scheduled ferry routes, the longest 1\u2009281 km. None crosses an ocean'
          ].concat(E.y >= 1950 ? ['Fixed links count as land from their opening year' +
            '<ul><li>Kanmon 1942, Bosphorus 1973</li><li>Seikan 1988, Channel Tunnel 1994</li></ul>'] : []));
@@ -1579,7 +1659,7 @@
     if (M.air && D.AIR[ei]) {
       const a = D.AIR[ei];
       H('Air');
-      L(['Chartered, not timetabled. The limit is the aircraft',
+      L(['No timetable. Range and cruise speed set the journey',
          N(AIRPORTS.filter(x => x.r <= D.AIR_RANK[ei] && (!x.y || x.y <= E.y)).length) + ' airfields, from ' +
            A('https://ourairports.com/data/', 'OurAirports') + ' and Natural Earth',
          N(a.cruise) + ' km/h, range ' + N(a.range) + ' km',
@@ -1588,17 +1668,20 @@
 
     H('Corrections');
     L(['Grid routes cut corners. Land time divided by ' + D.ROAD_CIRC + ' road, ' + D.RAIL_CIRC + ' rail',
-       'One scale per plot: 18 steps up to the 97th percentile of what is reachable. Zoom does not move it']);
+       'One scale per plot: 18 steps up to the 97th percentile of what is reachable, fixed across every zoom']);
 
     H('Limits');
     L(['An illustrative model, not routing data',
-       'Ignores wind, monsoon, timetables, borders, war, weather',
+       'Ignores wind, monsoon, war and weather',
+       'Frontiers cost time only by rail',
        'Assumes you always catch the best connection']);
     $('method').innerHTML = b.join('');
   }
 
   /* ================= recompute ================= */
   function recompute(animateIn) {
+    stopPlay();
+    if (S.ladderLock) { S.ladderLock = null; S.tKey = ''; }
     S.ladder = S.ladder || ladderFor();
     document.body.classList.add('solving');
     // Yield so the browser can paint the solving state before we block it for
@@ -1659,7 +1742,7 @@
       b.setAttribute('aria-pressed', 'false');
       b.innerHTML = '<div class="tick"></div><div class="yr">' + e.y + '</div>' +
         '<div class="tag">' + e.tag + '</div>';
-      b.title = e.y + ' — ' + e.tag;
+      b.setAttribute('aria-label', e.y + ', ' + e.tag);
       b.addEventListener('click', () => {
         S.era = k; syncControls(); recompute(true);
         if (S.mobile) document.body.classList.remove('sheet-open');
@@ -1667,6 +1750,147 @@
       ax.appendChild(b);
     });
   }
+  /* Every caption shows when there is room for it; on a narrow axis only the
+     year in use keeps its caption, so none of them run into each other. */
+  function fitTags() {
+    const ax = $('axis'), eras = ax.querySelectorAll('.era');
+    document.body.classList.remove('tags-tight');
+    if (S.mobile || eras.length < 2) return;
+    const gap = ax.clientWidth / (eras.length - 1);
+    let widest = 0;
+    eras.forEach(b => { widest = Math.max(widest, b.querySelector('.tag').scrollWidth); });
+    document.body.classList.toggle('tags-tight', widest + 16 > gap);
+  }
+
+  /* ================= the years in sequence =================
+     Play steps through every year this means of travel has, from the first to
+     today, on one colour scale held from the first year, so the world can be
+     seen to shrink. Each year's solve is the pause on the year before it. */
+  const sleep = ms => new Promise(res => setTimeout(res, ms));
+  function setPlayUI(on) {
+    for (const id of ['play', 'playChip']) {
+      const b = $(id);
+      if (!b) continue;
+      b.setAttribute('aria-pressed', String(on));
+      b.setAttribute('aria-label', on ? 'Stop playing the years' : 'Play the years from the first to today');
+      b.querySelector('svg').innerHTML = on ? '<path d="M0 0h9v10H0z"/>' : '<path d="M0 0l9 5-9 5z"/>';
+      const t = b.querySelector('span');
+      if (t) t.textContent = on ? 'Stop' : 'Play the years';
+    }
+  }
+  function stopPlay() {
+    S.playGen = (S.playGen || 0) + 1;
+    if (!S.playing) return;
+    S.playing = false;
+    document.body.classList.remove('playing');
+    setPlayUI(false);
+    lookahead();
+  }
+  async function play() {
+    const first = D.MODES[S.mode].since, last = D.ERAS.length - 1;
+    stopPlay();
+    const gen = S.playGen;
+    S.playing = true;
+    document.body.classList.add('playing');
+    setPlayUI(true);
+    cancelLookahead(); unpinTip();
+    if (S.mobile) document.body.classList.remove('sheet-open');
+    for (let e = first; e <= last; e++) {
+      await sleep(40);
+      if (S.playGen !== gen) return;
+      const t0 = performance.now();
+      const f = getField(S.origin.lon, S.origin.lat, S.mode, e);
+      if (S.playGen !== gen) return;
+      if (e === first) {
+        const top = fieldLadder(f);
+        S.ladderLock = makeLadder(top[top.length - 1], 1);
+        S.lockEra = e;
+      }
+      S.era = e; S.field = f;
+      S.fieldKey = fieldKey(S.origin.lon, S.origin.lat, S.mode, e);
+      S.solveMs = Math.round(performance.now() - t0);
+      S.fieldGen = (S.fieldGen || 0) + 1;
+      S.tKey = '';
+      refreshLadder(); syncControls(); updateReadout(); updateMethod();
+      animate(0);
+      await sleep(reduced ? 1500 : 1900);
+    }
+    if (S.playGen === gen) stopPlay();
+  }
+  function buildPlay() {
+    const chip = document.createElement('button');
+    chip.id = 'playChip'; chip.type = 'button';
+    chip.innerHTML = '<svg viewBox="0 0 9 10" aria-hidden="true"><path d="M0 0l9 5-9 5z"/></svg>';
+    $('axis').insertBefore(chip, $('axis').querySelector('.era'));
+    const toggle = () => { if (S.playing) stopPlay(); else play(); };
+    $('play').addEventListener('click', toggle);
+    chip.addEventListener('click', toggle);
+    setPlayUI(false);
+  }
+
+  /* ================= then and now =================
+     The eight journeys at the year on show, each against the same journey
+     today (or, when today is on show, against the first year this means of
+     travel had). One log scale for every row, so the length of the line is
+     the change, and the longest change is the one picked out. */
+  function compEra() {
+    const last = D.ERAS.length - 1;
+    return S.era === last ? D.MODES[S.mode].since : last;
+  }
+  function updateJourneys() {
+    const f = S.field;
+    if (!f) return;
+    const lo = S.origin.lon, la = S.origin.lat, ce = compEra();
+    const cf = ce !== S.era ? fieldCache.get(fieldKey(lo, la, S.mode, ce)) : null;
+    const rows = [];
+    for (const name of D.LANDMARKS) {
+      const c = D.CITIES.find(x => x.n === name);
+      if (!c || gcDist(lo, la, c.lon, c.lat) < 500) continue;
+      rows.push({ n: c.n, a: timeAt(f, c.lon, c.lat), b: cf ? timeAt(cf, c.lon, c.lat) : NaN });
+      if (rows.length >= 8) break;
+    }
+    const yA = D.ERAS[S.era].y, yB = D.ERAS[ce].y, early = S.era < ce;
+    const yThen = early ? yA : yB, yNow = early ? yB : yA;
+    $('jkey').innerHTML = '<i class="then"></i>' + yThen + '<i class="now"></i>' + yNow +
+      (cf || ce === S.era ? '' : '\u2026');
+
+    const pn = $('panel');
+    const W = Math.max(220, pn.clientWidth - (S.mobile ? 30 : 28));
+    const RH = 21, nameW = 90, valW = 42, x0 = nameW, x1 = W - valW - 8;
+    const HI = Math.log10(8760);
+    const X = h => x0 + Math.log10(Math.max(1, Math.min(8760, h))) / HI * (x1 - x0);
+    let focal = -1, best = 0;
+    rows.forEach((q, k) => {
+      if (q.a < Infinity && q.b < Infinity) {
+        const g = Math.abs(Math.log(q.a / q.b));
+        if (g > best) { best = g; focal = k; }
+      }
+    });
+    const H = rows.length * RH + 20;
+    const out = ['<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H +
+      '" role="img" aria-label="Journey times in ' + yThen + ' and ' + yNow + '">'];
+    rows.forEach((q, k) => {
+      const y = k * RH + 10, fc = k === focal ? ' focal' : '';
+      const ta = q.a < Infinity, tb = q.b < Infinity;
+      const tip = q.n + ': ' + fmtDur(q.a) + ' in ' + yA + (cf ? ', ' + fmtDur(q.b) + ' in ' + yB : '');
+      out.push('<g><title>' + tip + '</title>');
+      out.push('<text class="nm' + fc + '" x="0" y="' + (y + 4.5) + '">' + q.n + '</text>');
+      out.push('<line class="track" x1="' + x0 + '" x2="' + x1 + '" y1="' + y + '" y2="' + y + '"/>');
+      if (ta && tb) out.push('<line class="gap' + fc + '" x1="' + X(q.a).toFixed(1) + '" x2="' + X(q.b).toFixed(1) +
+        '" y1="' + y + '" y2="' + y + '"/>');
+      const dot = (h, then) => '<circle class="' + (then ? 'then' : 'now') + '" cx="' + X(h).toFixed(1) +
+        '" cy="' + y + '" r="' + (then ? 3.4 : 3) + '"/>';
+      if (tb) out.push(dot(q.b, !early));
+      if (ta) out.push(dot(q.a, early));
+      out.push('<text class="v" x="' + W + '" y="' + (y + 3.5) + '" text-anchor="end">' + fmtDur(q.a) + '</text></g>');
+    });
+    const ty = rows.length * RH + 14;
+    for (const [h, t] of [[1, '1 h'], [24, '1 d'], [720, '1 mo']])
+      out.push('<text class="tk" x="' + X(h).toFixed(1) + '" y="' + ty + '" text-anchor="middle">' + t + '</text>');
+    out.push('</svg>');
+    $('journeys').innerHTML = out.join('');
+  }
+
   function syncControls() {
     const ei = S.era;
     if (D.MODES[S.mode].since > ei || D.MODES[S.mode].hidden) S.mode = 0;
@@ -1786,6 +2010,34 @@
   }, { passive: false });
   cv.addEventListener('dblclick', e => e.preventDefault());
 
+  /* The keyboard does what the pointer does: arrows turn the globe as a short
+     drag would, plus and minus zoom, and Enter travels from the centre of the
+     view, which a crosshair marks while the globe has keyboard focus. */
+  cv.addEventListener('focus', () => { if (cv.matches(':focus-visible')) { S.kbd = true; draw(); } });
+  cv.addEventListener('blur', () => { if (S.kbd) { S.kbd = false; draw(); } });
+  cv.addEventListener('pointerdown', () => { if (S.kbd) { S.kbd = false; draw(); } });
+  cv.addEventListener('keydown', e => {
+    const k = 130 / S.scale * 26;
+    let turn = false;
+    switch (e.key) {
+      case 'ArrowLeft': S.rotL += k; turn = true; break;
+      case 'ArrowRight': S.rotL -= k; turn = true; break;
+      case 'ArrowUp': S.rotP = Math.max(-90, S.rotP - k); turn = true; break;
+      case 'ArrowDown': S.rotP = Math.min(90, S.rotP + k); turn = true; break;
+      case '+': case '=': zoomTo(S.scale * 1.25); break;
+      case '-': case '_': zoomTo(S.scale / 1.25); break;
+      case 'Enter': case ' ': {
+        const ll = screenToLonLat(cx, cy);
+        if (ll) setOrigin(ll[0], ll[1]);
+        break;
+      }
+      default: return;
+    }
+    e.preventDefault();
+    S.kbd = true;
+    if (turn) { S.tKey = ''; interacting(); redraw(); } else draw();
+  });
+
   /* On a mouse this follows the cursor. On a touch screen there is no hover,
      so a tap pins it instead: the time to that place, and the choice of
      starting again from there. Without it a phone could read no time at all
@@ -1821,8 +2073,14 @@
     setOrigin(lon, lat);
   });
 
+  function hideHint() {
+    const h = $('hint');
+    if (!h || h.hidden || h.classList.contains('fading')) return;
+    h.classList.add('fading');
+    setTimeout(() => { h.hidden = true; if (S.mobile) stageSize(); }, 650);
+  }
   function setOrigin(lon, lat, name, recentre) {
-    unpinTip();
+    unpinTip(); hideHint();
     const c = name ? null : nearestPlace(lon, lat, 120);
     S.origin = { lon: c ? c.lon : lon, lat: c ? c.lat : lat, name: name || (c ? c.n : coordName(lon, lat)) };
     if (recentre) { S.rotL = -S.origin.lon; S.rotP = -S.origin.lat; S.tKey = ''; }
@@ -1953,7 +2211,7 @@
         return;
       }
       msg.textContent = 'finding every route…';
-      buildModes(); buildEras(); buildSearch(); buildPalettes();
+      buildModes(); buildEras(); buildPlay(); buildSearch(); buildPalettes();
       syncControls();
       /* A phone fires resize for every pixel the address bar slides, and a
          full redraw is far too expensive to run on each one. */
@@ -1971,10 +2229,30 @@
       stageSize();
       recompute(false);
       $('boot').classList.add('gone');
-      setTimeout(() => { $('boot').remove(); animate(0); }, 420);
+      setTimeout(() => {
+        $('boot').remove();
+        APP.booted = true;
+        if (APP.hold) window.dispatchEvent(new Event('iso:ready'));
+        else APP.enter();
+      }, 420);
     };
     setTimeout(run, 30);
   }
+
+  /* What a page wrapped round the globe can ask of it: where the globe sits,
+     whether the world is built, and when to make its entrance. A page that
+     sets window.ISO_HOLD before this script runs gets to choose that moment. */
+  const APP = window.ISO_APP = {
+    hold: !!window.ISO_HOLD, booted: false, entered: false,
+    geom: () => ({ cx, cy, r: Math.max(1, S.scale), W: Wc, H: Hc, mobile: !!S.mobile }),
+    enter() {
+      if (APP.entered) return;
+      APP.entered = true; APP.hold = false;
+      document.body.classList.add('ready');
+      animate(0);
+      lookahead();
+    }
+  };
 
   window.__ISO = { computeField, cellOf, landCellOf, gcDist, draw, D, G, cName, cMS, cRQ, cRY,
     ctryOf, landMask, terr, roadCls, railCls, ferryCell, fmtDur, S };
