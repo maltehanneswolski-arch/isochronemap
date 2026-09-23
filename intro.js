@@ -164,6 +164,9 @@ html.sketch .panel,html.sketch #brand{border:none;backdrop-filter:none;-webkit-b
   background-color:var(--panel);background-repeat:no-repeat;background-position:0 0}
 html.sketch .eyebrow,html.sketch summary{letter-spacing:.2em;font-weight:500}
 html.sketch #panel{padding:17px 18px 15px}
+/* the panel and the search list still scroll, but show no bar while they do */
+html.sketch #panel,html.sketch #findList{scrollbar-width:none}
+html.sketch #panel::-webkit-scrollbar,html.sketch #findList::-webkit-scrollbar{display:none}
 html.sketch #timeline{padding:14px 36px 10px}
 /* the title as a cartouche, as in the intro */
 html.sketch #brand{padding:16px 22px 17px;max-width:340px}
@@ -243,14 +246,12 @@ html.sketch body.mobile .era .yr{font-size:12.5px}
   const style = document.createElement('style');
   style.textContent = `
 html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on #boot{visibility:hidden}
-#intro{position:fixed;inset:0;z-index:40;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
-  scrollbar-width:none;outline:none;-webkit-overflow-scrolling:touch}
-#intro::-webkit-scrollbar{display:none}
-#intro .istage{position:sticky;top:0;height:100%;overflow:hidden}
+#intro{position:fixed;inset:0;z-index:40;overflow:hidden;outline:none;touch-action:none;
+  overscroll-behavior:none;-webkit-user-select:none;user-select:none}
+#intro .istage{position:absolute;inset:0;overflow:hidden}
 #intro .ibg{position:absolute;inset:0;transition:opacity .9s var(--ease);
   background:radial-gradient(ellipse 80% 70% at 50% 46%,#0B0F19 0%,#06080F 62%,#030409 100%)}
 #intro canvas{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
-#intro .irun{height:500%}
 #intro .ititle{position:absolute;left:50%;top:13vh;width:max-content;max-width:calc(100% - 64px);
   padding:22px 34px 24px;text-align:center;pointer-events:none;color:#EDE7D9;transform:translateX(-50%)}
 #intro .ik{margin:0 0 12px;font-size:var(--fs-xs);letter-spacing:.3em;text-transform:uppercase;font-weight:600;
@@ -280,9 +281,9 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
   document.head.appendChild(style);
   document.documentElement.classList.add('intro-on');
 
-  /* The drawing sits in a sticky layer inside the scrolling box, not in fixed
-     layers over it: a wheel turned over a fixed element scrolls the page, which
-     cannot scroll, and the box underneath never hears of it. */
+  /* Nothing here scrolls natively. The wheel, a finger or the keys move a
+     position along a track five screens long, so no browser, phone or
+     desktop, ever draws a scrollbar or a scroll indicator over the drawing. */
   const root = document.createElement('div');
   root.id = 'intro';
   root.tabIndex = -1;
@@ -294,8 +295,7 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     '<p class="il">How far you could get from any point on Earth, in any year since 1750.</p></div>' +
     '<p class="ihint" aria-hidden="true">Scroll to set off</p>' +
     '<p class="iwait" aria-hidden="true">building the world&hellip;</p>' +
-    '<button class="iskip" type="button"><span>Skip the intro</span></button></div>' +
-    '<div class="irun"></div>';
+    '<button class="iskip" type="button"><span>Skip the intro</span></button></div>';
   document.body.appendChild(root);
   const cv = root.querySelector('canvas'), ctx = cv.getContext('2d');
   const elTitle = root.querySelector('.ititle'), elHint = root.querySelector('.ihint');
@@ -370,6 +370,35 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
   }
   const mixPose = (a, b, t) => { const o = {}; for (const k in a) o[k] = mixP(a[k], b[k], t); return o; };
 
+  /* The luggage: a backpack on foot, running and on the bicycle (and in the
+     car, out of sight); on board it comes off and stands on deck as a
+     suitcase, and it goes into the hold for the flight. Both are the same
+     twelve-point outline plus two lines, so one redraws itself into the other. */
+  function backpack(p) {
+    const dx = p.sh[0] - p.hip[0], dy = p.sh[1] - p.hip[1], L = Math.hypot(dx, dy) || 1;
+    const u = [dx / L, dy / L], bk = [-u[1], u[0]];                     // along the spine, and out behind it
+    const at = (t, d) => [p.hip[0] + u[0] * L * t + bk[0] * d, p.hip[1] + u[1] * L * t + bk[1] * d];
+    return {
+      pts: [at(0.95, 0.03), at(0.98, 0.09), at(0.92, 0.15), at(0.74, 0.17), at(0.52, 0.175), at(0.33, 0.165),
+            at(0.25, 0.12), at(0.25, 0.06), at(0.3, 0.02), at(0.5, 0.02), at(0.7, 0.02), at(0.86, 0.02)],
+      lines: [[at(0.95, 0.03), at(1.0, -0.02), at(0.6, -0.05)],        // the strap over the shoulder
+              [at(0.7, 0.17), at(0.7, 0.03)]]                          // the flap
+    };
+  }
+  function suitcase(x, y) {
+    const w = 0.21, h = 0.26, r = 0.028;
+    return {
+      pts: [[x, y + h - r], [x + r, y + h], [x + w / 2, y + h], [x + w - r, y + h], [x + w, y + h - r], [x + w, y + h / 2],
+            [x + w, y + r], [x + w - r, y], [x + w / 2, y], [x + r, y], [x, y + r], [x, y + h / 2]],
+      lines: [[[x + w * 0.34, y + h], [x + w / 2, y + h + 0.055], [x + w * 0.66, y + h]],   // the handle
+              [[x + w * 0.74, y + h], [x + w * 0.74, y]]]                                 // the strap round it
+    };
+  }
+  const SUIT_SAIL = [-1.53, 0.72], SUIT_STEAM = [-0.445, 0.3];
+  const bagFor = (st, pose) => st <= 4 ? backpack(pose) : st === 5 ? suitcase(SUIT_SAIL[0], SUIT_SAIL[1]) : suitcase(SUIT_STEAM[0], SUIT_STEAM[1]);
+  const mixBag = (a, b, t) => ({ pts: a.pts.map((q, i) => mixP(q, b.pts[i], t)),
+                                 lines: a.lines.map((l, j) => l.map((q, i) => mixP(q, b.lines[j][i], t))) });
+
   /* ================= the means of travel ================= */
   const circ = (c, r, id, n) => {
     n = n || Math.max(12, Math.round(r * 90));
@@ -432,7 +461,7 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
   }
 
   // a square-rigged sailing ship; the figure at the wheel on the quarterdeck
-  const SAIL_AT = [-1.25, 0.6], SAIL_WHEEL = { c: [-0.98, 1.18], r: 0.12 };
+  const SAIL_AT = [-1.25, 0.72], SAIL_WHEEL = { c: [-0.98, 1.3], r: 0.12 };      // standing on the quarterdeck
   const sailPose = (phi, breath) => atWheel(phi, breath, SAIL_AT, SAIL_WHEEL);
   const SAIL_HULL = [[-1.55, 0.72], [-0.95, 0.68], [-0.9, 0.52], [0.9, 0.48], [1.38, 0.68], [1.12, 0.06],
                      [0.55, -0.16], [-1.05, -0.16], [-1.5, 0.1], [-1.55, 0.72]];
@@ -470,7 +499,7 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
       seams: [].concat(...S.map(s => sailSeams(s[0], s[1], s[2], s[3], s[4]))),
       hull: [SAIL_HULL, [[-1.48, 0.36], [-0.2, 0.3], [1.22, 0.38]], [[-0.9, 0.52], [-0.9, 0.68]],
         ...[-0.95, -0.55, -0.15, 0.25, 0.65].map(x => [[x - 0.05, 0.15], [x + 0.05, 0.15], [x + 0.05, 0.24], [x - 0.05, 0.24], [x - 0.05, 0.15]]),
-        [[-0.98, 0.72], [-0.98, 1.05]], ...shipWheel(SAIL_WHEEL.c, SAIL_WHEEL.r)]
+        [[-0.98, 0.72], [-0.98, 1.17]], ...shipWheel(SAIL_WHEEL.c, SAIL_WHEEL.r)]
     };
   }
 
@@ -509,9 +538,23 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     return [PLANE_BODY, CANOPY, GLASS, FIN, [[-0.82, 0.6], [-1.22, 0.61]], wing, [[0.86, 0.66], [0.84, 0.34]],
       [[1.08, 0.5 - 0.25 * Math.cos(pa)], [1.08, 0.5 + 0.25 * Math.cos(pa)]]];
   }
-  // the undercarriage, drawn apart so that it can fade once the wheels are off the ground
-  const gearStrokes = wa => [[[0.34, 0.325], [0.32, 0.16]], circ([0.32, 0.08], 0.08, 41), ...spokes([0.32, 0.08], 0.065, wa, 1),
-    [[-0.9, 0.52], [-0.93, 0.075]], circ([-0.93, 0.04], 0.04, 42, 10)];
+  /* The undercarriage folds away as the plane climbs: the main leg swings
+     back and up into the belly, the tail wheel forward into the tail, and a
+     door closes over the main wheel. It is drawn before the fuselage, so the
+     fuselage hides what has gone inside it. */
+  function gear(k, wa) {
+    const g = sstep(0.1, 0.42, k);                                    // 0 down, 1 stowed
+    const mh = [0.34, 0.325], ml = 0.245, ma = -Math.PI / 2 - g * 1.99;
+    const mw = [mh[0] + Math.cos(ma) * ml, mh[1] + Math.sin(ma) * ml];
+    const me = [mh[0] + Math.cos(ma) * (ml - 0.08), mh[1] + Math.sin(ma) * (ml - 0.08)];
+    const th = [-0.9, 0.52], tl = 0.445, ta = -Math.PI / 2 + g * Math.PI / 2;
+    const tw = [th[0] + Math.cos(ta) * tl, th[1] + Math.sin(ta) * tl];
+    const te = [th[0] + Math.cos(ta) * (tl - 0.04), th[1] + Math.sin(ta) * (tl - 0.04)];
+    // the door hangs open under the well until the wheel is in, then shuts along the belly
+    const shut = sstep(0.72, 1, g), dh = [0.37, 0.322], da = Math.atan2(0.119, -0.993) + (1 - shut) * 1.25;
+    const door = [dh, [dh[0] + Math.cos(da) * 0.24, dh[1] + Math.sin(da) * 0.24]];
+    return { legs: [[mh, me], circ(mw, 0.08, 41), ...spokes(mw, 0.065, wa, 1), [th, te], circ(tw, 0.04, 42, 10)], door };
+  }
 
   /* ================= drawing by hand =================
      Every line is cut into short steps, each nudged off true by a smooth
@@ -688,6 +731,7 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     FH = clamp(Math.min(H * 0.2, W * 0.28), 88, 220);
     X0 = W / 2; GY = Math.round(H * 0.63);
     J = Math.max(0.55, FH * 0.0042); LW = Math.max(1.7, FH * 0.015); SEG = Math.max(5, FH * 0.04);
+    if (typeof pos === 'number') pos = target * spanPx();          // keep the place on the track when the screen changes
   }
 
   /* ================= state and the loop ================= */
@@ -696,9 +740,32 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
   const puffs = [];
   let G = null, leaving = null, waiting = false, finished = false;
 
-  root.addEventListener('scroll', () => {
-    const span = root.scrollHeight - root.clientHeight;
-    target = span > 0 ? clamp(root.scrollTop / span, 0, 1) : 0;
+  // the scroll, done by hand: a flick carries on and slows the way a native scroll does
+  let pos = 0, fling = 0;
+  const spanPx = () => Math.max(1, H * 5);
+  const moveBy = d => { pos = clamp(pos + d, 0, spanPx()); target = pos / spanPx(); };
+  root.addEventListener('wheel', e => {
+    e.preventDefault();
+    fling = 0;
+    moveBy(e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? H : 1));
+  }, { passive: false });
+  let ty = null, tt = 0, vel = 0;
+  root.addEventListener('touchstart', e => {
+    if (e.touches.length !== 1) { ty = null; return; }
+    ty = e.touches[0].clientY; tt = performance.now(); vel = 0; fling = 0;
+  }, { passive: true });
+  root.addEventListener('touchmove', e => {
+    if (ty === null) return;
+    e.preventDefault();
+    const y = e.touches[0].clientY, now = performance.now(), dy = ty - y;
+    vel = 0.8 * (dy / Math.max(1, now - tt)) + 0.2 * vel;           // pixels a millisecond, smoothed
+    ty = y; tt = now;
+    moveBy(dy);
+  }, { passive: false });
+  root.addEventListener('touchend', () => {
+    if (ty === null) return;
+    ty = null;
+    if (performance.now() - tt < 90) fling = vel;                    // still moving when it let go
   }, { passive: true });
 
   function frame(now) {
@@ -708,6 +775,11 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
   }
   function tick(dt) {
     time += dt;
+    if (fling) {
+      moveBy(fling * dt * 1000);
+      fling *= Math.exp(-dt * 1000 / 325);
+      if (Math.abs(fling) < 0.02 || pos <= 0 || pos >= spanPx()) fling = 0;
+    }
     const dP = (target - P) * (1 - Math.exp(-dt * (reduced ? 40 : 7)));
     P += dP;
     if (Math.abs(target - P) < 1e-5) P = target;
@@ -795,6 +867,14 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
         occlude(STEAM_HULL, pst); hatch(STEAM_HULL, 0.3 * pst); hatch(FUNNEL, 0.4 * pst, null, true);
         ink(steamBack(), sstep(0, 1, pst), 1, LINE, LW, 200);
       }
+      // the luggage, on the traveller's back or on deck
+      const bagA = s >= 7 ? 0 : s > 6 ? 1 - sstep(0, 1, t) : 1;
+      if (bagA > 0.01) {
+        const bag = s <= 4 || t < 1e-3 || a >= 6 ? bagFor(Math.min(a, 6), pose) : mixBag(bagFor(a, pose), bagFor(a + 1, pose), sstep(0, 1, t));
+        const loop = bag.pts.concat([bag.pts[0]]);
+        occlude(loop, bagA); hatch(loop, 0.28 * bagA, null, true);
+        ink([loop, ...bag.lines], 1, bagA * shown, FIG, LW * 0.95, 800);
+      }
       figureNear(pose, shown);
       // in front of it: whatever the figure is inside, or standing behind
       if (pst > 0) {
@@ -815,11 +895,12 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
         ink(carStrokes(wheel), sstep(0, 1, pc), 1, LINE, LW, 300);
       }
       if (pp > 0) {
+        const gr = gear(k, wheel);
+        ink(gr.legs, sstep(0, 1, pp), shown, LINE, LW, 450);
         occlude(PLANE_BODY, pp); occlude(CANOPY, pp, GLASS);
         hatch(PLANE_BODY, 0.2 * pp); hatch(FIN, 0.3 * pp, null, true);
         ink(planeStrokes(prop), sstep(0, 1, pp), shown, LINE, LW, 400);
-        const gear = 1 - sstep(0.12, 0.4, k);
-        if (gear > 0.01) ink(gearStrokes(wheel), sstep(0, 1, pp), shown * gear, LINE, LW, 450);
+        ink([gr.door], sstep(0, 1, pp), shown, LINE, LW * 0.9, 460);
       }
     }
 
@@ -941,13 +1022,18 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
   }
   window.addEventListener('iso:ready', () => { if (waiting && !leaving) finish(false); });
   root.querySelector('.iskip').addEventListener('click', () => finish(true));
+  const KEYSTEP = { ArrowDown: 0.08, ArrowUp: -0.08, PageDown: 0.9, PageUp: -0.9, ' ': 0.9, End: 99, Home: -99 };
   root.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { e.preventDefault(); finish(true); }
+    if (e.key === 'Escape') { e.preventDefault(); finish(true); return; }
+    if (e.key in KEYSTEP && e.target === root) {
+      e.preventDefault(); fling = 0;
+      moveBy((e.key === ' ' && e.shiftKey ? -1 : 1) * KEYSTEP[e.key] * H);
+    }
   });
 
   // on a local server only: hold the ride at any point and run it for a while, frame by frame
   if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname))
-    window.__intro = { at(p, secs) { target = P = p; for (let i = 0; i < Math.round((secs || 0.5) * 60); i++) tick(1 / 60); return stageOf(P); } };
+    window.__intro = { at(p, secs) { target = P = p; pos = p * spanPx(); for (let i = 0; i < Math.round((secs || 0.5) * 60); i++) tick(1 / 60); return stageOf(P); } };
 
   size();
   window.addEventListener('resize', size);
