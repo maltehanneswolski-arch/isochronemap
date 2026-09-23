@@ -27,27 +27,28 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
 #intro{position:fixed;inset:0;z-index:40;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
   scrollbar-width:none;outline:none;-webkit-overflow-scrolling:touch}
 #intro::-webkit-scrollbar{display:none}
-#intro .ibg{position:fixed;inset:0;background:var(--ink);transition:opacity .9s var(--ease)}
-#intro canvas{position:fixed;inset:0;width:100%;height:100%;display:block;pointer-events:none}
-#intro .irun{height:600vh}
-#intro .ititle{position:fixed;left:0;right:0;top:14vh;padding:0 22px;text-align:center;pointer-events:none}
+#intro .istage{position:sticky;top:0;height:100%;overflow:hidden}
+#intro .ibg{position:absolute;inset:0;background:var(--ink);transition:opacity .9s var(--ease)}
+#intro canvas{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+#intro .irun{height:500%}
+#intro .ititle{position:absolute;left:0;right:0;top:14vh;padding:0 22px;text-align:center;pointer-events:none}
 #intro .ih{margin:0;font-family:var(--font-d);font-weight:500;font-size:clamp(34px,6vw,62px);line-height:1;
   letter-spacing:-.01em;color:var(--head)}
 #intro .il{margin:14px auto 0;max-width:27em;font-size:var(--fs-m);line-height:1.45;color:var(--text-dim);
   text-wrap:balance}
-#intro .icap{position:fixed;left:0;right:0;top:0;margin:0;text-align:center;pointer-events:none;
+#intro .icap{position:absolute;left:0;right:0;top:0;margin:0;text-align:center;pointer-events:none;
   font-family:var(--font-d);font-style:italic;font-weight:400;font-size:clamp(20px,2.4vw,27px);color:var(--text-dim)}
-#intro .ihint{position:fixed;left:0;right:0;bottom:calc(24px + env(safe-area-inset-bottom));margin:0;text-align:center;
+#intro .ihint{position:absolute;left:0;right:0;bottom:calc(24px + env(safe-area-inset-bottom));margin:0;text-align:center;
   pointer-events:none;font-size:var(--fs-xs);letter-spacing:.16em;text-transform:uppercase;font-weight:600;
   color:var(--text-faint)}
 #intro .ihint::after{content:"";display:block;width:1px;height:28px;margin:10px auto 0;
   background:linear-gradient(var(--line),rgba(201,212,228,0));transform-origin:top;animation:ihint 2s var(--ease) infinite}
 @keyframes ihint{0%{transform:scaleY(0);opacity:1}60%{transform:scaleY(1);opacity:1}100%{transform:scaleY(1);opacity:0}}
-#intro .iwait{position:fixed;left:0;right:0;bottom:12vh;margin:0;text-align:center;pointer-events:none;
+#intro .iwait{position:absolute;left:0;right:0;bottom:12vh;margin:0;text-align:center;pointer-events:none;
   font-family:var(--font-m);font-size:var(--fs-xs);letter-spacing:.06em;color:var(--text-faint);
   opacity:0;transition:opacity .4s var(--ease)}
 #intro.waiting .iwait{opacity:1}
-#intro .iskip{position:fixed;top:calc(14px + env(safe-area-inset-top));right:calc(16px + env(safe-area-inset-right));
+#intro .iskip{position:absolute;top:calc(14px + env(safe-area-inset-top));right:calc(16px + env(safe-area-inset-right));
   min-height:40px;padding:0 14px;border:1px solid var(--line-dim);background:rgba(5,7,14,.6);
   font-size:var(--fs-xs);letter-spacing:.16em;text-transform:uppercase;font-weight:600;color:var(--line);
   transition:border-color .2s var(--ease),opacity .5s var(--ease)}
@@ -64,14 +65,17 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
   root.tabIndex = -1;
   root.setAttribute('role', 'region');
   root.setAttribute('aria-label', 'Introduction. Scroll to go on, or skip it.');
+  /* The drawing sits in a sticky layer inside the scrolling box, not in fixed
+     layers over it: a wheel turned over a fixed element scrolls the page, which
+     cannot scroll, and the box underneath never hears of it. */
   root.innerHTML =
-    '<div class="ibg"></div><canvas aria-hidden="true"></canvas>' +
+    '<div class="istage"><div class="ibg"></div><canvas aria-hidden="true"></canvas>' +
     '<div class="ititle"><p class="ih">Isochronic Globe</p>' +
     '<p class="il">How far you could get from any point on Earth, in any year since 1750.</p></div>' +
     '<p class="icap" aria-live="polite"></p>' +
     '<p class="ihint" aria-hidden="true">Scroll to set off</p>' +
     '<p class="iwait" aria-hidden="true">building the world&hellip;</p>' +
-    '<button class="iskip" type="button">Skip the intro</button>' +
+    '<button class="iskip" type="button">Skip the intro</button></div>' +
     '<div class="irun"></div>';
   document.body.appendChild(root);
   const cv = root.querySelector('canvas'), ctx = cv.getContext('2d');
