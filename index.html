@@ -278,6 +278,15 @@ body.ready #brand .lede{animation:rise .6s var(--ease) .16s both}
 body.ready #brand .gloss{animation:rise .6s var(--ease) .24s both}
 body.ready #panel{animation:fadein .7s var(--ease) .3s both}
 body.ready #timeline{animation:fadein .7s var(--ease) .42s both}
+/* whatever was held back while the page asked where to start comes in when it is shown */
+body.ready #travel,body.ready .sect,body.ready #paletteWrap,body.ready #detail,
+body.ready #methodBox,body.ready #foot{animation:fadein .6s var(--ease) both}
+
+/* ---------- before a place is chosen: the globe and one question ---------- */
+body.asking #travel,body.asking .sect,body.asking #paletteWrap,body.asking #detail,
+body.asking #methodBox,body.asking #foot,body.asking #timeline{display:none}
+body.asking #globe{cursor:crosshair}
+body.asking #hint{font-size:var(--fs-s);color:var(--text-dim)}
 
 @media (max-width:1140px){
   #panel{width:262px}
@@ -332,6 +341,7 @@ body.mobile #paletteWrap{order:8;flex:none}
 body.mobile #detail{order:9;flex:none}
 body.mobile #methodBox{order:10;flex:none}
 body.mobile #foot{order:11;flex:none;margin-bottom:4px}
+body.mobile.asking #findInput{order:3;margin-top:14px}
 
 /* the era axis, as a row of chips, with play at its head */
 body.mobile #tlHead{display:none}

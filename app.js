@@ -541,7 +541,7 @@
 
   function lookahead() {
     cancelLookahead();
-    if (APP.hold || S.playing) return;        // the intro and Play keep the main thread to themselves
+    if (APP.hold || S.playing || !S.field) return;   // the intro and Play keep the main thread to themselves
     const { lon, lat } = S.origin, mi = S.mode;
     const jobs = [];
     // the year the journeys are compared with comes first, then the years either side
@@ -646,7 +646,11 @@
     rotL: 0.13, rotP: -51.51, scale: 300,
     field: null, ref: null, ladder: D.LADDERS.base,
     reveal: 99, dragging: false, tBuf: null, tKey: '', palette: 0,
-    interacting: false, moveQ: 1, frameAvg: 0
+    interacting: false, moveQ: 1, frameAvg: 0,
+    /* With ISO_ASK set, the page opens on the bare globe and asks where to
+       start; nothing is solved until a place is chosen, so an entrance that
+       runs before it is never held up by a solve. */
+    asking: !!window.ISO_ASK
   };
 
   /* ================= canvas ================= */
@@ -735,8 +739,7 @@
       if (mob) pn.appendChild(tl); else document.body.appendChild(tl);
       if (!mob) document.body.classList.remove('sheet-open');
       const h = $('hint');
-      if (h) h.textContent = mob ? 'Tap a place for its time, then Start here. Drag to turn, pinch to zoom.'
-        : 'Click anywhere on the globe to travel from there. Drag to turn it, scroll to zoom.';
+      if (h) h.textContent = hintText();
     }
     const peek = mob ? sheetPeek() : 0;
 
@@ -764,7 +767,7 @@
     const pn = $('panel'), tl = $('timeline');
     if (!tl || tl.parentNode !== pn) return 188;
     const top = pn.getBoundingClientRect().top;
-    const h = Math.round(tl.getBoundingClientRect().bottom - top + 16);
+    const h = Math.round((S.asking ? $('findInput') : tl).getBoundingClientRect().bottom - top + 16);
     const peek = Math.max(120, Math.min(h, Math.round(Hc * 0.42)));
     pn.style.setProperty('--peek', peek + 'px');
     S.peekPx = peek;
@@ -1417,7 +1420,7 @@
       ctx.restore();
     }
 
-    const op = facing(S.origin.lon, S.origin.lat) > 0 ? proj([S.origin.lon, S.origin.lat]) : null;
+    const op = !S.asking && facing(S.origin.lon, S.origin.lat) > 0 ? proj([S.origin.lon, S.origin.lat]) : null;
     if (op) {
       const t = (performance.now() % 2600) / 2600;
       ctx.save();
@@ -1680,6 +1683,7 @@
 
   /* ================= recompute ================= */
   function recompute(animateIn) {
+    if (S.asking) { syncControls(); return; }
     stopPlay();
     if (S.ladderLock) { S.ladderLock = null; S.tKey = ''; }
     S.ladder = S.ladder || ladderFor();
@@ -1986,7 +1990,7 @@
     if (down && !wasDrag && moved <= (down.touch ? 9 : 3)) {
       const ll = screenToLonLat(e.clientX, e.clientY);
       if (ll) {
-        if (!down.touch) setOrigin(ll[0], ll[1]);
+        if (!down.touch || S.asking) setOrigin(ll[0], ll[1]);
         else {
           const now = performance.now();
           if (now - lastTap < 320) { lastTap = 0; zoomTo(S.scale * 1.7); unpinTip(); }
@@ -2073,6 +2077,30 @@
     setOrigin(lon, lat);
   });
 
+  function hintText() {
+    if (S.asking) return S.mobile ? 'Search a city, or tap anywhere on the globe.'
+      : 'Search a city, or click anywhere on the globe.';
+    return S.mobile ? 'Tap a place for its time, then Start here. Drag to turn, pinch to zoom.'
+      : 'Click anywhere on the globe to travel from there. Drag to turn it, scroll to zoom.';
+  }
+  /* The bare globe and one question. The panel shows only the search and the
+     question until there is an answer; then it all comes in. */
+  function askUI() {
+    document.body.classList.add('asking');
+    $('originName').textContent = 'Where do you start?';
+    $('originCoord').textContent = '';
+    const h = $('hint');
+    h.hidden = false; h.classList.remove('fading'); h.textContent = hintText();
+    const said = 'Globe. Choose where to start: search a city, or press Enter to start from the centre of the view.';
+    cv.setAttribute('aria-label', said);
+    draw();
+  }
+  function answered() {
+    if (!S.asking) return;
+    S.asking = false;
+    document.body.classList.remove('asking', 'sheet-open');
+    stageSize();
+  }
   function hideHint() {
     const h = $('hint');
     if (!h || h.hidden || h.classList.contains('fading')) return;
@@ -2080,6 +2108,7 @@
     setTimeout(() => { h.hidden = true; if (S.mobile) stageSize(); }, 650);
   }
   function setOrigin(lon, lat, name, recentre) {
+    answered();
     unpinTip(); hideHint();
     const c = name ? null : nearestPlace(lon, lat, 120);
     S.origin = { lon: c ? c.lon : lon, lat: c ? c.lat : lat, name: name || (c ? c.n : coordName(lon, lat)) };
@@ -2119,6 +2148,7 @@
     const input = $('findInput'), list = $('findList');
     let items = [], sel = -1;
     const close = () => { list.innerHTML = ''; items = []; sel = -1; };
+    input.addEventListener('focus', () => { if (S.mobile && S.asking) document.body.classList.add('sheet-open'); });
     input.addEventListener('input', () => {
       const q = input.value.trim().toLowerCase();
       if (!q) return close();
@@ -2227,7 +2257,7 @@
           .observe(document.getElementById('stage'));
       }
       stageSize();
-      recompute(false);
+      if (S.asking) askUI(); else recompute(false);
       $('boot').classList.add('gone');
       setTimeout(() => {
         $('boot').remove();
@@ -2251,6 +2281,7 @@
       document.body.classList.add('ready');
       animate(0);
       lookahead();
+      if (S.asking && !S.mobile) $('findInput').focus({ preventScroll: true });
     }
   };
 

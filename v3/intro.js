@@ -1,8 +1,10 @@
 /* The way in. A figure drawn by hand stands on a line. Scroll, and it sets
-   off: walking, then running, cycling, driving, sailing and flying. The plane
-   climbs out of the frame, and the line it leaves behind curls up into a
-   circle, which is the rim of the globe. The graticule is sketched in, and
-   when it is done the map is inside it.
+   off: walking, then running, then steering a steamer, cycling, driving and
+   flying, in the order they were invented, each captioned with its year. The
+   plane climbs out of the frame, and the line it leaves behind curls up into
+   a circle, which is the rim of the globe. The graticule is sketched in, and
+   when it is done the bare globe is inside it, asking where to start. Nothing
+   is solved until you answer, so the drawing never waits on the solver.
 
    The scroll decides the means of travel. The legs, wheels, waves and smoke
    keep moving in time, so the figure never freezes mid-stride when you stop.
@@ -12,6 +14,7 @@
   'use strict';
   if (/[?&]nointro\b/.test(location.search)) return;
   window.ISO_HOLD = true;
+  window.ISO_ASK = true;
 
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const TAU = Math.PI * 2, RAD = Math.PI / 180;
@@ -37,7 +40,7 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
 #intro .il{margin:14px auto 0;max-width:27em;font-size:var(--fs-m);line-height:1.45;color:var(--text-dim);
   text-wrap:balance}
 #intro .icap{position:absolute;left:0;right:0;top:0;margin:0;text-align:center;pointer-events:none;
-  font-family:var(--font-d);font-style:italic;font-weight:400;font-size:clamp(20px,2.4vw,27px);color:var(--text-dim)}
+  font-family:var(--font-d);font-weight:500;font-size:clamp(28px,3.4vw,42px);letter-spacing:.01em;color:var(--text)}
 #intro .ihint{position:absolute;left:0;right:0;bottom:calc(24px + env(safe-area-inset-bottom));margin:0;text-align:center;
   pointer-events:none;font-size:var(--fs-xs);letter-spacing:.16em;text-transform:uppercase;font-weight:600;
   color:var(--text-faint)}
@@ -153,13 +156,20 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     [BIKE.BB[0] - BIKE.CR * Math.cos(th), BIKE.BB[1] - BIKE.CR * Math.sin(th)]];
   const bikePose = th => { const p = pedals(th); return seated([-0.12, 0.57], 0.62, 0.35, [p[1], p[0]], [[0.26, 0.6], [0.27, 0.6]], 1); };
   const carPose = () => seated([-0.14, 0.27], -0.08, -0.05, [[0.22, 0.17], [0.24, 0.16]], [[0.13, 0.53], [0.15, 0.52]], 1);
-  const SHIP_S = 1.3, SHIP_X = -0.45, DECK = 0.24 * SHIP_S, ON_DECK = [0.35, DECK];
-  const pilotPose = () => seated([0.1, 0.3], 0.12, 0.08, [[0.48, 0.28], [0.5, 0.27]], [[0.34, 0.47], [0.35, 0.46]], 1);
-  const shipPose = (phi, breath) => {
+  /* The steamer has a wheelhouse, and the figure stands at the wheel inside
+     it, seen through the window, both hands on the rim as it turns. */
+  const DECK = 0.3, WHEEL = { c: [0.3, 1.02], r: 0.11 };
+  let steer = 0;
+  const steerPose = (phi, breath) => {
     const p = gaitPose(phi, GAIT[0], breath), o = {};
-    for (const k in p) o[k] = [p[k][0] + ON_DECK[0], p[k][1] + ON_DECK[1]];
+    for (const k in p) o[k] = [p[k][0], p[k][1] + DECK];
+    const c = WHEEL.c, r = WHEEL.r, grip = a => [c[0] + Math.cos(a) * r, c[1] + Math.sin(a) * r];
+    const A1 = ik(o.sh, grip(Math.PI - 0.5 + steer), UA, FA, -1), A2 = ik(o.sh, grip(Math.PI + 0.45 + steer), UA, FA, -1);
+    o.e1 = A1[0]; o.h1 = A1[1]; o.e2 = A2[0]; o.h2 = A2[1];
     return o;
   };
+  // low in the seat, so the head sits well inside the canopy
+  const pilotPose = () => seated([0.12, 0.28], 0.1, 0.06, [[0.48, 0.28], [0.5, 0.27]], [[0.34, 0.47], [0.35, 0.46]], 1);
   const mixPose = (a, b, t) => { const o = {}; for (const k in a) o[k] = mixP(a[k], b[k], t); return o; };
 
   const circ = (c, r, id, n) => {
@@ -199,26 +209,41 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
       circ([0.8, 0.36], 0.032, 25), [[-0.3, 0.46], [-0.3, 0.2]], [[0.3, 0.44], [0.3, 0.2]]
     ];
   }
-  const sp = pts => pts.map(p => [p[0] * SHIP_S + SHIP_X, p[1] * SHIP_S]);
-  const SHIP_HULL = sp([[-0.95, 0.24], [0.78, 0.24], [1.05, 0.36], [0.86, -0.16], [-0.82, -0.16], [-0.98, 0.08], [-0.95, 0.24]]);
-  function shipStrokes() {
-    const holes = [-0.6, -0.4, -0.2, 0, 0.2, 0.4].map((x, i) => circ(sp([[x, 0.1]])[0], 0.022 * SHIP_S, 31 + i, 10));
+  const SHIP_HULL = [[-1.7, DECK], [0.62, DECK], [0.95, 0.46], [0.78, -0.16], [-1.5, -0.16], [-1.76, 0.1], [-1.7, DECK]];
+  const WHEELHOUSE = [[-0.22, DECK], [-0.22, 1.46], [0.5, 1.46], [0.5, DECK], [-0.22, DECK]];
+  const WH_WINDOW = [[-0.12, 0.86], [-0.12, 1.37], [0.44, 1.37], [0.44, 0.86], [-0.12, 0.86]];
+  const FUNNEL_TOP = [-0.62, 1.42];
+  // behind the figure: hull, deckhouse, funnel, portholes
+  function shipBack() {
+    const holes = [-1.35, -1.05, -0.75, -0.45, -0.15, 0.15, 0.45].map((x, i) => circ([x, 0.12], 0.028, 31 + i, 10));
     return [
       SHIP_HULL,
-      sp([[-0.55, 0.24], [-0.55, 0.47], [0.08, 0.47], [0.08, 0.24]]),
-      sp([[-0.36, 0.47], [-0.33, 0.8], [-0.15, 0.8], [-0.12, 0.47]]), sp([[-0.345, 0.69], [-0.14, 0.69]]),
-      sp([[0.5, 0.24], [0.5, 0.95]]), sp([[0.5, 0.95], [1.02, 0.35]]), sp([[0.5, 0.95], [-0.93, 0.25]]),
-      sp([[-0.45, 0.36], [-0.3, 0.36]]), sp([[-0.12, 0.36], [0.0, 0.36]]),
+      [[-1.45, DECK], [-1.45, 0.72], [-0.92, 0.72], [-0.92, DECK]], [[-1.35, 0.55], [-1.02, 0.55]],
+      [[-0.78, DECK], [-0.74, 1.4], [-0.5, 1.4], [-0.46, DECK]], [[-0.755, 1.22], [-0.485, 1.22]],
       ...holes
     ];
   }
+  // in front of it: the wheelhouse walls, the roof with its flag, and the wheel
+  function shipFront() {
+    const c = WHEEL.c, r = WHEEL.r;
+    const L = [WHEELHOUSE, WH_WINDOW, [[-0.28, 1.46], [0.56, 1.46]],
+      [[0.14, 1.46], [0.14, 1.8]], [[0.14, 1.8], [0.32, 1.75], [0.14, 1.7]],
+      circ(c, r, 61, 20), circ(c, 0.025, 62, 8)];
+    for (let i = 0; i < 8; i++) {
+      const a = steer + i * TAU / 8;
+      L.push([[c[0] + Math.cos(a) * 0.025, c[1] + Math.sin(a) * 0.025], [c[0] + Math.cos(a) * r * 1.4, c[1] + Math.sin(a) * r * 1.4]]);
+    }
+    return L;
+  }
   const PLANE_BODY = [[1.0, 0.44], [0.82, 0.56], [0.4, 0.6], [-0.5, 0.57], [-1.02, 0.54], [-1.02, 0.47],
                       [-0.5, 0.4], [0.62, 0.34], [0.94, 0.38], [1.0, 0.44]];
+  const CANOPY = [[0.44, 0.6], [0.36, 0.88], [0.04, 0.9], [-0.06, 0.6], [0.44, 0.6]];
+  const GLASS = [[0.37, 0.625], [0.31, 0.845], [0.07, 0.86], [0.0, 0.625], [0.37, 0.625]];
   function planeStrokes(pa, gear, wa) {
     const wing = [];
     for (let i = 0; i <= 18; i++) { const a = TAU * i / 18; wing.push([0.12 + Math.cos(a) * 0.42, 0.43 + Math.sin(a) * 0.045]); }
     const L = [
-      PLANE_BODY, [[0.4, 0.6], [0.33, 0.83], [0.06, 0.84], [-0.03, 0.6]],
+      PLANE_BODY, CANOPY, GLASS,
       [[-0.72, 0.56], [-0.94, 0.86], [-1.04, 0.86], [-1.02, 0.54]], [[-0.78, 0.5], [-1.14, 0.51]], wing,
       [[1.03, 0.42 - 0.22 * Math.cos(pa)], [1.03, 0.42 + 0.22 * Math.cos(pa)]]
     ];
@@ -315,9 +340,12 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     }
     return 6;
   };
-  const SPEED = [0, 1.0, 2.3, 3.2, 5.2, 3.4, 7.5];                 // figure heights a second
+  // standing, walking, running, steamer, bicycle, car, plane; figure heights a second
+  const SPEED = [0, 1.0, 2.3, 2.8, 3.4, 5.2, 7.5];
   const speedAt = s => lerp(SPEED[Math.floor(s)], SPEED[Math.ceil(s)], s - Math.floor(s));
-  const CAPS = ['', 'On foot', 'Running', 'By bicycle', 'By car', 'By ship', 'By air'];
+  /* The year each came in: Fulton's Clermont on the Hudson, Starley's Rover
+     safety bicycle, Benz's Motorwagen patent, the Wrights at Kitty Hawk. */
+  const CAPS = ['', '', '', '1807', '1885', '1886', '1903'];
   const TAKEOFF = [0.69, 0.8], RING = [0.8, 0.94], GRAT = [0.925, 0.965], END = 0.968;
 
   /* where the globe will be: asked of the page once it is built, worked out
@@ -382,6 +410,7 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     crank -= dT * v / BIKE.R / 2.4;
     wheel -= dT * v / 0.16;
     prop += dT * 55;
+    steer = reduced ? 0 : 0.35 * Math.sin(time * 0.7);
     puffT += dT;
 
     if (!G) G = globeGeom();
@@ -419,20 +448,20 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
 
     const pres = v => clamp(1 - Math.abs(s - v), 0, 1);
     const k = sstep(TAKEOFF[0], TAKEOFF[1], P);
-    const standness = clamp(1 - s, 0, 1) + pres(5);
+    const standness = clamp(1 - s, 0, 1) + pres(3);
     const breath = reduced ? 0 : Math.sin(time * 1.8) * 0.004 * standness;
 
     /* ---- the pose, handed from one means of travel to the next ---- */
     let pose;
     const a = Math.floor(s), t = s - a;
-    const poseOf = st => st <= 2 ? gaitPose(phi, gaitAt(st), breath) : st === 3 ? bikePose(crank) :
-      st === 4 ? carPose() : st === 5 ? shipPose(phi, breath) : pilotPose();
+    const poseOf = st => st <= 2 ? gaitPose(phi, gaitAt(st), breath) : st === 3 ? steerPose(phi, breath) :
+      st === 4 ? bikePose(crank) : st === 5 ? carPose() : pilotPose();
     if (s <= 2) pose = gaitPose(phi, gaitAt(s), breath);
     else if (t < 1e-3) pose = poseOf(a);
     else pose = mixPose(poseOf(a), poseOf(a + 1), sstep(0, 1, t));
 
     /* ---- the rig: the ship rocks, the plane climbs ---- */
-    const ps = pres(5);
+    const ps = pres(3);
     tf = { x: 0, y: 0, r: 0 };
     if (ps > 0) {
       tf.y += (reduced ? 0 : Math.sin(time * 1.6) * 0.018) * ps;
@@ -446,18 +475,22 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     const shown = 1 - sstep(0.93, 1, k);                        // gone once out of the frame
 
     if (shown > 0) {
-      // behind the figure: the bicycle and the ship
+      // behind the figure: the bicycle and the body of the ship
       figureFar(pose, shown);
-      const pb = pres(3);
+      const pb = pres(4);
       if (pb > 0) ink(bikeStrokes(crank, wheel), sstep(0, 1, pb), 1, LINE, LW, 100);
       if (ps > 0) {
         smoke(ps);
         occlude(SHIP_HULL, ps);
-        ink(shipStrokes(), sstep(0, 1, ps), 1, LINE, LW, 200);
+        ink(shipBack(), sstep(0, 1, ps), 1, LINE, LW, 200);
       }
       figureNear(pose, shown);
-      // in front of it: the car and the plane, which hide what they hold
-      const pc = pres(4);
+      // in front of it: the wheelhouse, the car and the plane, which hide what they hold
+      if (ps > 0) {
+        occlude(WHEELHOUSE, ps, WH_WINDOW);
+        ink(shipFront(), sstep(0, 1, ps), 1, LINE, LW, 250);
+      }
+      const pc = pres(5);
       if (pc > 0) {
         occlude(CAR_BODY, pc, CAR_WIN);
         ink(carStrokes(wheel), sstep(0, 1, pc), 1, LINE, LW, 300);
@@ -465,6 +498,7 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
       const pp = pres(6);
       if (pp > 0) {
         occlude(PLANE_BODY, pp);
+        occlude(CANOPY, pp, GLASS);
         ink(planeStrokes(prop, 1 - sstep(0.2, 0.5, k), wheel), sstep(0, 1, pp), shown, LINE, LW, 400);
       }
     }
@@ -477,7 +511,7 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
   }
 
   function smoke(a) {
-    const top = [(-0.24) * SHIP_S + SHIP_X, 0.82 * SHIP_S];
+    const top = FUNNEL_TOP;
     if (!reduced && puffT > 0.42) { puffT = 0; puffs.push({ t: 0 }); }
     for (const q of puffs) q.t += reduced ? 0 : stepT;
     while (puffs.length && puffs[0].t > 3.2) puffs.shift();
@@ -490,7 +524,7 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
   }
 
   function ground(s, tRing, fade) {
-    const water = clamp(1 - Math.abs(s - 5), 0, 1);
+    const water = clamp(1 - Math.abs(s - 3), 0, 1);
     const A = 0.028 * FH * sstep(0, 1, water), lam = 0.5;
     const yAt = x => GY - A * Math.sin(TAU * ((x - X0) / FH + off) / lam + (reduced ? 0 : time * 0.9));
     if (tRing <= 0.001) {

@@ -20,11 +20,17 @@ as it stands.
 | `/v3/` | the same globe as `/`, opened by a hand-drawn intro (`v3/intro.js`) |
 
 The intro is scroll-driven. A stick figure stands on a line; scrolling takes it
-from walking to running, cycling, driving, sailing and flying. The plane climbs
-out of the frame, and the ground line it leaves curls up into a circle that
-lands on the rim of the globe, with the graticule sketched in, before the map
-appears inside it. The globe is built underneath while you scroll, and if you
-reach the end first the circle waits for it. `Skip the intro` or Escape leave
+from walking to running, then to the wheel of a steamer, a bicycle, a car and
+a plane, in the order they came in, each captioned with its year: 1807
+(Fulton's [Clermont](https://en.wikipedia.org/wiki/North_River_Steamboat)),
+1885 (Starley's [Rover safety bicycle](https://en.wikipedia.org/wiki/Safety_bicycle)),
+1886 (the [Benz Patent-Motorwagen](https://en.wikipedia.org/wiki/Benz_Patent-Motorwagen))
+and 1903 (the [Wright Flyer](https://en.wikipedia.org/wiki/Wright_Flyer)). The
+plane climbs out of the frame, and the ground line it leaves curls up into a
+circle that lands on the rim of the globe, with the graticule sketched in.
+The globe then appears bare and asks where to start: nothing is solved until
+you search a city or click a place, so the drawing never waits on the solver.
+The app does this for any page that sets `window.ISO_ASK` before `app.js`. `Skip the intro` or Escape leave
 at once, and `/v3/?nointro` never shows it. `v3/index.html` is the root page
 with `../` paths and one extra script tag, so a change to the root page has to
 be copied across by hand.
