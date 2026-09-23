@@ -745,7 +745,28 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
   // the scroll, done by hand: a flick carries on and slows the way a native scroll does
   let pos = 0, fling = 0;
   const spanPx = () => Math.max(1, H * 7);                          // the ride is seven screens of scrolling
-  const moveBy = d => { pos = clamp(pos + d, 0, spanPx()); target = pos / spanPx(); };
+  /* One means of travel at a time: the ride rests at each of these stops, and
+     however hard the scroll, it carries the ride no further than the next one
+     until the drawing has got there. The stretch after the plane takes off
+     (the climb, the curl into the globe, the graticule) is the last slide. */
+  const STOPS = [0.1, 0.19, 0.3, 0.41, 0.53, 0.65, 0.75, 1];
+  // within a whisker of a stop counts as there: the drawing eases into each stop and never quite lands
+  const nextStop = p => { for (const q of STOPS) if (q > p + 2e-3) return q; return 1; };
+  const prevStop = p => { for (let i = STOPS.length - 1; i >= 0; i--) if (STOPS[i] < p - 2e-3) return STOPS[i]; return 0; };
+  const moveBy = d => {
+    const was = pos;
+    pos = clamp(pos + d, prevStop(P) * spanPx(), nextStop(P) * spanPx());
+    target = pos / spanPx();
+    return pos !== was;                                               // false once it is held at a stop
+  };
+  const goTo = q => { pos = q * spanPx(); target = q; fling = 0; };
+  /* And each stretch plays at its own pace, however fast the scroll: the least
+     time it may take, in seconds, up to the point given. A slow scroll is
+     followed as it is; a fast one cannot rush the drawing. */
+  const PACE = [[0.02, 0.4], [0.07, 1.2], [0.1, 0.5], [0.16, 1.2], [0.19, 0.5], [0.27, 1.6], [0.3, 0.5],
+                [0.38, 1.6], [0.41, 0.5], [0.5, 1.8], [0.53, 0.5], [0.62, 1.8], [0.65, 0.5], [0.73, 1.6],
+                [0.75, 0.5], [0.86, 2.2], [0.96, 2.4], [1, 1.0]];
+  const paceAt = p => { let a = 0; for (const [b, secs] of PACE) { if (p < b) return (b - a) / secs; a = b; } return 0.05; };
   root.addEventListener('wheel', e => {
     e.preventDefault();
     fling = 0;
@@ -778,13 +799,14 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
   function tick(dt) {
     time += dt;
     if (fling) {
-      moveBy(fling * dt * 1000);
+      const moved = moveBy(fling * dt * 1000);
       fling *= Math.exp(-dt * 1000 / 325);
-      if (Math.abs(fling) < 0.02 || pos <= 0 || pos >= spanPx()) fling = 0;
+      if (Math.abs(fling) < 0.02 || !moved) fling = 0;                // spent, or held at the next stop
     }
-    const dP = (target - P) * (1 - Math.exp(-dt * (reduced ? 40 : 7)));
+    const cap = paceAt(P) * dt;
+    const dP = clamp((target - P) * (1 - Math.exp(-dt * (reduced ? 40 : 7))), -cap, cap);
     P += dP;
-    if (Math.abs(target - P) < 1e-5) P = target;
+    if (Math.abs(target - P) < 3e-4) P = target;
     boil = reduced ? 1 : Math.floor(time * 8);
 
     const s = stageOf(P);
@@ -1024,18 +1046,24 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
   }
   window.addEventListener('iso:ready', () => { if (waiting && !leaving) finish(false); });
   root.querySelector('.iskip').addEventListener('click', () => finish(true));
-  const KEYSTEP = { ArrowDown: 0.08, ArrowUp: -0.08, PageDown: 0.9, PageUp: -0.9, ' ': 0.9, End: 99, Home: -99 };
+  // the keys step from one stop to the next, like slides
   root.addEventListener('keydown', e => {
     if (e.key === 'Escape') { e.preventDefault(); finish(true); return; }
-    if (e.key in KEYSTEP && e.target === root) {
-      e.preventDefault(); fling = 0;
-      moveBy((e.key === ' ' && e.shiftKey ? -1 : 1) * KEYSTEP[e.key] * H);
-    }
+    if (e.target !== root) return;
+    const back = e.key === 'ArrowUp' || e.key === 'PageUp' || (e.key === ' ' && e.shiftKey);
+    const fwd = !back && (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ' || e.key === 'End');
+    if (fwd) { e.preventDefault(); goTo(nextStop(P)); }
+    else if (back) { e.preventDefault(); goTo(prevStop(P)); }
+    else if (e.key === 'Home') { e.preventDefault(); goTo(0); }
   });
 
   // on a local server only: hold the ride at any point and run it for a while, frame by frame
   if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname))
-    window.__intro = { at(p, secs) { target = P = p; pos = p * spanPx(); for (let i = 0; i < Math.round((secs || 0.5) * 60); i++) tick(1 / 60); return stageOf(P); } };
+    window.__intro = {
+      at(p, secs) { target = P = p; pos = p * spanPx(); for (let i = 0; i < Math.round((secs || 0.5) * 60); i++) tick(1 / 60); return stageOf(P); },
+      state() { return { P: +P.toFixed(4), target: +target.toFixed(4), stage: +stageOf(P).toFixed(2) }; },
+      run(secs) { for (let i = 0; i < Math.round(secs * 60); i++) tick(1 / 60); return this.state(); }
+    };
 
   size();
   window.addEventListener('resize', size);
