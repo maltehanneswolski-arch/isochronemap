@@ -526,11 +526,11 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     const c = Math.cos(tf.r), s = Math.sin(tf.r);
     return [X0 + (tf.x + p[0] * c - p[1] * s) * FH, GY - (tf.y + p[0] * s + p[1] * c) * FH];
   };
-  function wobble(pts, id) {
-    const out = [];
+  function wobble(pts, id, seg) {
+    const out = [], step = seg || SEG;
     for (let i = 0; i < pts.length - 1; i++) {
       const a = pts[i], b = pts[i + 1];
-      const n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / SEG));
+      const n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / step));
       for (let j = 0; j < n; j++) out.push([lerp(a[0], b[0], j / n), lerp(a[1], b[1], j / n)]);
     }
     const e = pts[pts.length - 1];
@@ -566,17 +566,20 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     ctx.closePath();
     ctx.fill();
   }
-  // lay down a list of polylines in pen, the first `frac` of their length in the order given
-  function ink(list, frac, alpha, col, w, idBase, screen) {
+  /* lay down a list of polylines in pen, the first `frac` of their length in the order given;
+     `thin` lines (the graticule) take a plain pencil stroke at a coarser step, which is all a
+     hairline shows and a fraction of the work on a phone */
+  function ink(list, frac, alpha, col, w, idBase, screen, thin) {
     if (frac <= 0.001 || alpha <= 0.003) return;
     let budget = Infinity;
-    const polys = list.map((pts, k) => wobble(screen ? pts : pts.map(scr), idBase + k));
+    const polys = list.map((pts, k) => wobble(screen ? pts : pts.map(scr), idBase + k, thin ? SEG * 3 : 0));
     if (frac < 1) {
       let total = 0;
       for (const p of polys) for (let i = 1; i < p.length; i++) total += Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]);
       budget = total * frac;
     }
     ctx.globalAlpha = alpha; ctx.fillStyle = col;
+    if (thin) { ctx.strokeStyle = col; ctx.lineWidth = w || LW; ctx.beginPath(); }
     polys.forEach((p, k) => {
       if (budget <= 0) return;
       let cut = p.length;
@@ -594,9 +597,11 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
         budget -= run;
       }
       const q = cut < p.length ? p.slice(0, cut) : p;
+      if (thin) { q.forEach((pt, i) => i ? ctx.lineTo(pt[0], pt[1]) : ctx.moveTo(pt[0], pt[1])); return; }
       const closed = q.length > 3 && Math.hypot(q[0][0] - q[q.length - 1][0], q[0][1] - q[q.length - 1][1]) < 2;
       nib(q, w || LW, closed, idBase + k);
     });
+    if (thin) ctx.stroke();
     ctx.globalAlpha = 1;
   }
   const trace = (pts, hole) => {
@@ -915,7 +920,7 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     const run = pts => { let cur = []; for (const p of pts) { if (p[2] > 0.02) cur.push([p[0], p[1]]); else { if (cur.length > 1) lines.push(cur); cur = []; } } if (cur.length > 1) lines.push(cur); };
     for (let lat = -60; lat <= 60; lat += 30) { const pts = []; for (let lon = -180; lon <= 180; lon += 4) pts.push(pj(lon, lat)); run(pts); }
     for (let lon = -180; lon < 180; lon += 30) { const pts = []; for (let lat = -90; lat <= 90; lat += 4) pts.push(pj(lon, lat)); run(pts); }
-    ink(lines, t, 0.32 * fade, LINE, LW * 0.6, 700, true);
+    ink(lines, t, 0.32 * fade, LINE, LW * 0.6, 700, true, true);
   }
 
   /* ================= handing over to the map ================= */
