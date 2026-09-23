@@ -11,31 +11,30 @@ chosen means of travel, in a chosen year.
 It is a static site with no build step, so Netlify can deploy this repository
 as it stands.
 
-## Three versions
+## The way in
 
-| Path | What it is |
-|---|---|
-| `/` | the globe, with the coaching changes below applied |
-| `/v1/` | the globe as it stood before them, a full copy that runs on its own (also the git tag `v1-original`) |
-| `/v3/` | the same globe as `/`, opened by a hand-drawn intro (`v3/intro.js`) |
+The page opens on a scroll-driven intro drawn like a chart (`intro.js`). A
+traveller stands on a plain line under a cartouche; scrolling takes them
+walking, running, cycling, driving, to the wheel of a sailing ship, then of a
+steamer, and into a plane. The pens swell and thin and hulls and bodies are
+hatched. The plane climbs out of the frame, and the ground line it leaves
+curls up into a circle that lands on the rim of the globe, with the graticule
+sketched in. The globe then appears bare and asks where to start: nothing is
+solved until you search a city or click a place, so the drawing never waits
+on the solver. `Skip the intro` or Escape leave at once, and `?nointro` never
+shows it.
 
-The intro is scroll-driven and drawn like a chart. A traveller stands on a
-plain line under a cartouche; scrolling takes them walking, running, cycling,
-driving, to the wheel of a sailing ship, then of a steamer, and into a plane.
-The pens swell and thin, hulls and bodies are hatched, and there is a compass
-rose in the corner. The plane climbs out of the frame, and the ground line it
-leaves curls up into a circle that lands on the rim of the globe, with the
-graticule sketched in. The globe then appears bare and asks where to start: nothing is solved until
-you search a city or click a place, so the drawing never waits on the solver.
-The app does this for any page that sets `window.ISO_ASK` before `app.js`, and
-draws the same pencilled graticule and rim, and letters the places in a book
-face, for one that sets `window.ISO_SKETCH`. v3 carries the same hand on over
-the page: the title in a cartouche, the panel and the years in ruled frames,
-the years as a scale bar, EB Garamond and warm ink throughout, and a paper
-grain over everything. `/` keeps the clean instrument panel. `Skip the intro` or Escape leave
-at once, and `/v3/?nointro` never shows it. `v3/index.html` is the root page
-with `../` paths and one extra script tag, so a change to the root page has to
-be copied across by hand.
+The same hand carries on over the page: the title in a cartouche at the head
+of the right-hand column, the panel and the years in ruled frames, the years
+as a scale bar, a pencilled graticule and rim on the globe, place names in EB
+Garamond, warm ink throughout and a paper grain over everything. `intro.js`
+sets `window.ISO_HOLD`, `ISO_ASK` and `ISO_SKETCH` before `app.js` runs; without
+them `app.js` still works on its own as the plain instrument, opening on
+London.
+
+Earlier states are kept as git tags: `v1-original` (before the coaching
+changes) and `v2-plain` (the plain page, with this intro version beside it
+under `/v3/`).
 
 ## What it does
 
@@ -255,8 +254,7 @@ does the same for 2000.
 | File | |
 |---|---|
 | `index.html` | page, styles, markup |
-| `v1/` | the pre-coaching version, complete |
-| `v3/index.html`, `v3/intro.js` | the intro version and its scroll-driven drawing |
+| `intro.js` | the scroll-driven intro, and the hand-drawn look for the rest of the page |
 | `app.js` | grid, least-cost solver, renderer, UI |
 | `data.js` | era constants, country profiles, hand-authored geography |
 | `grid.js` | packed 0.25° layers (land, country, terrain, road, rail, ferry) + places + airfields |
