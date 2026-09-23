@@ -1,27 +1,59 @@
-/* The way in. A figure drawn by hand stands on a line. Scroll, and it sets
-   off: walking, then running, then steering a steamer, cycling, driving and
-   flying, in the order they were invented, each captioned with its year. The
-   plane climbs out of the frame, and the line it leaves behind curls up into
-   a circle, which is the rim of the globe. The graticule is sketched in, and
-   when it is done the bare globe is inside it, asking where to start. Nothing
-   is solved until you answer, so the drawing never waits on the solver.
+/* The way in, drawn like a chart. A traveller in a hat stands on a line.
+   Scroll, and it sets off: walking, then running, cycling, driving, at the
+   wheel of a sailing ship, of a steamer, and at the controls of a plane. The
+   plane climbs out of the frame on a dotted track, and the line it leaves
+   behind curls up into a circle, which is the rim of the globe. The graticule
+   is sketched in, and then the bare globe is inside it, asking where to start.
+   Nothing is solved until you answer, so the drawing never waits on the solver.
 
-   The scroll decides the means of travel. The legs, wheels, waves and smoke
-   keep moving in time, so the figure never freezes mid-stride when you stop.
-   The world is built underneath while you scroll; if you get to the end
-   first, the circle waits for it. ?nointro skips all of this. */
+   Everything is drawn the way a hand draws a map: pen strokes that swell and
+   thin, hatching for shade, hachures under the ground, engraved waves on the
+   sea, little map signs along the road, a cartouche round the title and a
+   compass rose in the corner. The same ink carries on over the globe, with a
+   pencilled graticule and rim (ISO_SKETCH, drawn by app.js) and a paper grain
+   over the whole page.
+
+   The scroll decides the means of travel; legs, wheels, sails, waves and
+   smoke keep moving in time, so the figure never freezes mid-stride when you
+   stop. ?nointro skips the ride but keeps the hand-drawn look. */
 (function () {
   'use strict';
-  if (/[?&]nointro\b/.test(location.search)) return;
-  window.ISO_HOLD = true;
-  window.ISO_ASK = true;
-
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const TAU = Math.PI * 2, RAD = Math.PI / 180;
   const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
   const lerp = (a, b, t) => a + (b - a) * t;
   const sstep = (a, b, v) => { const t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
   const mixP = (p, q, t) => [lerp(p[0], q[0], t), lerp(p[1], q[1], t)];
+
+  /* ================= paper and ink, for the whole page ================= */
+  window.ISO_SKETCH = true;
+  (function grain() {
+    const n = 180, c = document.createElement('canvas'); c.width = c.height = n;
+    const g = c.getContext('2d'), img = g.createImageData(n, n);
+    for (let i = 0; i < img.data.length; i += 4) {
+      const v = Math.random();
+      img.data[i] = 238; img.data[i + 1] = 232; img.data[i + 2] = 216;
+      img.data[i + 3] = v > 0.94 ? 80 + Math.random() * 110 : v > 0.55 ? 18 : 0;
+    }
+    g.putImageData(img, 0, 0);
+    g.strokeStyle = 'rgba(238,232,216,.22)'; g.lineWidth = 0.6;
+    for (let k = 0; k < 46; k++) {
+      const x = Math.random() * n, y = Math.random() * n, a = Math.random() * TAU, l = 4 + Math.random() * 11;
+      g.beginPath(); g.moveTo(x, y);
+      g.quadraticCurveTo(x + Math.cos(a) * l * 0.5 + 1.5, y + Math.sin(a) * l * 0.5 - 1.5, x + Math.cos(a) * l, y + Math.sin(a) * l);
+      g.stroke();
+    }
+    const st = document.createElement('style');
+    st.textContent = '.paper-grain{position:fixed;inset:0;z-index:45;pointer-events:none;opacity:.075;' +
+      'background-image:url(' + c.toDataURL() + ');background-size:' + n + 'px ' + n + 'px}';
+    document.head.appendChild(st);
+    const d = document.createElement('div'); d.className = 'paper-grain'; d.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(d);
+  })();
+
+  if (/[?&]nointro\b/.test(location.search)) return;
+  window.ISO_HOLD = true;
+  window.ISO_ASK = true;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* ================= the page around it ================= */
   const style = document.createElement('style');
@@ -31,59 +63,58 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
   scrollbar-width:none;outline:none;-webkit-overflow-scrolling:touch}
 #intro::-webkit-scrollbar{display:none}
 #intro .istage{position:sticky;top:0;height:100%;overflow:hidden}
-#intro .ibg{position:absolute;inset:0;background:var(--ink);transition:opacity .9s var(--ease)}
+#intro .ibg{position:absolute;inset:0;transition:opacity .9s var(--ease);
+  background:radial-gradient(ellipse 80% 70% at 50% 46%,#0B0F19 0%,#06080F 62%,#030409 100%)}
 #intro canvas{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
 #intro .irun{height:500%}
-#intro .ititle{position:absolute;left:0;right:0;top:14vh;padding:0 22px;text-align:center;pointer-events:none}
-#intro .ih{margin:0;font-family:var(--font-d);font-weight:500;font-size:clamp(34px,6vw,62px);line-height:1;
-  letter-spacing:-.01em;color:var(--head)}
-#intro .il{margin:14px auto 0;max-width:27em;font-size:var(--fs-m);line-height:1.45;color:var(--text-dim);
-  text-wrap:balance}
-#intro .icap{position:absolute;left:0;right:0;top:0;margin:0;text-align:center;pointer-events:none;
-  font-family:var(--font-d);font-weight:500;font-size:clamp(28px,3.4vw,42px);letter-spacing:.01em;color:var(--text)}
+#intro .ititle{position:absolute;left:50%;top:13vh;width:max-content;max-width:calc(100% - 64px);
+  padding:22px 34px 24px;text-align:center;pointer-events:none;color:#EDE7D9;transform:translateX(-50%)}
+#intro .ik{margin:0 0 12px;font-size:var(--fs-xs);letter-spacing:.3em;text-transform:uppercase;font-weight:600;
+  color:#B9B09B}
+#intro .ih{margin:0;font-family:var(--font-d);font-weight:500;font-size:clamp(34px,5.6vw,58px);line-height:1;
+  letter-spacing:.005em}
+#intro .il{margin:14px auto 0;max-width:26em;font-family:var(--font-d);font-style:italic;font-size:clamp(15px,1.6vw,18px);
+  line-height:1.4;color:#CFC7B4;text-wrap:balance}
 #intro .ihint{position:absolute;left:0;right:0;bottom:calc(24px + env(safe-area-inset-bottom));margin:0;text-align:center;
-  pointer-events:none;font-size:var(--fs-xs);letter-spacing:.16em;text-transform:uppercase;font-weight:600;
-  color:var(--text-faint)}
+  pointer-events:none;font-size:var(--fs-xs);letter-spacing:.3em;text-transform:uppercase;font-weight:600;color:#A79E8A}
 #intro .ihint::after{content:"";display:block;width:1px;height:28px;margin:10px auto 0;
-  background:linear-gradient(var(--line),rgba(201,212,228,0));transform-origin:top;animation:ihint 2s var(--ease) infinite}
+  background:linear-gradient(#DCD6C6,rgba(220,214,198,0));transform-origin:top;animation:ihint 2s var(--ease) infinite}
 @keyframes ihint{0%{transform:scaleY(0);opacity:1}60%{transform:scaleY(1);opacity:1}100%{transform:scaleY(1);opacity:0}}
 #intro .iwait{position:absolute;left:0;right:0;bottom:12vh;margin:0;text-align:center;pointer-events:none;
-  font-family:var(--font-m);font-size:var(--fs-xs);letter-spacing:.06em;color:var(--text-faint);
+  font-family:var(--font-d);font-style:italic;font-size:var(--fs-m);color:#A79E8A;
   opacity:0;transition:opacity .4s var(--ease)}
 #intro.waiting .iwait{opacity:1}
-#intro .iskip{position:absolute;top:calc(14px + env(safe-area-inset-top));right:calc(16px + env(safe-area-inset-right));
-  min-height:40px;padding:0 14px;border:1px solid var(--line-dim);background:rgba(5,7,14,.6);
-  font-size:var(--fs-xs);letter-spacing:.16em;text-transform:uppercase;font-weight:600;color:var(--line);
-  transition:border-color .2s var(--ease),opacity .5s var(--ease)}
-#intro .iskip:hover{border-color:var(--line)}
+#intro .iskip{position:absolute;top:calc(14px + env(safe-area-inset-top));right:calc(18px + env(safe-area-inset-right));
+  min-height:40px;padding:0 4px;font-size:var(--fs-xs);letter-spacing:.24em;text-transform:uppercase;font-weight:600;
+  color:#CFC7B4;transition:color .2s var(--ease),opacity .5s var(--ease)}
+#intro .iskip span{border-bottom:1px solid rgba(207,199,180,.45);padding-bottom:3px}
+#intro .iskip:hover{color:#F3EEE2}
 #intro.leaving{pointer-events:none}
-#intro.leaving .ibg,#intro.leaving .iskip,#intro.leaving .icap,#intro.leaving .iwait{opacity:0}
+#intro.leaving .ibg,#intro.leaving .iskip,#intro.leaving .iwait{opacity:0}
 #intro.fast .ibg{transition-duration:.35s}
 `;
   document.head.appendChild(style);
   document.documentElement.classList.add('intro-on');
 
+  /* The drawing sits in a sticky layer inside the scrolling box, not in fixed
+     layers over it: a wheel turned over a fixed element scrolls the page, which
+     cannot scroll, and the box underneath never hears of it. */
   const root = document.createElement('div');
   root.id = 'intro';
   root.tabIndex = -1;
   root.setAttribute('role', 'region');
   root.setAttribute('aria-label', 'Introduction. Scroll to go on, or skip it.');
-  /* The drawing sits in a sticky layer inside the scrolling box, not in fixed
-     layers over it: a wheel turned over a fixed element scrolls the page, which
-     cannot scroll, and the box underneath never hears of it. */
   root.innerHTML =
     '<div class="istage"><div class="ibg"></div><canvas aria-hidden="true"></canvas>' +
-    '<div class="ititle"><p class="ih">Isochronic Globe</p>' +
+    '<div class="ititle"><p class="ik">A passage chart for travellers</p><p class="ih">Isochronic Globe</p>' +
     '<p class="il">How far you could get from any point on Earth, in any year since 1750.</p></div>' +
-    '<p class="icap" aria-live="polite"></p>' +
     '<p class="ihint" aria-hidden="true">Scroll to set off</p>' +
     '<p class="iwait" aria-hidden="true">building the world&hellip;</p>' +
-    '<button class="iskip" type="button">Skip the intro</button></div>' +
+    '<button class="iskip" type="button"><span>Skip the intro</span></button></div>' +
     '<div class="irun"></div>';
   document.body.appendChild(root);
   const cv = root.querySelector('canvas'), ctx = cv.getContext('2d');
   const elTitle = root.querySelector('.ititle'), elHint = root.querySelector('.ihint');
-  const elCap = root.querySelector('.icap');
 
   /* ================= the figure =================
      Lengths are in figure heights (FH); y is up from the ground. Angles are
@@ -95,9 +126,9 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     { at: 0.7, ak: 1.5, k0: 0.18, sp: 0, lean: 0.22, aa: 0.7, a0: 0.1, el: 1.5, air: 0.04 }      // running
   ];
   const gaitAt = s => {
-    const a = GAIT[Math.floor(clamp(s, 0, 1.999))], b = GAIT[Math.ceil(clamp(s, 0, 2))], t = s - Math.floor(clamp(s, 0, 1.999));
+    const i = Math.floor(clamp(s, 0, 1.999)), a = GAIT[i], b = GAIT[Math.ceil(clamp(s, 0, 2))], t = clamp(s - i, 0, 1);
     const o = {};
-    for (const k in a) o[k] = lerp(a[k], b[k], clamp(t, 0, 1));
+    for (const k in a) o[k] = lerp(a[k], b[k], t);
     return o;
   };
 
@@ -135,43 +166,27 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     const j = [a[0] + Math.cos(ang + bend * t) * l1, a[1] + Math.sin(ang + bend * t) * l1];
     return [j, [a[0] + Math.cos(ang) * d, a[1] + Math.sin(ang) * d]];
   }
-  function upper(hip, lean, headLean) {
+  function seated(hip, lean, headLean, feet, hands) {
     const sh = [hip[0] + Math.sin(lean) * TO, hip[1] + Math.cos(lean) * TO];
     const nk = [sh[0] + Math.sin(headLean) * NK, sh[1] + Math.cos(headLean) * NK];
-    return { sh, nk, hd: [nk[0] + Math.sin(headLean) * HR, nk[1] + Math.cos(headLean) * HR] };
+    const hd = [nk[0] + Math.sin(headLean) * HR, nk[1] + Math.cos(headLean) * HR];
+    const L1 = ik(hip, feet[0], TH, SH, 1), L2 = ik(hip, feet[1], TH, SH, 1);
+    const A1 = ik(sh, hands[0], UA, FA, -1), A2 = ik(sh, hands[1], UA, FA, -1);
+    return { hip, k1: L1[0], f1: L1[1], k2: L2[0], f2: L2[1], sh, nk, hd, e1: A1[0], h1: A1[1], e2: A2[0], h2: A2[1] };
   }
-  function seated(hip, lean, headLean, feet, hands, kneeBend) {
-    const u = upper(hip, lean, headLean);
-    const L1 = ik(hip, feet[0], TH, SH, kneeBend), L2 = ik(hip, feet[1], TH, SH, kneeBend);
-    const A1 = ik(u.sh, hands[0], UA, FA, -1), A2 = ik(u.sh, hands[1], UA, FA, -1);
-    return { hip, k1: L1[0], f1: L1[1], k2: L2[0], f2: L2[1], sh: u.sh, nk: u.nk, hd: u.hd,
-             e1: A1[0], h1: A1[1], e2: A2[0], h2: A2[1] };
-  }
-
-  /* ================= the means of travel ================= */
-  const BIKE = { RA: [-0.33, 0.19], FA: [0.34, 0.19], BB: [-0.02, 0.17], ST: [-0.12, 0.52], HT: [0.21, 0.5],
-                 HB: [0.24, 0.41], R: 0.19, CR: 0.075 };
-  const pedals = th => [
-    [BIKE.BB[0] + BIKE.CR * Math.cos(th), BIKE.BB[1] + BIKE.CR * Math.sin(th)],
-    [BIKE.BB[0] - BIKE.CR * Math.cos(th), BIKE.BB[1] - BIKE.CR * Math.sin(th)]];
-  const bikePose = th => { const p = pedals(th); return seated([-0.12, 0.57], 0.62, 0.35, [p[1], p[0]], [[0.26, 0.6], [0.27, 0.6]], 1); };
-  const carPose = () => seated([-0.14, 0.27], -0.08, -0.05, [[0.22, 0.17], [0.24, 0.16]], [[0.13, 0.53], [0.15, 0.52]], 1);
-  /* The steamer has a wheelhouse, and the figure stands at the wheel inside
-     it, seen through the window, both hands on the rim as it turns. */
-  const DECK = 0.3, WHEEL = { c: [0.3, 1.02], r: 0.11 };
+  // standing at a ship's wheel: the legs of a standing figure, both hands on the rim
   let steer = 0;
-  const steerPose = (phi, breath) => {
+  function atWheel(phi, breath, at, wheel) {
     const p = gaitPose(phi, GAIT[0], breath), o = {};
-    for (const k in p) o[k] = [p[k][0], p[k][1] + DECK];
-    const c = WHEEL.c, r = WHEEL.r, grip = a => [c[0] + Math.cos(a) * r, c[1] + Math.sin(a) * r];
+    for (const k in p) o[k] = [p[k][0] + at[0], p[k][1] + at[1]];
+    const grip = a => [wheel.c[0] + Math.cos(a) * wheel.r, wheel.c[1] + Math.sin(a) * wheel.r];
     const A1 = ik(o.sh, grip(Math.PI - 0.5 + steer), UA, FA, -1), A2 = ik(o.sh, grip(Math.PI + 0.45 + steer), UA, FA, -1);
     o.e1 = A1[0]; o.h1 = A1[1]; o.e2 = A2[0]; o.h2 = A2[1];
     return o;
-  };
-  // low in the seat, so the head sits well inside the canopy
-  const pilotPose = () => seated([0.12, 0.28], 0.1, 0.06, [[0.48, 0.28], [0.5, 0.27]], [[0.34, 0.47], [0.35, 0.46]], 1);
+  }
   const mixPose = (a, b, t) => { const o = {}; for (const k in a) o[k] = mixP(a[k], b[k], t); return o; };
 
+  /* ================= the means of travel ================= */
   const circ = (c, r, id, n) => {
     n = n || Math.max(12, Math.round(r * 90));
     const a0 = (id * 1.7) % TAU, out = [];
@@ -182,11 +197,30 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     }
     return out;
   };
-  const spokes = (c, r, a) => [
-    [[c[0] + Math.cos(a) * r, c[1] + Math.sin(a) * r], [c[0] - Math.cos(a) * r, c[1] - Math.sin(a) * r]],
-    [[c[0] + Math.cos(a + TAU / 4) * r, c[1] + Math.sin(a + TAU / 4) * r],
-     [c[0] - Math.cos(a + TAU / 4) * r, c[1] - Math.sin(a + TAU / 4) * r]]];
+  const spokes = (c, r, a, n) => {
+    const out = [];
+    for (let i = 0; i < (n || 2); i++) {
+      const q = a + i * Math.PI / (n || 2);
+      out.push([[c[0] + Math.cos(q) * r, c[1] + Math.sin(q) * r], [c[0] - Math.cos(q) * r, c[1] - Math.sin(q) * r]]);
+    }
+    return out;
+  };
+  const shipWheel = (c, r) => {
+    const L = [circ(c, r, 61, 20), circ(c, 0.025, 62, 8)];
+    for (let i = 0; i < 8; i++) {
+      const a = steer + i * TAU / 8;
+      L.push([[c[0] + Math.cos(a) * 0.025, c[1] + Math.sin(a) * 0.025], [c[0] + Math.cos(a) * r * 1.42, c[1] + Math.sin(a) * r * 1.42]]);
+    }
+    return L;
+  };
 
+  // bicycle
+  const BIKE = { RA: [-0.33, 0.19], FA: [0.34, 0.19], BB: [-0.02, 0.17], ST: [-0.12, 0.52], HT: [0.21, 0.5],
+                 HB: [0.24, 0.41], R: 0.19, CR: 0.075 };
+  const pedals = th => [
+    [BIKE.BB[0] + BIKE.CR * Math.cos(th), BIKE.BB[1] + BIKE.CR * Math.sin(th)],
+    [BIKE.BB[0] - BIKE.CR * Math.cos(th), BIKE.BB[1] - BIKE.CR * Math.sin(th)]];
+  const bikePose = th => { const p = pedals(th); return seated([-0.12, 0.57], 0.62, 0.35, [p[1], p[0]], [[0.26, 0.6], [0.27, 0.6]]); };
   function bikeStrokes(th, wa) {
     const B = BIKE, p = pedals(th);
     return [
@@ -197,6 +231,9 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
       [p[0], B.BB, p[1]]
     ];
   }
+
+  // car: low enough in the seat that the hat clears the roof
+  const carPose = () => seated([-0.14, 0.25], -0.08, -0.05, [[0.22, 0.17], [0.24, 0.16]], [[0.13, 0.52], [0.15, 0.51]]);
   const CAR_BODY = [[-0.86, 0.14], [-0.88, 0.3], [-0.8, 0.42], [-0.44, 0.47], [-0.36, 0.84], [0.06, 0.87],
                     [0.34, 0.5], [0.76, 0.45], [0.88, 0.32], [0.86, 0.14], [-0.86, 0.14]];
   const CAR_WIN = [[-0.31, 0.5], [-0.27, 0.8], [0.04, 0.83], [0.27, 0.52], [-0.31, 0.5]];
@@ -205,62 +242,105 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     return [
       CAR_BODY, CAR_WIN, [[0.09, 0.46], [0.19, 0.58]],
       circ(W1, 0.15, 21), circ(W2, 0.15, 22), circ(W1, 0.045, 23), circ(W2, 0.045, 24),
-      ...spokes(W1, 0.13, wa).slice(0, 1), ...spokes(W2, 0.13, wa).slice(0, 1),
+      ...spokes(W1, 0.13, wa, 1), ...spokes(W2, 0.13, wa, 1),
       circ([0.8, 0.36], 0.032, 25), [[-0.3, 0.46], [-0.3, 0.2]], [[0.3, 0.44], [0.3, 0.2]]
     ];
   }
-  const SHIP_HULL = [[-1.7, DECK], [0.62, DECK], [0.95, 0.46], [0.78, -0.16], [-1.5, -0.16], [-1.76, 0.1], [-1.7, DECK]];
-  const WHEELHOUSE = [[-0.22, DECK], [-0.22, 1.46], [0.5, 1.46], [0.5, DECK], [-0.22, DECK]];
-  const WH_WINDOW = [[-0.12, 0.86], [-0.12, 1.37], [0.44, 1.37], [0.44, 0.86], [-0.12, 0.86]];
-  const FUNNEL_TOP = [-0.62, 1.42];
-  // behind the figure: hull, deckhouse, funnel, portholes
-  function shipBack() {
-    const holes = [-1.35, -1.05, -0.75, -0.45, -0.15, 0.15, 0.45].map((x, i) => circ([x, 0.12], 0.028, 31 + i, 10));
-    return [
-      SHIP_HULL,
-      [[-1.45, DECK], [-1.45, 0.72], [-0.92, 0.72], [-0.92, DECK]], [[-1.35, 0.55], [-1.02, 0.55]],
-      [[-0.78, DECK], [-0.74, 1.4], [-0.5, 1.4], [-0.46, DECK]], [[-0.755, 1.22], [-0.485, 1.22]],
-      ...holes
-    ];
+
+  // a square-rigged sailing ship; the figure at the wheel on the quarterdeck
+  const SAIL_AT = [-1.25, 0.6], SAIL_WHEEL = { c: [-0.98, 1.18], r: 0.12 };
+  const sailPose = (phi, breath) => atWheel(phi, breath, SAIL_AT, SAIL_WHEEL);
+  const SAIL_HULL = [[-1.55, 0.72], [-0.95, 0.68], [-0.9, 0.52], [0.9, 0.48], [1.38, 0.68], [1.12, 0.06],
+                     [0.55, -0.16], [-1.05, -0.16], [-1.5, 0.1], [-1.55, 0.72]];
+  function sailPath(xl, xr, yt, yb, b) {
+    const pts = [], mid = (yt + yb) / 2;
+    const q = (a, c, e, n) => { for (let i = 0; i <= n; i++) { const t = i / n, u = 1 - t;
+      pts.push([u * u * a[0] + 2 * u * t * c[0] + t * t * e[0], u * u * a[1] + 2 * u * t * c[1] + t * t * e[1]]); } };
+    q([xl, yt], [(xl + xr) / 2, yt - 0.03], [xr, yt], 6);                    // along the yard
+    q([xr, yt], [xr + b, mid], [xr - 0.04, yb], 6);                          // leech, bellied forward
+    q([xr - 0.04, yb], [(xl + xr) / 2 + b * 0.6, yb - 0.08], [xl + 0.04, yb], 6);  // foot
+    q([xl + 0.04, yb], [xl + b, mid], [xl, yt], 6);                          // luff
+    return pts;
   }
-  // in front of it: the wheelhouse walls, the roof with its flag, and the wheel
-  function shipFront() {
-    const c = WHEEL.c, r = WHEEL.r;
-    const L = [WHEELHOUSE, WH_WINDOW, [[-0.28, 1.46], [0.56, 1.46]],
-      [[0.14, 1.46], [0.14, 1.8]], [[0.14, 1.8], [0.32, 1.75], [0.14, 1.7]],
-      circ(c, r, 61, 20), circ(c, 0.025, 62, 8)];
-    for (let i = 0; i < 8; i++) {
-      const a = steer + i * TAU / 8;
-      L.push([[c[0] + Math.cos(a) * 0.025, c[1] + Math.sin(a) * 0.025], [c[0] + Math.cos(a) * r * 1.4, c[1] + Math.sin(a) * r * 1.4]]);
+  function sailSeams(xl, xr, yt, yb, b) {
+    const L = [];
+    for (const f of [1 / 3, 2 / 3]) {
+      const x = lerp(xl, xr, f);
+      L.push([[x, yt - 0.02], [x + b * 0.9, (yt + yb) / 2], [x + 0.01, yb + 0.03]]);
     }
     return L;
   }
-  const PLANE_BODY = [[1.0, 0.44], [0.82, 0.56], [0.4, 0.6], [-0.5, 0.57], [-1.02, 0.54], [-1.02, 0.47],
-                      [-0.5, 0.4], [0.62, 0.34], [0.94, 0.38], [1.0, 0.44]];
-  const CANOPY = [[0.44, 0.6], [0.36, 0.88], [0.04, 0.9], [-0.06, 0.6], [0.44, 0.6]];
-  const GLASS = [[0.37, 0.625], [0.31, 0.845], [0.07, 0.86], [0.0, 0.625], [0.37, 0.625]];
+  function sailShip(time) {
+    const bl = k => 0.1 + (reduced ? 0 : 0.028 * Math.sin(time * 1.3 + k));
+    const S = [[-0.48, 0.58, 2.06, 1.46, bl(0)], [-0.53, 0.63, 1.35, 0.8, bl(1)],
+               [0.4, 1.2, 1.8, 1.32, bl(2)], [0.35, 1.25, 1.22, 0.8, bl(3)]];
+    const wave = reduced ? 0 : 0.035 * Math.sin(time * 3.2);
+    return {
+      back: [                                                               // spars and rigging, under the sails
+        [[0.05, 0.5], [0.05, 2.25]], [[0.8, 0.49], [0.8, 1.95]], [[1.3, 0.64], [1.72, 0.86]],
+        [[0.05, 2.25], [-1.52, 0.74]], [[0.05, 2.25], [0.8, 1.95]], [[0.8, 1.95], [1.7, 0.86]],
+        [[-0.5, 2.08], [0.6, 2.08]], [[-0.55, 1.38], [0.65, 1.38]], [[0.38, 1.82], [1.22, 1.82]], [[0.33, 1.25], [1.27, 1.25]],
+        [[0.05, 2.25], [0.36, 2.2 + wave], [0.05, 2.15]]
+      ],
+      sails: S.map(s => sailPath(s[0], s[1], s[2], s[3], s[4])).concat([[[1.68, 0.87], [1.12, 1.4], [0.84, 1.88], [0.98, 1.2], [1.08, 0.64]]]),
+      seams: [].concat(...S.map(s => sailSeams(s[0], s[1], s[2], s[3], s[4]))),
+      hull: [SAIL_HULL, [[-1.48, 0.36], [-0.2, 0.3], [1.22, 0.38]], [[-0.9, 0.52], [-0.9, 0.68]],
+        ...[-0.95, -0.55, -0.15, 0.25, 0.65].map(x => [[x - 0.05, 0.15], [x + 0.05, 0.15], [x + 0.05, 0.24], [x - 0.05, 0.24], [x - 0.05, 0.15]]),
+        [[-0.98, 0.72], [-0.98, 1.05]], ...shipWheel(SAIL_WHEEL.c, SAIL_WHEEL.r)]
+    };
+  }
+
+  // a steamer with a wheelhouse; the figure at the wheel inside it, seen through the window
+  const DECK = 0.3, STEAM_WHEEL = { c: [0.3, 1.02], r: 0.11 };
+  const steamPose = (phi, breath) => atWheel(phi, breath, [0, DECK], STEAM_WHEEL);
+  const STEAM_HULL = [[-1.7, DECK], [0.62, DECK], [0.95, 0.46], [0.78, -0.16], [-1.5, -0.16], [-1.76, 0.1], [-1.7, DECK]];
+  const WHEELHOUSE = [[-0.22, DECK], [-0.22, 1.52], [0.5, 1.52], [0.5, DECK], [-0.22, DECK]];
+  const WH_WINDOW = [[-0.12, 0.86], [-0.12, 1.44], [0.44, 1.44], [0.44, 0.86], [-0.12, 0.86]];
+  const FUNNEL = [[-0.78, DECK], [-0.74, 1.4], [-0.5, 1.4], [-0.46, DECK], [-0.78, DECK]];
+  const FUNNEL_TOP = [-0.62, 1.42];
+  function steamBack() {
+    return [
+      STEAM_HULL,
+      [[-1.45, DECK], [-1.45, 0.72], [-0.92, 0.72], [-0.92, DECK]], [[-1.35, 0.55], [-1.02, 0.55]],
+      FUNNEL, [[-0.755, 1.22], [-0.485, 1.22]],
+      ...[-1.35, -1.05, -0.75, -0.45, -0.15, 0.15, 0.45].map((x, i) => circ([x, 0.12], 0.028, 31 + i, 10))
+    ];
+  }
+  function steamFront() {
+    return [WHEELHOUSE, WH_WINDOW, [[-0.28, 1.52], [0.56, 1.52]],
+      [[0.14, 1.52], [0.14, 1.86]], [[0.14, 1.86], [0.32, 1.81], [0.14, 1.76]],
+      ...shipWheel(STEAM_WHEEL.c, STEAM_WHEEL.r)];
+  }
+
+  // plane: a fuselage deep enough to hold the pilot, hips and legs and all, under a framed canopy
+  const pilotPose = () => seated([0.12, 0.44], 0.1, 0.06, [[0.5, 0.42], [0.52, 0.41]], [[0.33, 0.56], [0.34, 0.55]]);
+  const PLANE_BODY = [[1.05, 0.5], [0.86, 0.66], [0.46, 0.7], [-0.45, 0.68], [-1.05, 0.64], [-1.05, 0.55],
+                      [-0.45, 0.42], [0.55, 0.3], [0.98, 0.4], [1.05, 0.5]];
+  const CANOPY = [[0.46, 0.7], [0.38, 1.06], [0.02, 1.08], [-0.12, 0.69], [0.46, 0.7]];
+  const GLASS = [[0.39, 0.72], [0.32, 1.02], [0.05, 1.04], [-0.05, 0.71], [0.39, 0.72]];
+  const FIN = [[-0.75, 0.67], [-0.98, 1.02], [-1.08, 1.02], [-1.05, 0.64]];
   function planeStrokes(pa, gear, wa) {
     const wing = [];
-    for (let i = 0; i <= 18; i++) { const a = TAU * i / 18; wing.push([0.12 + Math.cos(a) * 0.42, 0.43 + Math.sin(a) * 0.045]); }
-    const L = [
-      PLANE_BODY, CANOPY, GLASS,
-      [[-0.72, 0.56], [-0.94, 0.86], [-1.04, 0.86], [-1.02, 0.54]], [[-0.78, 0.5], [-1.14, 0.51]], wing,
-      [[1.03, 0.42 - 0.22 * Math.cos(pa)], [1.03, 0.42 + 0.22 * Math.cos(pa)]]
-    ];
+    for (let i = 0; i <= 20; i++) { const a = TAU * i / 20; wing.push([0.12 + Math.cos(a) * 0.46, 0.47 + Math.sin(a) * 0.05]); }
+    const L = [PLANE_BODY, CANOPY, GLASS, FIN, [[-0.82, 0.6], [-1.22, 0.61]], wing, [[0.86, 0.66], [0.84, 0.34]],
+      [[1.08, 0.5 - 0.25 * Math.cos(pa)], [1.08, 0.5 + 0.25 * Math.cos(pa)]]];
     if (gear > 0.02) {
-      const g = gear, wy = lerp(0.36, 0.075, g);
-      L.push([[0.32, 0.35], [0.3, wy]], circ([0.3, wy], 0.075, 41), ...spokes([0.3, wy], 0.06, wa).slice(0, 1));
-      L.push([[-0.88, 0.47], [-0.9, lerp(0.47, 0.07, g)]], circ([-0.9, lerp(0.47, 0.035, g)], 0.035, 42, 10));
+      const wy = lerp(0.34, 0.08, gear);
+      L.push([[0.34, 0.325], [0.32, wy]], circ([0.32, wy], 0.08, 41), ...spokes([0.32, wy], 0.065, wa, 1));
+      L.push([[-0.9, 0.52], [-0.93, lerp(0.52, 0.075, gear)]], circ([-0.93, lerp(0.52, 0.04, gear)], 0.04, 42, 10));
     }
     return L;
   }
 
   /* ================= drawing by hand =================
-     Every line is cut into short steps and each step nudged off true by a
-     smooth wobble. The wobble is redrawn eight times a second, which is what
-     makes a pencil line look alive on film. */
+     Every line is cut into short steps, each nudged off true by a smooth
+     wobble that is redrawn eight times a second, which is what makes a pen line
+     look alive on film. Each stroke is then laid down as a ribbon that swells in
+     the middle and thins at the ends, the way a nib does. */
   let W = 0, H = 0, DPR = 1, FH = 150, X0 = 0, GY = 0, J = 0.7, LW = 2, SEG = 7, boil = 0;
   let tf = { x: 0, y: 0, r: 0 };
+  const FIG = '#EFEADF', LINE = '#E2DCCC';
+  const INKBG = '#06080F';
   const scr = p => {
     const c = Math.cos(tf.r), s = Math.sin(tf.r);
     return [X0 + (tf.x + p[0] * c - p[1] * s) * FH, GY - (tf.y + p[0] * s + p[1] * c) * FH];
@@ -272,7 +352,8 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
       const n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / SEG));
       for (let j = 0; j < n; j++) out.push([lerp(a[0], b[0], j / n), lerp(a[1], b[1], j / n)]);
     }
-    out.push(pts[pts.length - 1]);
+    const e = pts[pts.length - 1];
+    out.push([e[0], e[1]]);
     const h1 = id * 12.9898 + boil * 78.233, h2 = id * 4.1414 + boil * 3.7;
     for (let i = 0; i < out.length; i++) {
       out[i][0] += (Math.sin(i * 0.9 + h1) * 0.6 + Math.sin(i * 0.37 + h2) * 0.4) * J;
@@ -280,73 +361,128 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     }
     return out;
   }
-  // draw a list of polylines, the first `frac` of their length in the order given
+  // one nib stroke along a polyline in screen space
+  function nib(poly, w, closed, id) {
+    const n = poly.length;
+    if (n < 2) return;
+    const L = [0];
+    for (let i = 1; i < n; i++) L.push(L[i - 1] + Math.hypot(poly[i][0] - poly[i - 1][0], poly[i][1] - poly[i - 1][1]));
+    const tot = L[n - 1] || 1, left = [], right = [];
+    for (let i = 0; i < n; i++) {
+      const a = poly[Math.max(0, i - 1)], b = poly[Math.min(n - 1, i + 1)];
+      let dx = b[0] - a[0], dy = b[1] - a[1];
+      const d = Math.hypot(dx, dy) || 1; dx /= d; dy /= d;
+      const u = L[i] / tot;
+      const taper = closed ? 1 : Math.pow(Math.sin(Math.PI * clamp(u, 0.03, 0.97)), 0.5);
+      const hw = w * 0.5 * (0.4 + 0.6 * taper) * (1 + 0.2 * Math.sin(L[i] * 0.08 + id * 1.3));
+      left.push([poly[i][0] - dy * hw, poly[i][1] + dx * hw]);
+      right.push([poly[i][0] + dy * hw, poly[i][1] - dx * hw]);
+    }
+    ctx.beginPath();
+    ctx.moveTo(left[0][0], left[0][1]);
+    for (let i = 1; i < n; i++) ctx.lineTo(left[i][0], left[i][1]);
+    for (let i = n - 1; i >= 0; i--) ctx.lineTo(right[i][0], right[i][1]);
+    ctx.closePath();
+    ctx.fill();
+  }
+  // lay down a list of polylines in pen, the first `frac` of their length in the order given
   function ink(list, frac, alpha, col, w, idBase, screen) {
     if (frac <= 0.001 || alpha <= 0.003) return;
-    const polys = list.map((pts, k) => wobble(screen ? pts.map(p => p.slice()) : pts.map(scr), idBase + k));
     let budget = Infinity;
+    const polys = list.map((pts, k) => wobble(screen ? pts : pts.map(scr), idBase + k));
     if (frac < 1) {
       let total = 0;
       for (const p of polys) for (let i = 1; i < p.length; i++) total += Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]);
       budget = total * frac;
     }
-    ctx.globalAlpha = alpha; ctx.strokeStyle = col; ctx.lineWidth = w || LW;
-    ctx.beginPath();
-    for (const p of polys) {
-      if (budget <= 0) break;
-      ctx.moveTo(p[0][0], p[0][1]);
-      for (let i = 1; i < p.length; i++) {
-        const d = Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]);
-        if (budget < d) {
-          const t = budget / d;
-          ctx.lineTo(lerp(p[i - 1][0], p[i][0], t), lerp(p[i - 1][1], p[i][1], t));
-          budget = 0; break;
+    ctx.globalAlpha = alpha; ctx.fillStyle = col;
+    polys.forEach((p, k) => {
+      if (budget <= 0) return;
+      let cut = p.length;
+      if (budget < Infinity) {
+        let run = 0;
+        for (let i = 1; i < p.length; i++) {
+          const d = Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]);
+          if (run + d > budget) {
+            const t = (budget - run) / d;
+            p[i] = [lerp(p[i - 1][0], p[i][0], t), lerp(p[i - 1][1], p[i][1], t)];
+            cut = i + 1; run = budget; break;
+          }
+          run += d;
         }
-        ctx.lineTo(p[i][0], p[i][1]); budget -= d;
+        budget -= run;
       }
-    }
-    ctx.stroke();
+      const q = cut < p.length ? p.slice(0, cut) : p;
+      const closed = q.length > 3 && Math.hypot(q[0][0] - q[q.length - 1][0], q[0][1] - q[q.length - 1][1]) < 2;
+      nib(q, w || LW, closed, idBase + k);
+    });
     ctx.globalAlpha = 1;
   }
-  function occlude(pts, alpha, hole) {
-    if (alpha <= 0.003) return;
-    ctx.globalAlpha = alpha; ctx.fillStyle = INK;
+  const trace = (pts, hole) => {
     ctx.beginPath();
     pts.map(scr).forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]));
     ctx.closePath();
     if (hole) { hole.map(scr).forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); }
-    ctx.fill('evenodd');
+  };
+  // fill a shape with the paper colour, so it hides what is behind it
+  function occlude(pts, alpha, hole) {
+    if (alpha <= 0.003) return;
+    ctx.globalAlpha = alpha; ctx.fillStyle = INKBG;
+    trace(pts, hole); ctx.fill('evenodd');
     ctx.globalAlpha = 1;
   }
-  const INK = getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() || '#05070E';
-  const FIG = '#DEE5F1', LINE = '#C9D4E4';
-
-  function figureFar(p, a) {
-    ink([[p.hip, p.k1, p.f1], [p.sh, p.e1, p.h1]], 1, a * 0.45, FIG, LW, 1);
+  // engraver's hatching, clipped to a shape
+  function hatch(pts, alpha, hole, dense) {
+    if (alpha <= 0.01) return;
+    const sp = pts.map(scr);
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    for (const p of sp) { x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); }
+    const gap = Math.max(3, FH * (dense ? 0.022 : 0.03)), h = y1 - y0;
+    ctx.save();
+    trace(pts, hole); ctx.clip('evenodd');
+    ctx.globalAlpha = alpha; ctx.strokeStyle = LINE; ctx.lineWidth = Math.max(0.6, LW * 0.32);
+    ctx.beginPath();
+    for (let q = x0 - h; q < x1; q += gap) {
+      const j = Math.sin(q * 0.37 + boil * 1.7) * 0.9;
+      ctx.moveTo(q + j, y1 + 1); ctx.lineTo(q + h * 0.8 + j, y0 - 1);
+    }
+    ctx.stroke();
+    ctx.restore();
+    ctx.globalAlpha = 1;
   }
+
+  function hat(p, a) {
+    const dx = p.hd[0] - p.nk[0], dy = p.hd[1] - p.nk[1], d = Math.hypot(dx, dy) || 1;
+    const ux = dx / d, uy = dy / d, px = uy, py = -ux;                       // up, and across the head
+    const b = [p.hd[0] + ux * HR * 0.72, p.hd[1] + uy * HR * 0.72];
+    const at = (s, t) => [b[0] + px * s + ux * t, b[1] + py * s + uy * t];
+    ink([[at(-HR * 1.45, 0), at(HR * 1.5, 0.004)],
+         [at(-HR * 0.8, 0.005), at(-HR * 0.72, 0.085), at(HR * 0.78, 0.09), at(HR * 0.86, 0.005)]], 1, a, FIG, LW, 7);
+  }
+  function figureFar(p, a) { ink([[p.hip, p.k1, p.f1], [p.sh, p.e1, p.h1]], 1, a * 0.45, FIG, LW * 1.1, 1); }
   function figureNear(p, a) {
-    ink([[p.hip, p.sh, p.nk], circ(p.hd, HR, 4, 16), [p.hip, p.k2, p.f2], [p.sh, p.e2, p.h2]], 1, a, FIG, LW, 3);
+    ink([[p.hip, p.sh, p.nk], circ(p.hd, HR, 4, 16), [p.hip, p.k2, p.f2], [p.sh, p.e2, p.h2]], 1, a, FIG, LW * 1.15, 3);
+    hat(p, a);
   }
 
   /* ================= the ride, set by the scroll =================
-     s runs 0 to 6: standing, walking, running, cycling, driving, sailing,
-     flying. Each holds for a stretch of the scroll and hands over to the next. */
-  const KEYS = [[0, 0], [0.035, 0], [0.085, 1], [0.15, 1], [0.195, 2], [0.26, 2], [0.305, 3], [0.38, 3],
-                [0.425, 4], [0.5, 4], [0.545, 5], [0.62, 5], [0.665, 6], [1, 6]];
+     s runs 0 to 7: standing, walking, running, cycling, driving, sailing,
+     steaming, flying. Each holds for a stretch of the scroll and hands over
+     to the next. */
+  const KEYS = [[0, 0], [0.03, 0], [0.07, 1], [0.12, 1], [0.155, 2], [0.2, 2], [0.24, 3], [0.3, 3],
+                [0.34, 4], [0.4, 4], [0.445, 5], [0.51, 5], [0.555, 6], [0.615, 6], [0.66, 7], [1, 7]];
   const stageOf = p => {
     for (let i = 1; i < KEYS.length; i++) {
       const [p1, s1] = KEYS[i], [p0, s0] = KEYS[i - 1];
       if (p <= p1) return s0 === s1 ? s0 : lerp(s0, s1, sstep(p0, p1, p));
     }
-    return 6;
+    return 7;
   };
-  // standing, walking, running, steamer, bicycle, car, plane; figure heights a second
-  const SPEED = [0, 1.0, 2.3, 2.8, 3.4, 5.2, 7.5];
+  // standing, walking, running, bicycle, car, sail, steam, plane: figure heights a second
+  const SPEED = [0, 1.0, 2.3, 3.2, 5.2, 2.2, 3.0, 7.5];
   const speedAt = s => lerp(SPEED[Math.floor(s)], SPEED[Math.ceil(s)], s - Math.floor(s));
-  /* The year each came in: Fulton's Clermont on the Hudson, Starley's Rover
-     safety bicycle, Benz's Motorwagen patent, the Wrights at Kitty Hawk. */
-  const CAPS = ['', '', '', '1807', '1885', '1886', '1903'];
   const TAKEOFF = [0.69, 0.8], RING = [0.8, 0.94], GRAT = [0.925, 0.965], END = 0.968;
+  const waterAt = s => clamp(1 - Math.max(0, 5 - s, s - 6), 0, 1);
 
   /* where the globe will be: asked of the page once it is built, worked out
      the same way before that */
@@ -355,7 +491,7 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     if (A && A.booted) return A.geom();
     const mob = W <= 820 && H >= 480;
     if (mob) {
-      const peek = 237, head = 58, h = H - peek - head;
+      const peek = 158, head = 58, h = H - peek - head;
       return { cx: W / 2, cy: head + h / 2, r: Math.min(W * 0.96, h * 0.96) / 2, rotL: 0.13, rotP: -51.51 };
     }
     const gutter = W > 1140 ? 302 : 284, foot = H > 620 ? 0 : 134;
@@ -371,15 +507,14 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     FH = clamp(Math.min(H * 0.2, W * 0.28), 88, 220);
     X0 = W / 2; GY = Math.round(H * 0.63);
-    J = Math.max(0.55, FH * 0.0042); LW = Math.max(1.6, FH * 0.0135); SEG = Math.max(5, FH * 0.04);
-    elCap.style.transform = 'translateY(' + Math.round(GY + FH * 0.3) + 'px)';
+    J = Math.max(0.55, FH * 0.0042); LW = Math.max(1.7, FH * 0.015); SEG = Math.max(5, FH * 0.04);
   }
 
   /* ================= state and the loop ================= */
   let P = 0, target = 0, last = performance.now(), time = 0;
   let off = 0, phi = 0, crank = 0, wheel = 0, prop = 0, puffT = 0, stepT = 0;
   const puffs = [];
-  let G = null, leaving = null, waiting = false, finished = false, capNow = '';
+  let G = null, leaving = null, waiting = false, finished = false;
 
   root.addEventListener('scroll', () => {
     const span = root.scrollHeight - root.clientHeight;
@@ -418,8 +553,8 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     for (const k of ['cx', 'cy', 'r']) G[k] = lerp(G[k], gt[k], kg);
     G.rotL = gt.rotL; G.rotP = gt.rotP;
 
+    words();
     draw(s, tRing);
-    words(s);
 
     if (!leaving && P >= END) {
       if (window.ISO_APP && window.ISO_APP.booted) finish(false);
@@ -427,87 +562,92 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     }
   }
 
-  function words(s) {
-    const fadeTop = 1 - sstep(0.012, 0.045, P);
-    elTitle.style.opacity = fadeTop.toFixed(3);
-    elTitle.style.transform = 'translateY(' + (-(1 - fadeTop) * 18).toFixed(1) + 'px)';
-    elHint.style.opacity = fadeTop.toFixed(3);
-    const k = Math.round(s), near = 1 - clamp(Math.abs(s - k) * 2.6, 0, 1);
-    const cap = CAPS[k] || '';
-    let a = cap ? near : 0;
-    if (k === 6) a *= 1 - sstep(0.73, 0.78, P);
-    if (cap !== capNow) { capNow = cap; elCap.textContent = cap; }
-    elCap.style.opacity = a.toFixed(3);
+  let titleFade = 1;
+  function words() {
+    titleFade = 1 - sstep(0.012, 0.045, P);
+    elTitle.style.opacity = titleFade.toFixed(3);
+    elTitle.style.transform = 'translate(-50%,' + (-(1 - titleFade) * 18).toFixed(1) + 'px)';
+    elHint.style.opacity = titleFade.toFixed(3);
+  }
+
+  // the rig: ships rock on the water, the plane climbs away
+  function rigAt(k, wat) {
+    const r = { x: 0, y: 0, r: 0 };
+    if (wat > 0) {
+      r.y += (reduced ? 0 : Math.sin(time * 1.6) * 0.018) * wat;
+      r.r += (reduced ? 0 : Math.sin(time * 1.25) * 0.03) * wat;
+    }
+    if (k > 0) {
+      r.x += k * k * (W * 0.72) / FH;
+      r.y += Math.pow(k, 1.7) * (H * 0.95) / FH;
+      r.r += 0.3 * sstep(0, 0.35, k) * (1 - 0.4 * sstep(0.6, 1, k));
+    }
+    return r;
   }
 
   function draw(s, tRing) {
     ctx.clearRect(0, 0, W, H);
     const fade = leaving ? 1 - clamp((performance.now() - leaving.t0) / leaving.dur, 0, 1) : 1;
-    ctx.save();
-    ctx.globalAlpha = 1;
-
     const pres = v => clamp(1 - Math.abs(s - v), 0, 1);
     const k = sstep(TAKEOFF[0], TAKEOFF[1], P);
-    const standness = clamp(1 - s, 0, 1) + pres(3);
+    const wat = waterAt(s);
+    const standness = clamp(1 - s, 0, 1) + pres(5) + pres(6);
     const breath = reduced ? 0 : Math.sin(time * 1.8) * 0.004 * standness;
 
-    /* ---- the pose, handed from one means of travel to the next ---- */
-    let pose;
-    const a = Math.floor(s), t = s - a;
-    const poseOf = st => st <= 2 ? gaitPose(phi, gaitAt(st), breath) : st === 3 ? steerPose(phi, breath) :
-      st === 4 ? bikePose(crank) : st === 5 ? carPose() : pilotPose();
-    if (s <= 2) pose = gaitPose(phi, gaitAt(s), breath);
-    else if (t < 1e-3) pose = poseOf(a);
-    else pose = mixPose(poseOf(a), poseOf(a + 1), sstep(0, 1, t));
-
-    /* ---- the rig: the ship rocks, the plane climbs ---- */
-    const ps = pres(3);
     tf = { x: 0, y: 0, r: 0 };
-    if (ps > 0) {
-      tf.y += (reduced ? 0 : Math.sin(time * 1.6) * 0.018) * ps;
-      tf.r += (reduced ? 0 : Math.sin(time * 1.25) * 0.035) * ps;
-    }
-    if (k > 0) {
-      tf.x += k * k * (W * 0.72) / FH;
-      tf.y += Math.pow(k, 1.7) * (H * 0.95) / FH;
-      tf.r += 0.3 * sstep(0, 0.35, k) * (1 - 0.4 * sstep(0.6, 1, k));
-    }
-    const shown = 1 - sstep(0.93, 1, k);                        // gone once out of the frame
+    cartouche(titleFade);
+    landmarks(1 - wat, (1 - sstep(0, 0.15, tRing)) * fade);
 
+    /* ---- the pose, handed from one means of travel to the next ---- */
+    const a = Math.floor(s), t = s - a;
+    const poseOf = st => st <= 2 ? gaitPose(phi, gaitAt(st), breath) : st === 3 ? bikePose(crank) :
+      st === 4 ? carPose() : st === 5 ? sailPose(phi, breath) : st === 6 ? steamPose(phi, breath) : pilotPose();
+    const pose = s <= 2 ? gaitPose(phi, gaitAt(s), breath) : t < 1e-3 ? poseOf(a) : mixPose(poseOf(a), poseOf(a + 1), sstep(0, 1, t));
+
+    tf = rigAt(k, wat);
+    const shown = 1 - sstep(0.93, 1, k);                        // gone once out of the frame
     if (shown > 0) {
-      // behind the figure: the bicycle and the body of the ship
+      // behind the figure: the bicycle, and the body of the steamer
       figureFar(pose, shown);
-      const pb = pres(4);
+      const pb = pres(3), pc = pres(4), psl = pres(5), pst = pres(6), pp = pres(7);
       if (pb > 0) ink(bikeStrokes(crank, wheel), sstep(0, 1, pb), 1, LINE, LW, 100);
-      if (ps > 0) {
-        smoke(ps);
-        occlude(SHIP_HULL, ps);
-        ink(shipBack(), sstep(0, 1, ps), 1, LINE, LW, 200);
+      if (pst > 0) {
+        smoke(pst);
+        occlude(STEAM_HULL, pst); hatch(STEAM_HULL, 0.3 * pst); hatch(FUNNEL, 0.4 * pst, null, true);
+        ink(steamBack(), sstep(0, 1, pst), 1, LINE, LW, 200);
       }
       figureNear(pose, shown);
-      // in front of it: the wheelhouse, the car and the plane, which hide what they hold
-      if (ps > 0) {
-        occlude(WHEELHOUSE, ps, WH_WINDOW);
-        ink(shipFront(), sstep(0, 1, ps), 1, LINE, LW, 250);
+      // in front of it: whatever the figure is inside, or standing behind
+      if (pst > 0) {
+        occlude(WHEELHOUSE, pst, WH_WINDOW); hatch(WHEELHOUSE, 0.22 * pst, WH_WINDOW);
+        ink(steamFront(), sstep(0, 1, pst), 1, LINE, LW, 250);
       }
-      const pc = pres(5);
+      if (psl > 0) {
+        const sh = sailShip(time);
+        ink(sh.back, sstep(0, 1, psl), 0.85, LINE, LW * 0.8, 600);
+        for (const sp of sh.sails) occlude(sp, psl);
+        ink(sh.sails, sstep(0, 1, psl), 1, LINE, LW, 620);
+        ink(sh.seams, sstep(0, 1, psl), 0.45, LINE, LW * 0.6, 640);
+        occlude(SAIL_HULL, psl); hatch(SAIL_HULL, 0.3 * psl);
+        ink(sh.hull, sstep(0, 1, psl), 1, LINE, LW, 660);
+      }
       if (pc > 0) {
-        occlude(CAR_BODY, pc, CAR_WIN);
+        occlude(CAR_BODY, pc, CAR_WIN); hatch(CAR_BODY, 0.2 * pc, CAR_WIN);
         ink(carStrokes(wheel), sstep(0, 1, pc), 1, LINE, LW, 300);
       }
-      const pp = pres(6);
       if (pp > 0) {
-        occlude(PLANE_BODY, pp);
-        occlude(CANOPY, pp, GLASS);
+        occlude(PLANE_BODY, pp); occlude(CANOPY, pp, GLASS);
+        hatch(PLANE_BODY, 0.2 * pp); hatch(FIN, 0.3 * pp, null, true);
         ink(planeStrokes(prop, 1 - sstep(0.2, 0.5, k), wheel), sstep(0, 1, pp), shown, LINE, LW, 400);
       }
     }
+    trail(k, fade * (1 - sstep(0, 0.4, tRing)));
 
     /* ---- the ground, which becomes the rim of the globe ---- */
     tf = { x: 0, y: 0, r: 0 };
-    ground(s, tRing, fade);
+    ground(s, wat, tRing, fade);
+    compass(fade * (1 - sstep(0, 0.3, tRing)));             // over the ground, which would hide it
     if (tRing >= 0.999) graticule(sstep(GRAT[0], GRAT[1], P), fade);
-    ctx.restore();
   }
 
   function smoke(a) {
@@ -518,25 +658,38 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     const list = reduced ? [{ t: 0.6 }, { t: 1.4 }, { t: 2.2 }] : puffs;
     for (const q of list) {
       const c = [top[0] - q.t * 0.34, top[1] + 0.06 + q.t * 0.1];
-      const r = 0.035 + q.t * 0.05;
-      ink([circ(c, r, 50 + Math.round(q.t * 10) % 7, 14)], 1, a * 0.5 * (1 - q.t / 3.2), LINE, LW * 0.8, 500);
+      ink([circ(c, 0.035 + q.t * 0.05, 50 + Math.round(q.t * 10) % 7, 14)], 1, a * 0.5 * (1 - q.t / 3.2), LINE, LW * 0.7, 500);
     }
   }
 
-  function ground(s, tRing, fade) {
-    const water = clamp(1 - Math.abs(s - 3), 0, 1);
-    const A = 0.028 * FH * sstep(0, 1, water), lam = 0.5;
+  // the dotted track of the flight, the way a route is marked on a chart
+  function trail(k, a) {
+    if (k < 0.02 || a <= 0.01) return;
+    const keep = tf;
+    ctx.fillStyle = LINE;
+    for (let kk = 0.015; kk < k - 0.012; kk += 0.018) {
+      tf = rigAt(kk, 0);
+      const p = scr([-0.93, 0.05]);
+      ctx.globalAlpha = a * 0.55 * (0.4 + 0.6 * kk / k);
+      ctx.beginPath(); ctx.arc(p[0], p[1], Math.max(1.1, LW * 0.55), 0, TAU); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    tf = keep;
+  }
+
+  function ground(s, wat, tRing, fade) {
+    const A = 0.028 * FH * sstep(0, 1, wat), lam = 0.5;
     const yAt = x => GY - A * Math.sin(TAU * ((x - X0) / FH + off) / lam + (reduced ? 0 : time * 0.9));
     if (tRing <= 0.001) {
       const pts = [];
       for (let x = -24; x <= W + 24; x += 8) pts.push([x, yAt(x)]);
       // below the line is water or earth: hide what sits beneath it
-      ctx.fillStyle = INK; ctx.globalAlpha = 1;
+      ctx.fillStyle = INKBG; ctx.globalAlpha = 1;
       ctx.beginPath(); ctx.moveTo(-24, H + 10);
       for (const p of pts) ctx.lineTo(p[0], p[1] + LW * 0.6);
       ctx.lineTo(W + 24, H + 10); ctx.closePath(); ctx.fill();
-      ink([pts], 1, 0.92 * fade, LINE, LW, 900, true);
-      marks(yAt, 1 - water, water, 1);
+      ink([pts], 1, 0.95 * fade, LINE, LW * 1.1, 900, true);
+      marks(yAt, 1 - wat, wat, fade);
       return;
     }
     /* The line keeps its length and bends: an arc of ever tighter radius
@@ -545,40 +698,118 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     const R = G.r, L0 = Math.max(W + 240, TAU * R, 2 * (Math.max(G.cx, W - G.cx) + 60)), e = sstep(0, 1, tRing);
     const len = lerp(L0, TAU * R, e), span = TAU * tRing;
     const bx = G.cx, by = lerp(GY, G.cy + R, sstep(0, 0.6, tRing));   // down to the rim early, so the ends stay in view
-    const rho = len / span, cxA = bx, cyA = by - rho;
-    const n = 220, pts = [];
+    const rho = len / span, cyA = by - rho;
+    const n = 240, pts = [];
     for (let i = 0; i <= n; i++) {
       const aa = Math.PI / 2 + span * (i / n - 0.5);
-      pts.push([cxA + rho * Math.cos(aa), cyA + rho * Math.sin(aa)]);
+      pts.push([bx + rho * Math.cos(aa), cyA + rho * Math.sin(aa)]);
     }
-    ink([pts], 1, 0.92 * fade, LINE, LW * (1 + 0.15 * e), 900, true);
+    ink([pts], 1, 0.95 * fade, LINE, LW * (1.1 + 0.2 * e), 900, true);
     const fm = 1 - sstep(0, 0.12, tRing);
-    if (fm > 0) marks(yAt, fm, 0, fm);
+    if (fm > 0) marks(yAt, fm, 0, fm * fade);
   }
 
-  // hatching under the earth, small crests on the water; they ride with the ground
+  /* Under the land, hachures like the edge of a map's high ground; on the
+     water, rows of engraved wave strokes. Both ride with the ground. */
   const hs = n => { const x = Math.sin(n * 91.345 + 17.1) * 43758.5453; return x - Math.floor(x); };
   function marks(yAt, land, water, a) {
-    const gap = 0.16, i0 = Math.floor((off - X0 / FH) / gap) - 2, i1 = Math.ceil((off + (W - X0) / FH) / gap) + 2;
-    const hatch = [], crest = [];
-    for (let i = i0; i <= i1; i++) {
-      const u = i * gap + hs(i) * 0.09, x = X0 + (u - off) * FH;
-      if (land > 0.01 && hs(i + 3) < 0.62) {
-        const y = yAt(x) + LW + 2, l = (0.025 + 0.03 * hs(i + 7)) * FH;
-        hatch.push([[x, y], [x - l * 0.55, y + l]]);
+    if (land > 0.01) {
+      const gap = 0.07, i0 = Math.floor((off - X0 / FH) / gap) - 2, i1 = Math.ceil((off + (W - X0) / FH) / gap) + 2;
+      ctx.save(); ctx.globalAlpha = 0.5 * land * a; ctx.strokeStyle = LINE; ctx.lineWidth = Math.max(0.7, LW * 0.42);
+      ctx.beginPath();
+      for (let i = i0; i <= i1; i++) {
+        const cluster = 0.5 + 0.5 * Math.sin(i * 0.23 + hs(i >> 4) * 6);   // hachures come in runs, thick and thin
+        if (hs(i + 3) > 0.35 + 0.5 * cluster) continue;
+        const u = i * gap + hs(i) * 0.03, x = X0 + (u - off) * FH;
+        const y = yAt(x) + LW + 1.5, l = (0.02 + 0.05 * hs(i + 7) * (0.4 + cluster)) * FH;
+        ctx.moveTo(x, y); ctx.lineTo(x - l * 0.28, y + l);
       }
-      if (water > 0.01 && i % 2 === 0 && hs(i + 11) < 0.7) {
-        const y = yAt(x) + (0.06 + 0.1 * hs(i + 5)) * FH, w = 0.06 * FH;
-        crest.push([[x - w, y], [x - w * 0.4, y + w * 0.22], [x + w * 0.2, y + w * 0.1]]);
+      ctx.stroke(); ctx.restore();
+    }
+    if (water > 0.01) {
+      for (let r = 0; r < 4; r++) {
+        const par = 1 - r * 0.12, g2 = 0.26 + r * 0.05, j0 = Math.floor((off * par - X0 / FH) / g2) - 1, row = [];
+        for (let j = j0; j <= j0 + Math.ceil(W / FH / g2) + 2; j++) {
+          if (hs(j * 7 + r) < 0.25) continue;
+          const u = j * g2 + (r % 2) * g2 * 0.5 + hs(j + r * 13) * 0.05, x = X0 + (u - off * par) * FH;
+          const y = GY + (0.07 + r * 0.075) * FH, w = (0.055 - r * 0.006) * FH;
+          row.push([[x - w, y], [x - w * 0.35, y - w * 0.28], [x + w * 0.3, y - w * 0.05], [x + w, y - w * 0.3]]);
+        }
+        ink(row, 1, 0.55 * water * a * (1 - r * 0.2), LINE, LW * (0.75 - r * 0.1), 980 + r * 40, true);
       }
     }
-    if (hatch.length) ink(hatch, 1, 0.42 * land * a, LINE, LW * 0.8, 950, true);
-    if (crest.length) ink(crest, 1, 0.38 * water * a, LINE, LW * 0.8, 980, true);
+  }
+
+  /* Map signs along the road, set back on the ground line and a little
+     fainter than the traveller: trees, houses, a church, a milestone. */
+  function landmarks(land, a) {
+    if (land <= 0.01 || a <= 0.01) return;
+    const gap = 1.7, i0 = Math.floor((off - X0 / FH) / gap) - 1, i1 = Math.ceil((off + (W - X0) / FH) / gap) + 1;
+    const L = [];
+    for (let i = i0; i <= i1; i++) {
+      const x = i * gap + hs(i + 101) * 0.9 - off;                    // in figure heights from the figure
+      const kind = Math.floor(hs(i + 57) * 5), s = 0.8 + 0.4 * hs(i + 33);
+      const at = (dx, dy) => [x + dx * s, dy * s];
+      if (kind <= 1) {                                                // trees, one to three
+        const n = 1 + Math.floor(hs(i + 9) * 3);
+        for (let t = 0; t < n; t++) {
+          const tx = t * 0.16 - n * 0.06, th = 0.2 + 0.08 * hs(i + t);
+          L.push([at(tx, 0), at(tx, th)]);
+          L.push(circ(at(tx, th + 0.07), 0.075 * s, i * 3 + t, 12));
+        }
+      } else if (kind === 2) {                                        // a house
+        L.push([at(-0.13, 0), at(-0.13, 0.17), at(0.13, 0.17), at(0.13, 0)]);
+        L.push([at(-0.16, 0.16), at(0, 0.29), at(0.16, 0.16)]);
+        L.push([at(-0.03, 0), at(-0.03, 0.08), at(0.03, 0.08), at(0.03, 0)]);
+      } else if (kind === 3) {                                        // a church with its tower
+        L.push([at(-0.2, 0), at(-0.2, 0.16), at(0.06, 0.16), at(0.06, 0)]);
+        L.push([at(-0.23, 0.15), at(-0.07, 0.25), at(0.09, 0.15)]);
+        L.push([at(0.06, 0), at(0.06, 0.3), at(0.16, 0.3), at(0.16, 0)]);
+        L.push([at(0.05, 0.29), at(0.11, 0.4), at(0.17, 0.29)]);
+        L.push([at(0.11, 0.4), at(0.11, 0.47)], [at(0.085, 0.445), at(0.135, 0.445)]);
+      } else {                                                        // a milestone
+        L.push([at(-0.04, 0), at(-0.04, 0.09), at(0, 0.12), at(0.04, 0.09), at(0.04, 0)]);
+      }
+    }
+    if (L.length) ink(L, 1, 0.5 * land * a, LINE, LW * 0.75, 1200, false);
+  }
+
+  // the title in a cartouche: a double rule, drawn round it by hand
+  function cartouche(a) {
+    if (a <= 0.01) return;
+    const r = elTitle.getBoundingClientRect();
+    const x0 = r.left, x1 = r.right, y0 = r.top, y1 = r.bottom, d = 5;
+    const box = i => [[x0 - i, y0 - i], [x1 + i, y0 - i], [x1 + i, y1 + i], [x0 - i, y1 + i], [x0 - i, y0 - i]];
+    ink([box(0)], 1, a * 0.7, LINE, LW * 0.8, 1400, true);
+    ink([box(d)], 1, a * 0.35, LINE, LW * 0.5, 1410, true);
+    ink([[x0, y0], [x1, y0], [x1, y1], [x0, y1]].map(([cx, cy]) => circ([cx, cy], 3.2, cx + cy, 10)), 1, a * 0.6, LINE, LW * 0.6, 1420, true);
+  }
+
+  // a compass rose in the corner, as on any chart
+  function compass(a) {
+    if (a <= 0.01) return;
+    const R = clamp(FH * 0.2, 20, 34), c = [Math.max(R + 22, W * 0.06), H - Math.max(R + 34, H * 0.09)];
+    const pt = (ang, len, wid) => {
+      const dx = Math.sin(ang), dy = -Math.cos(ang), px = -dy, py = dx;
+      return [[c[0] + dx * len, c[1] + dy * len], [c[0] + px * wid, c[1] + py * wid], [c[0] - dx * wid * 0.4, c[1] - dy * wid * 0.4],
+              [c[0] - px * wid, c[1] - py * wid], [c[0] + dx * len, c[1] + dy * len]];
+    };
+    const L = [circ(c, R * 0.78, 1501, 24), circ(c, R * 0.64, 1502, 22)];
+    for (let q = 0; q < 4; q++) L.push(pt(q * Math.PI / 2, R * 1.25, R * 0.16));
+    for (let q = 0; q < 4; q++) L.push(pt(Math.PI / 4 + q * Math.PI / 2, R * 0.8, R * 0.11));
+    ink(L, 1, a * 0.55, LINE, LW * 0.6, 1500, true);
+    ctx.save();
+    ctx.globalAlpha = a * 0.3; ctx.fillStyle = LINE;
+    ctx.beginPath(); pt(0, R * 1.25, R * 0.16).forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.fill();
+    ctx.globalAlpha = a * 0.7; ctx.font = 'italic 500 ' + Math.round(R * 0.5) + 'px "Bodoni Moda", Georgia, serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+    ctx.fillText('N', c[0], c[1] - R * 1.3);
+    ctx.restore();
   }
 
   /* The graticule of the globe that is about to appear, every thirty
      degrees, turned the way the globe will be turned, so the sketch lands
-     where the map does. */
+     where the map's own pencilled graticule does. */
   function graticule(t, fade) {
     if (t <= 0) return;
     const cosP = Math.cos(G.rotP * RAD), sinP = Math.sin(G.rotP * RAD);
@@ -591,7 +822,7 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     const run = pts => { let cur = []; for (const p of pts) { if (p[2] > 0.02) cur.push([p[0], p[1]]); else { if (cur.length > 1) lines.push(cur); cur = []; } } if (cur.length > 1) lines.push(cur); };
     for (let lat = -60; lat <= 60; lat += 30) { const pts = []; for (let lon = -180; lon <= 180; lon += 4) pts.push(pj(lon, lat)); run(pts); }
     for (let lon = -180; lon < 180; lon += 30) { const pts = []; for (let lat = -90; lat <= 90; lat += 4) pts.push(pj(lon, lat)); run(pts); }
-    ink(lines, t, 0.3 * fade, LINE, LW * 0.7, 700, true);
+    ink(lines, t, 0.32 * fade, LINE, LW * 0.6, 700, true);
   }
 
   /* ================= handing over to the map ================= */

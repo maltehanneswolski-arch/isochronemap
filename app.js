@@ -639,6 +639,14 @@
   });
   const rampOf = () => D.PALETTES[S.palette].ramp;
 
+  /* With ISO_SKETCH set, the globe is drawn a little by hand: a graticule
+     every thirty degrees in pale ink, coastlines traced twice and not quite
+     on top of each other, and a rim gone over in pencil. It is the chart the
+     intro sketches, carried on under the map. */
+  const SKETCH = !!window.ISO_SKETCH;
+  const GRAT = SKETCH ? d3.geoGraticule().extent([[-180, -90], [180, 90]]).step([30, 30])() : null;
+  const INK = a => 'rgba(226,220,204,' + a + ')';
+
   /* ================= state ================= */
   const S = {
     mode: 0, era: 0,
@@ -1054,8 +1062,16 @@
   function bandGrid() {
     const key = S.fieldKey + '|' + S.ladder.join(',');
     if (S.bgKey === key) return S.bg;
-    const dist = S.field.dist, L = S.ladder, out = S.bg && S.bg.length === GN ? S.bg : new Float32Array(GN);
-    for (let c = 0; c < GN; c++) out[c] = bandT(dist[c], L);
+    const out = S.bg && S.bg.length === GN ? S.bg : new Float32Array(GN);
+    if (S.morph) {
+      // Play, between two years: the band coordinate of each cell slides from one to the other,
+      // so the isochrones themselves sweep across the map
+      const a = S.morph.A, b = S.morph.B, t = S.morph.t, u = 1 - t;
+      for (let c = 0; c < GN; c++) out[c] = a[c] * u + b[c] * t;
+    } else {
+      const dist = S.field.dist, L = S.ladder;
+      for (let c = 0; c < GN; c++) out[c] = bandT(dist[c], L);
+    }
     S.bg = out; S.bgKey = key;
     return out;
   }
@@ -1278,7 +1294,7 @@
      Only edges the reveal has already reached are named. */
   function bandMarks(r) {
     const f = S.field, L = S.ladder;
-    if (!f || !L) return [];
+    if (!f || !L || S.morph) return [];
     const l = (S.origin.lon + S.rotL) * RAD, ph = S.origin.lat * RAD, pp = S.rotP * RAD;
     if (Math.cos(l) * Math.cos(ph) * Math.cos(pp) - Math.sin(ph) * Math.sin(pp) < 0.15) return [];
     const o = proj([S.origin.lon, S.origin.lat]);
@@ -1345,6 +1361,15 @@
     // reads as a country rather than as more ocean.
     if (landPath) globe(() => { ctx.fillStyle = 'rgba(146,182,236,.055)'; ctx.fill(landPath); });
 
+    if (SKETCH) {
+      const gp = layer('grat', GRAT);
+      if (gp) globe(() => {
+        ctx.strokeStyle = INK(0.17); ctx.lineWidth = 0.8 * iw; ctx.stroke(gp);
+        ctx.translate(0.8 * iw, -0.5 * iw);
+        ctx.strokeStyle = INK(0.07); ctx.lineWidth = 0.7 * iw; ctx.stroke(gp);
+      });
+    }
+
 
     const bp = layer(fine ? 'borders' : 'bordersMed', fine ? BORDERS : BORDERMED);
     globe(() => {
@@ -1355,6 +1380,10 @@
       if (landPath) {
         ctx.strokeStyle = T.coastHalo; ctx.lineWidth = 2 * iw; ctx.stroke(landPath);
         ctx.strokeStyle = T.coast; ctx.lineWidth = 0.8 * iw; ctx.stroke(landPath);
+        if (SKETCH) {
+          ctx.translate(0.7 * iw, 0.45 * iw);
+          ctx.strokeStyle = INK(0.3); ctx.lineWidth = 0.6 * iw; ctx.stroke(landPath);
+        }
       }
     });
 
@@ -1457,6 +1486,12 @@
 
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, TAU);
     ctx.strokeStyle = T.limb; ctx.lineWidth = 1; ctx.stroke();
+    if (SKETCH) {
+      ctx.strokeStyle = INK(0.55); ctx.lineWidth = 1.3;
+      ctx.beginPath(); ctx.arc(cx + 0.6, cy - 0.4, r + 1.2, 0, TAU); ctx.stroke();
+      ctx.strokeStyle = INK(0.2); ctx.lineWidth = 0.8;
+      ctx.beginPath(); ctx.arc(cx - 0.5, cy + 0.7, r + 3.4, -0.4, TAU - 1.1); ctx.stroke();
+    }
   }
 
   /* ================= animation ================= */
@@ -1767,10 +1802,16 @@
   }
 
   /* ================= the years in sequence =================
-     Play steps through every year this means of travel has, from the first to
-     today, on one colour scale held from the first year, so the world can be
-     seen to shrink. Each year's solve is the pause on the year before it. */
+     Play first works out every year this means of travel has, counting them
+     off while you wait. Then it runs from the first year to today on one
+     colour scale, held from the first year, and blends each year into the
+     next, so what changes on the map is the reach and nothing else. */
   const sleep = ms => new Promise(res => setTimeout(res, ms));
+  // the next frame, or a short wait where frames are not being drawn (a background tab)
+  const nextFrame = () => new Promise(res => {
+    let done = false; const go = () => { if (!done) { done = true; res(); } };
+    requestAnimationFrame(go); setTimeout(go, 80);
+  });
   function setPlayUI(on) {
     for (const id of ['play', 'playChip']) {
       const b = $(id);
@@ -1786,40 +1827,83 @@
     S.playGen = (S.playGen || 0) + 1;
     if (!S.playing) return;
     S.playing = false;
-    document.body.classList.remove('playing');
+    document.body.classList.remove('playing', 'preparing');
+    $('solving').textContent = 'Plotting routes';
+    if (S.morph) {                         // stopped mid-blend: settle on the year it was heading for
+      S.morph = null;
+      S.field = getField(S.origin.lon, S.origin.lat, S.mode, S.era);
+      S.fieldKey = fieldKey(S.origin.lon, S.origin.lat, S.mode, S.era);
+      S.fieldGen = (S.fieldGen || 0) + 1; S.tKey = '';
+      refreshLadder(); updateReadout(); updateMethod(); draw();
+    }
     setPlayUI(false);
     lookahead();
   }
   async function play() {
-    const first = D.MODES[S.mode].since, last = D.ERAS.length - 1;
+    const first = D.MODES[S.mode].since, last = D.ERAS.length - 1, n = last - first + 1;
+    const { lon, lat } = S.origin, mi = S.mode;
     stopPlay();
-    const gen = S.playGen;
+    const gen = S.playGen, alive = () => S.playGen === gen;
     S.playing = true;
-    document.body.classList.add('playing');
+    document.body.classList.add('playing', 'preparing');
     setPlayUI(true);
     cancelLookahead(); unpinTip();
     if (S.mobile) document.body.classList.remove('sheet-open');
+
+    // every year first, counted off; each solve holds the page, so the count is painted before it
+    const fields = [];
     for (let e = first; e <= last; e++) {
+      $('solving').textContent = 'Working out ' + D.ERAS[e].y + ' \u00b7 ' + (e - first + 1) + ' of ' + n;
       await sleep(40);
-      if (S.playGen !== gen) return;
-      const t0 = performance.now();
-      const f = getField(S.origin.lon, S.origin.lat, S.mode, e);
-      if (S.playGen !== gen) return;
-      if (e === first) {
-        const top = fieldLadder(f);
-        S.ladderLock = makeLadder(top[top.length - 1], 1);
-        S.lockEra = e;
-      }
-      S.era = e; S.field = f;
-      S.fieldKey = fieldKey(S.origin.lon, S.origin.lat, S.mode, e);
-      S.solveMs = Math.round(performance.now() - t0);
-      S.fieldGen = (S.fieldGen || 0) + 1;
-      S.tKey = '';
-      refreshLadder(); syncControls(); updateReadout(); updateMethod();
-      animate(0);
-      await sleep(reduced ? 1500 : 1900);
+      if (!alive()) return;
+      fields[e] = getField(lon, lat, mi, e);
     }
-    if (S.playGen === gen) stopPlay();
+    $('solving').textContent = 'Laying out one scale for all ' + n;
+    await sleep(40);
+    if (!alive()) return;
+
+    // one scale for all of them, from an hour to the far end of the first year
+    const top = fieldLadder(fields[first]);
+    const L = S.ladderLock = makeLadder(top[top.length - 1], 1);
+    S.lockEra = first;
+    const TM = D.RAMP.length + 6, bands = [];
+    for (let e = first; e <= last; e++) {
+      const d = fields[e].dist, b = new Float32Array(GN);
+      for (let c = 0; c < GN; c++) { const v = bandT(d[c], L); b[c] = v > TM ? TM : v; }
+      bands[e] = b;
+    }
+    document.body.classList.remove('preparing');
+    $('solving').textContent = 'Plotting routes';
+
+    const show = e => {
+      S.morph = null; S.era = e; S.field = fields[e];
+      S.fieldKey = fieldKey(lon, lat, mi, e);
+      S.fieldGen = (S.fieldGen || 0) + 1; S.tKey = ''; S.reveal = 99;
+      refreshLadder(); syncControls(); updateReadout(); updateMethod(); draw();
+    };
+    show(first);
+    await sleep(1500);
+    for (let e = first + 1; e <= last; e++) {
+      if (!alive()) return;
+      S.era = e; syncControls();                     // the axis moves on as the blend begins
+      if (!reduced) {
+        const t0 = performance.now(), dur = 1600;
+        for (;;) {
+          const k = Math.min(1, (performance.now() - t0) / dur);
+          const t = k < 0.5 ? 2 * k * k : 1 - Math.pow(2 - 2 * k, 2) / 2;
+          S.morph = { A: bands[e - 1], B: bands[e], t };
+          S.fieldKey = 'blend|' + e + '|' + t.toFixed(3);
+          S.fieldGen = (S.fieldGen || 0) + 1; S.tKey = '';
+          draw();
+          if (k >= 1) break;
+          await nextFrame();
+          if (!alive()) return;
+        }
+      }
+      show(e);
+      await sleep(1400);
+    }
+    if (alive()) stopPlay();
   }
   function buildPlay() {
     const chip = document.createElement('button');
