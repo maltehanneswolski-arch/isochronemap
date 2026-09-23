@@ -1,17 +1,17 @@
-/* The way in, drawn like a chart. A traveller in a hat stands on a line.
-   Scroll, and it sets off: walking, then running, cycling, driving, at the
-   wheel of a sailing ship, of a steamer, and at the controls of a plane. The
-   plane climbs out of the frame on a dotted track, and the line it leaves
-   behind curls up into a circle, which is the rim of the globe. The graticule
-   is sketched in, and then the bare globe is inside it, asking where to start.
-   Nothing is solved until you answer, so the drawing never waits on the solver.
+/* The way in, drawn like a chart. A traveller stands on a line. Scroll, and
+   it sets off: walking, then running, cycling, driving, at the wheel of a
+   sailing ship, of a steamer, and at the controls of a plane. The plane climbs
+   out of the frame, and the line it leaves behind curls up into a circle,
+   which is the rim of the globe. The graticule is sketched in, and then the
+   bare globe is inside it, asking where to start. Nothing is solved until you
+   answer, so the drawing never waits on the solver.
 
-   Everything is drawn the way a hand draws a map: pen strokes that swell and
-   thin, hatching for shade, hachures under the ground, engraved waves on the
-   sea, little map signs along the road, a cartouche round the title and a
-   compass rose in the corner. The same ink carries on over the globe, with a
-   pencilled graticule and rim (ISO_SKETCH, drawn by app.js) and a paper grain
-   over the whole page.
+   It is drawn the way a hand draws a map: pen strokes that swell and thin,
+   hatching for shade, a cartouche round the title and a compass rose in the
+   corner, on a plain ground. The same hand carries on over the page after it:
+   the globe gets a pencilled graticule and rim (ISO_SKETCH, drawn by app.js),
+   and the title, the panel and the years get ruled frames, a book face and
+   warm ink, with a paper grain over everything.
 
    The scroll decides the means of travel; legs, wheels, sails, waves and
    smoke keep moving in time, so the figure never freezes mid-stride when you
@@ -48,6 +48,165 @@
     document.head.appendChild(st);
     const d = document.createElement('div'); d.className = 'paper-grain'; d.setAttribute('aria-hidden', 'true');
     document.body.appendChild(d);
+  })();
+
+  /* ================= the page in the same hand =================
+     The title, the panel and the years are ruled by hand like the intro's
+     cartouche, set in a book face, in warm ink. Frames for the big boxes are
+     drawn to each box's own size and redrawn when it changes; small boxes
+     share frames that stretch. Only this page does this; the plain version
+     keeps its clean instrument panel. */
+  (function hud() {
+    const font = document.createElement('link');
+    font.rel = 'stylesheet';
+    font.href = 'https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap';
+    document.head.appendChild(font);
+    document.documentElement.classList.add('sketch');
+
+    // a small seeded random, so a frame drawn twice is drawn the same
+    const rng = seed => () => {
+      seed = seed + 0x6D2B79F5 | 0;
+      let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+    const INKC = '#E2DCCC';
+    // one ruled edge: run a little past each corner and a little off straight, as a pen draws it
+    function edge(r, x0, y0, x1, y1, amp, step) {
+      const L = Math.hypot(x1 - x0, y1 - y0) || 1, ux = (x1 - x0) / L, uy = (y1 - y0) / L;
+      const o0 = 0.5 + r() * 2.5, o1 = 0.5 + r() * 2.5, n = Math.max(2, Math.round(L / step));
+      let d = '', j = 0;
+      for (let i = 0; i <= n; i++) {
+        const t = i / n;
+        j = j * 0.6 + (r() - 0.5) * amp;
+        const x = x0 - ux * o0 + (x1 - x0 + ux * (o0 + o1)) * t, y = y0 - uy * o0 + (y1 - y0 + uy * (o0 + o1)) * t;
+        d += (i ? 'L' : 'M') + (x - uy * j).toFixed(1) + ' ' + (y + ux * j).toFixed(1);
+      }
+      return d;
+    }
+    const box = (r, x0, y0, x1, y1, amp, step) =>
+      edge(r, x0, y0, x1, y0, amp, step) + edge(r, x1, y0, x1, y1, amp, step) +
+      edge(r, x1, y1, x0, y1, amp, step) + edge(r, x0, y1, x0, y0, amp, step);
+    const url = svg => 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
+    const path = (d, op, w, extra) => '<path d="' + d + '" fill="none" stroke="' + INKC + '" stroke-opacity="' + op +
+      '" stroke-width="' + w + '" stroke-linecap="round" stroke-linejoin="round"' + (extra || '') + '/>';
+
+    // frames that stretch to any small box: buttons, the tooltip, the rules between sections
+    const NS = ' vector-effect="non-scaling-stroke"';
+    const stretch = (vb, body) => url('<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + vb + '" preserveAspectRatio="none">' + body + '</svg>');
+    const css = document.documentElement.style;
+    css.setProperty('--sk-box', stretch('0 0 100 40', path(box(rng(11), 1.5, 1.5, 98.5, 38.5, 0.9, 12), 0.7, 1, NS)));
+    css.setProperty('--sk-box-faint', stretch('0 0 100 40', path(box(rng(12), 1.5, 1.5, 98.5, 38.5, 0.9, 12), 0.3, 1, NS)));
+    css.setProperty('--sk-rule', stretch('0 0 200 6', path(edge(rng(13), 1, 3, 199, 3, 1.1, 10), 0.35, 1, NS)));
+    css.setProperty('--sk-under', stretch('0 0 200 6', path(edge(rng(14), 1, 3, 199, 3, 1.1, 10), 0.6, 1, NS)));
+
+    // a cartouche for a box of a given size: a double rule with a loop at each corner
+    function cartouche(w, h, seed) {
+      const r = rng(seed);
+      let body = path(box(r, 2.5, 2.5, w - 2.5, h - 2.5, 1.1, 16), 0.72, 1.1) + path(box(r, 6.5, 6.5, w - 6.5, h - 6.5, 1.1, 16), 0.3, 0.7);
+      for (const [x, y] of [[2.5, 2.5], [w - 2.5, 2.5], [w - 2.5, h - 2.5], [2.5, h - 2.5]])
+        body += '<circle cx="' + x + '" cy="' + y + '" r="2.3" fill="none" stroke="' + INKC + '" stroke-opacity=".55" stroke-width=".8"/>';
+      return url('<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">' + body + '</svg>');
+    }
+    // the years as a scale bar: two rules with every other stretch between them filled in
+    function scaleBar(w, n) {
+      const r = rng(21), y0 = 4, y1 = 10;
+      let body = path(edge(r, 0, y0, w, y0, 0.8, 14), 0.6, 0.9) + path(edge(r, 0, y1, w, y1, 0.8, 14), 0.6, 0.9);
+      for (let k = 0; k < n - 1; k += 2) {
+        const a = k / (n - 1) * w, b = (k + 1) / (n - 1) * w;
+        body += '<rect x="' + a.toFixed(1) + '" y="' + y0 + '" width="' + (b - a).toFixed(1) + '" height="' + (y1 - y0) +
+          '" fill="' + INKC + '" fill-opacity=".2"/>';
+      }
+      return url('<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="16" viewBox="0 0 ' + w + ' 16">' + body + '</svg>');
+    }
+    const paint = el => {
+      const w = Math.round(el.offsetWidth), h = Math.round(el.offsetHeight);
+      if (w < 4 || h < 4) return;
+      const phone = document.body.classList.contains('mobile');
+      if (el.id === 'axis' || el.id === 'timeline') {
+        // on a phone the years are a row of buttons inside the sheet, with no frame or bar of their own
+        if (phone) { el.style.backgroundImage = 'none'; return; }
+        if (el.id === 'axis') { el.style.backgroundImage = scaleBar(w, (window.ISO && window.ISO.ERAS && window.ISO.ERAS.length) || 8); return; }
+      }
+      el.style.backgroundImage = cartouche(w, h, el.id.length * 7 + 3);
+    };
+    const ro = new ResizeObserver(es => es.forEach(e => paint(e.target)));
+    ['brand', 'panel', 'timeline', 'axis'].forEach(id => { const el = document.getElementById(id); if (el) ro.observe(el); });
+
+    const brand = document.getElementById('brand');
+    if (brand) brand.insertAdjacentHTML('afterbegin', '<p class="kicker">A passage chart for travellers</p>');
+
+    const st = document.createElement('style');
+    st.textContent = `
+html.sketch{
+  --text:#E6E0D1; --text-dim:#C3BBA7; --text-faint:#8E8674; --head:#F2EDE1; --hot:#F4EFE3;
+  --line:#E2DCCC; --line-lit:#FBF8F0; --line-dim:rgba(226,220,204,.32);
+  --rule:rgba(226,220,204,.2); --rule-soft:rgba(226,220,204,.1);
+  --panel:rgba(7,9,15,.93); --panel-solid:#090B12;
+  --font-s:"EB Garamond",Georgia,"Times New Roman",serif; --font-m:"EB Garamond",Georgia,"Times New Roman",serif;
+  --fs-xs:11.5px; --fs-s:14px; --fs-m:17px; --fs-l:21px;
+}
+html.sketch body{font-size:15px}
+/* paper, not glass, and a ruled frame drawn by hand to each box's size */
+html.sketch .panel,html.sketch #brand{border:none;backdrop-filter:none;-webkit-backdrop-filter:none;
+  background-color:var(--panel);background-repeat:no-repeat;background-position:0 0}
+html.sketch .eyebrow,html.sketch summary{letter-spacing:.2em;font-weight:500}
+html.sketch #panel{padding:17px 18px 15px}
+html.sketch #timeline{padding:14px 36px 10px}
+/* the title as a cartouche, as in the intro */
+html.sketch #brand{padding:16px 22px 17px;max-width:340px}
+html.sketch #brand::before,html.sketch #brand .rule{display:none}
+html.sketch #brand .kicker{margin:0 0 9px;font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;font-weight:500;color:var(--text-dim)}
+html.sketch #brand h1{text-shadow:none;margin-bottom:9px}
+html.sketch #brand .lede{font-family:var(--font-d);font-style:italic;font-size:15px;color:var(--text-dim);text-shadow:none}
+html.sketch #brand .gloss{font-size:12.5px;text-shadow:none}
+/* controls ruled by hand instead of hairlines */
+html.sketch #findInput{border:none;padding:9px 3px 10px;font-style:italic;font-size:15.5px;
+  background:transparent var(--sk-under) left bottom/100% 6px no-repeat}
+html.sketch #findList{border:none;background:var(--panel-solid) var(--sk-box-faint) 0 0/100% 100% no-repeat}
+html.sketch #travelNow{border:none;background:rgba(226,220,204,.045) var(--sk-box) 0 0/100% 100% no-repeat}
+html.sketch .mode{border-color:transparent}
+html.sketch .mode[aria-pressed="true"]{border-color:transparent;background:rgba(226,220,204,.05) var(--sk-box) 0 0/100% 100% no-repeat}
+html.sketch #palette button,html.sketch #palette button:hover{border-color:transparent}
+html.sketch #palette button[aria-pressed="true"]{background:var(--sk-box) 0 0/100% 100% no-repeat}
+html.sketch #profile{border:none;background:rgba(226,220,204,.03) var(--sk-box-faint) 0 0/100% 100% no-repeat}
+html.sketch .stats{background:none;border:none;gap:8px}
+html.sketch .stat{background:var(--sk-box-faint) 0 0/100% 100% no-repeat}
+html.sketch .stat b{font-variant-numeric:lining-nums tabular-nums;font-weight:500}
+html.sketch details:not(#travel){border-top:none;background:var(--sk-rule) 0 0/100% 6px no-repeat;padding-top:12px}
+html.sketch #foot{border-top:none;background:var(--sk-rule) 0 0/100% 6px no-repeat;padding-top:12px}
+html.sketch .ramplab span,html.sketch .lg,html.sketch #originCoord,html.sketch #solveNote{font-style:italic}
+html.sketch #journeys .nm{font-size:14px}
+html.sketch #journeys .v,html.sketch #journeys .tk{font-size:12px;font-style:italic}
+html.sketch #play{border:none;background:var(--sk-box) 0 0/100% 100% no-repeat}
+html.sketch #play:hover{background:rgba(226,220,204,.05) var(--sk-box) 0 0/100% 100% no-repeat}
+/* the years as a map's scale bar */
+html.sketch #axis{background-repeat:no-repeat;background-position:0 0}
+html.sketch #axis .track,html.sketch #axis .fill{display:none}
+html.sketch #axis .brk{background:var(--panel-solid)}
+html.sketch .era .tick{background:var(--line-dim)}
+html.sketch .era .yr{font-size:15px;font-variant-numeric:oldstyle-nums}
+html.sketch .era .tag{font-style:italic;font-size:12px;letter-spacing:.01em}
+/* the small things that float over the map */
+html.sketch #tip{border:none;background:rgba(7,9,15,.95) var(--sk-box) 0 0/100% 100% no-repeat;padding:8px 12px}
+html.sketch #tip b{font-family:var(--font-d);font-size:15px}
+html.sketch #tip button{border:none;background:var(--sk-box) 0 0/100% 100% no-repeat}
+html.sketch #solving{border:none;background:rgba(7,9,15,.95) var(--sk-box) 0 0/100% 100% no-repeat;
+  font-family:var(--font-d);font-style:italic;text-transform:none;letter-spacing:.02em;font-size:16px;padding:12px 20px}
+html.sketch #boot p{font-style:italic}
+/* on a phone the sheet is a square-cornered sheet of paper */
+html.sketch body.mobile #panel{border-radius:0;background-color:rgba(7,9,15,.95)}
+html.sketch body.mobile .era,html.sketch body.mobile #playChip{border:none;background:var(--sk-box-faint) 0 0/100% 100% no-repeat}
+html.sketch body.mobile .era[aria-pressed="true"]{background:rgba(226,220,204,.08) var(--sk-box) 0 0/100% 100% no-repeat}
+html.sketch body.mobile .mode{border-color:transparent;background:var(--sk-box-faint) 0 0/100% 100% no-repeat}
+html.sketch body.mobile .mode[aria-pressed="true"]{background:rgba(226,220,204,.06) var(--sk-box) 0 0/100% 100% no-repeat}
+html.sketch body.mobile #brand{padding:8px 12px 9px}
+html.sketch body.mobile #brand .kicker{display:none}
+html.sketch body.mobile #brand .lede{font-size:12.5px}
+html.sketch body.mobile .era .yr{font-size:12.5px}
+@media (max-width:360px){html.sketch body.mobile .era .yr{font-size:11px}}
+`;
+    document.head.appendChild(st);
   })();
 
   if (/[?&]nointro\b/.test(location.search)) return;
@@ -232,7 +391,7 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     ];
   }
 
-  // car: low enough in the seat that the hat clears the roof
+  // car
   const carPose = () => seated([-0.14, 0.25], -0.08, -0.05, [[0.22, 0.17], [0.24, 0.16]], [[0.13, 0.52], [0.15, 0.51]]);
   const CAR_BODY = [[-0.86, 0.14], [-0.88, 0.3], [-0.8, 0.42], [-0.44, 0.47], [-0.36, 0.84], [0.06, 0.87],
                     [0.34, 0.5], [0.76, 0.45], [0.88, 0.32], [0.86, 0.14], [-0.86, 0.14]];
@@ -322,15 +481,12 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
   function planeStrokes(pa, gear, wa) {
     const wing = [];
     for (let i = 0; i <= 20; i++) { const a = TAU * i / 20; wing.push([0.12 + Math.cos(a) * 0.46, 0.47 + Math.sin(a) * 0.05]); }
-    const L = [PLANE_BODY, CANOPY, GLASS, FIN, [[-0.82, 0.6], [-1.22, 0.61]], wing, [[0.86, 0.66], [0.84, 0.34]],
+    return [PLANE_BODY, CANOPY, GLASS, FIN, [[-0.82, 0.6], [-1.22, 0.61]], wing, [[0.86, 0.66], [0.84, 0.34]],
       [[1.08, 0.5 - 0.25 * Math.cos(pa)], [1.08, 0.5 + 0.25 * Math.cos(pa)]]];
-    if (gear > 0.02) {
-      const wy = lerp(0.34, 0.08, gear);
-      L.push([[0.34, 0.325], [0.32, wy]], circ([0.32, wy], 0.08, 41), ...spokes([0.32, wy], 0.065, wa, 1));
-      L.push([[-0.9, 0.52], [-0.93, lerp(0.52, 0.075, gear)]], circ([-0.93, lerp(0.52, 0.04, gear)], 0.04, 42, 10));
-    }
-    return L;
   }
+  // the undercarriage, drawn apart so that it can fade once the wheels are off the ground
+  const gearStrokes = wa => [[[0.34, 0.325], [0.32, 0.16]], circ([0.32, 0.08], 0.08, 41), ...spokes([0.32, 0.08], 0.065, wa, 1),
+    [[-0.9, 0.52], [-0.93, 0.075]], circ([-0.93, 0.04], 0.04, 42, 10)];
 
   /* ================= drawing by hand =================
      Every line is cut into short steps, each nudged off true by a smooth
@@ -437,32 +593,26 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     const sp = pts.map(scr);
     let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
     for (const p of sp) { x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); }
-    const gap = Math.max(3, FH * (dense ? 0.022 : 0.03)), h = y1 - y0;
+    const gap = Math.max(3, FH * (dense ? 0.022 : 0.03)), mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
+    const rad = Math.hypot(x1 - x0, y1 - y0) / 2 + 2;
     ctx.save();
     trace(pts, hole); ctx.clip('evenodd');
+    // the hatching turns with what it shades, so a climbing plane keeps its shading
+    ctx.translate(mx, my); ctx.rotate(-tf.r);
     ctx.globalAlpha = alpha; ctx.strokeStyle = LINE; ctx.lineWidth = Math.max(0.6, LW * 0.32);
     ctx.beginPath();
-    for (let q = x0 - h; q < x1; q += gap) {
+    for (let q = -2 * rad; q < 2 * rad; q += gap) {
       const j = Math.sin(q * 0.37 + boil * 1.7) * 0.9;
-      ctx.moveTo(q + j, y1 + 1); ctx.lineTo(q + h * 0.8 + j, y0 - 1);
+      ctx.moveTo(q + j - rad * 0.8, rad); ctx.lineTo(q + j + rad * 0.8, -rad);
     }
     ctx.stroke();
     ctx.restore();
     ctx.globalAlpha = 1;
   }
 
-  function hat(p, a) {
-    const dx = p.hd[0] - p.nk[0], dy = p.hd[1] - p.nk[1], d = Math.hypot(dx, dy) || 1;
-    const ux = dx / d, uy = dy / d, px = uy, py = -ux;                       // up, and across the head
-    const b = [p.hd[0] + ux * HR * 0.72, p.hd[1] + uy * HR * 0.72];
-    const at = (s, t) => [b[0] + px * s + ux * t, b[1] + py * s + uy * t];
-    ink([[at(-HR * 1.45, 0), at(HR * 1.5, 0.004)],
-         [at(-HR * 0.8, 0.005), at(-HR * 0.72, 0.085), at(HR * 0.78, 0.09), at(HR * 0.86, 0.005)]], 1, a, FIG, LW, 7);
-  }
   function figureFar(p, a) { ink([[p.hip, p.k1, p.f1], [p.sh, p.e1, p.h1]], 1, a * 0.45, FIG, LW * 1.1, 1); }
   function figureNear(p, a) {
     ink([[p.hip, p.sh, p.nk], circ(p.hd, HR, 4, 16), [p.hip, p.k2, p.f2], [p.sh, p.e2, p.h2]], 1, a, FIG, LW * 1.15, 3);
-    hat(p, a);
   }
 
   /* ================= the ride, set by the scroll =================
@@ -596,7 +746,6 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
 
     tf = { x: 0, y: 0, r: 0 };
     cartouche(titleFade);
-    landmarks(1 - wat, (1 - sstep(0, 0.15, tRing)) * fade);
 
     /* ---- the pose, handed from one means of travel to the next ---- */
     const a = Math.floor(s), t = s - a;
@@ -638,10 +787,11 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
       if (pp > 0) {
         occlude(PLANE_BODY, pp); occlude(CANOPY, pp, GLASS);
         hatch(PLANE_BODY, 0.2 * pp); hatch(FIN, 0.3 * pp, null, true);
-        ink(planeStrokes(prop, 1 - sstep(0.2, 0.5, k), wheel), sstep(0, 1, pp), shown, LINE, LW, 400);
+        ink(planeStrokes(prop), sstep(0, 1, pp), shown, LINE, LW, 400);
+        const gear = 1 - sstep(0.12, 0.4, k);
+        if (gear > 0.01) ink(gearStrokes(wheel), sstep(0, 1, pp), shown * gear, LINE, LW, 450);
       }
     }
-    trail(k, fade * (1 - sstep(0, 0.4, tRing)));
 
     /* ---- the ground, which becomes the rim of the globe ---- */
     tf = { x: 0, y: 0, r: 0 };
@@ -662,20 +812,6 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     }
   }
 
-  // the dotted track of the flight, the way a route is marked on a chart
-  function trail(k, a) {
-    if (k < 0.02 || a <= 0.01) return;
-    const keep = tf;
-    ctx.fillStyle = LINE;
-    for (let kk = 0.015; kk < k - 0.012; kk += 0.018) {
-      tf = rigAt(kk, 0);
-      const p = scr([-0.93, 0.05]);
-      ctx.globalAlpha = a * 0.55 * (0.4 + 0.6 * kk / k);
-      ctx.beginPath(); ctx.arc(p[0], p[1], Math.max(1.1, LW * 0.55), 0, TAU); ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-    tf = keep;
-  }
 
   function ground(s, wat, tRing, fade) {
     const A = 0.028 * FH * sstep(0, 1, wat), lam = 0.5;
@@ -709,69 +845,24 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     if (fm > 0) marks(yAt, fm, 0, fm * fade);
   }
 
-  /* Under the land, hachures like the edge of a map's high ground; on the
-     water, rows of engraved wave strokes. Both ride with the ground. */
+  // a few hatch marks under the land and small crests on the water, riding with the ground
   const hs = n => { const x = Math.sin(n * 91.345 + 17.1) * 43758.5453; return x - Math.floor(x); };
   function marks(yAt, land, water, a) {
-    if (land > 0.01) {
-      const gap = 0.07, i0 = Math.floor((off - X0 / FH) / gap) - 2, i1 = Math.ceil((off + (W - X0) / FH) / gap) + 2;
-      ctx.save(); ctx.globalAlpha = 0.5 * land * a; ctx.strokeStyle = LINE; ctx.lineWidth = Math.max(0.7, LW * 0.42);
-      ctx.beginPath();
-      for (let i = i0; i <= i1; i++) {
-        const cluster = 0.5 + 0.5 * Math.sin(i * 0.23 + hs(i >> 4) * 6);   // hachures come in runs, thick and thin
-        if (hs(i + 3) > 0.35 + 0.5 * cluster) continue;
-        const u = i * gap + hs(i) * 0.03, x = X0 + (u - off) * FH;
-        const y = yAt(x) + LW + 1.5, l = (0.02 + 0.05 * hs(i + 7) * (0.4 + cluster)) * FH;
-        ctx.moveTo(x, y); ctx.lineTo(x - l * 0.28, y + l);
-      }
-      ctx.stroke(); ctx.restore();
-    }
-    if (water > 0.01) {
-      for (let r = 0; r < 4; r++) {
-        const par = 1 - r * 0.12, g2 = 0.26 + r * 0.05, j0 = Math.floor((off * par - X0 / FH) / g2) - 1, row = [];
-        for (let j = j0; j <= j0 + Math.ceil(W / FH / g2) + 2; j++) {
-          if (hs(j * 7 + r) < 0.25) continue;
-          const u = j * g2 + (r % 2) * g2 * 0.5 + hs(j + r * 13) * 0.05, x = X0 + (u - off * par) * FH;
-          const y = GY + (0.07 + r * 0.075) * FH, w = (0.055 - r * 0.006) * FH;
-          row.push([[x - w, y], [x - w * 0.35, y - w * 0.28], [x + w * 0.3, y - w * 0.05], [x + w, y - w * 0.3]]);
-        }
-        ink(row, 1, 0.55 * water * a * (1 - r * 0.2), LINE, LW * (0.75 - r * 0.1), 980 + r * 40, true);
-      }
-    }
-  }
-
-  /* Map signs along the road, set back on the ground line and a little
-     fainter than the traveller: trees, houses, a church, a milestone. */
-  function landmarks(land, a) {
-    if (land <= 0.01 || a <= 0.01) return;
-    const gap = 1.7, i0 = Math.floor((off - X0 / FH) / gap) - 1, i1 = Math.ceil((off + (W - X0) / FH) / gap) + 1;
-    const L = [];
+    const gap = 0.16, i0 = Math.floor((off - X0 / FH) / gap) - 2, i1 = Math.ceil((off + (W - X0) / FH) / gap) + 2;
+    const hatchL = [], crest = [];
     for (let i = i0; i <= i1; i++) {
-      const x = i * gap + hs(i + 101) * 0.9 - off;                    // in figure heights from the figure
-      const kind = Math.floor(hs(i + 57) * 5), s = 0.8 + 0.4 * hs(i + 33);
-      const at = (dx, dy) => [x + dx * s, dy * s];
-      if (kind <= 1) {                                                // trees, one to three
-        const n = 1 + Math.floor(hs(i + 9) * 3);
-        for (let t = 0; t < n; t++) {
-          const tx = t * 0.16 - n * 0.06, th = 0.2 + 0.08 * hs(i + t);
-          L.push([at(tx, 0), at(tx, th)]);
-          L.push(circ(at(tx, th + 0.07), 0.075 * s, i * 3 + t, 12));
-        }
-      } else if (kind === 2) {                                        // a house
-        L.push([at(-0.13, 0), at(-0.13, 0.17), at(0.13, 0.17), at(0.13, 0)]);
-        L.push([at(-0.16, 0.16), at(0, 0.29), at(0.16, 0.16)]);
-        L.push([at(-0.03, 0), at(-0.03, 0.08), at(0.03, 0.08), at(0.03, 0)]);
-      } else if (kind === 3) {                                        // a church with its tower
-        L.push([at(-0.2, 0), at(-0.2, 0.16), at(0.06, 0.16), at(0.06, 0)]);
-        L.push([at(-0.23, 0.15), at(-0.07, 0.25), at(0.09, 0.15)]);
-        L.push([at(0.06, 0), at(0.06, 0.3), at(0.16, 0.3), at(0.16, 0)]);
-        L.push([at(0.05, 0.29), at(0.11, 0.4), at(0.17, 0.29)]);
-        L.push([at(0.11, 0.4), at(0.11, 0.47)], [at(0.085, 0.445), at(0.135, 0.445)]);
-      } else {                                                        // a milestone
-        L.push([at(-0.04, 0), at(-0.04, 0.09), at(0, 0.12), at(0.04, 0.09), at(0.04, 0)]);
+      const u = i * gap + hs(i) * 0.09, x = X0 + (u - off) * FH;
+      if (land > 0.01 && hs(i + 3) < 0.62) {
+        const y = yAt(x) + LW + 2, l = (0.025 + 0.03 * hs(i + 7)) * FH;
+        hatchL.push([[x, y], [x - l * 0.55, y + l]]);
+      }
+      if (water > 0.01 && i % 2 === 0 && hs(i + 11) < 0.7) {
+        const y = yAt(x) + (0.06 + 0.1 * hs(i + 5)) * FH, w = 0.06 * FH;
+        crest.push([[x - w, y], [x - w * 0.4, y + w * 0.22], [x + w * 0.2, y + w * 0.1]]);
       }
     }
-    if (L.length) ink(L, 1, 0.5 * land * a, LINE, LW * 0.75, 1200, false);
+    if (hatchL.length) ink(hatchL, 1, 0.42 * land * a, LINE, LW * 0.7, 950, true);
+    if (crest.length) ink(crest, 1, 0.38 * water * a, LINE, LW * 0.7, 980, true);
   }
 
   // the title in a cartouche: a double rule, drawn round it by hand

@@ -19,18 +19,20 @@ as it stands.
 | `/v1/` | the globe as it stood before them, a full copy that runs on its own (also the git tag `v1-original`) |
 | `/v3/` | the same globe as `/`, opened by a hand-drawn intro (`v3/intro.js`) |
 
-The intro is scroll-driven and drawn like a chart. A traveller in a hat stands
-on a line under a cartouche; scrolling takes them walking, running, cycling,
+The intro is scroll-driven and drawn like a chart. A traveller stands on a
+plain line under a cartouche; scrolling takes them walking, running, cycling,
 driving, to the wheel of a sailing ship, then of a steamer, and into a plane.
-The pens swell and thin, the ground has hachures, the sea engraved waves, the
-road little map signs, and there is a compass rose in the corner. The plane
-climbs out on a dotted track, and the ground line it leaves curls up into a
-circle that lands on the rim of the globe, with the graticule sketched in.
-The globe then appears bare and asks where to start: nothing is solved until
+The pens swell and thin, hulls and bodies are hatched, and there is a compass
+rose in the corner. The plane climbs out of the frame, and the ground line it
+leaves curls up into a circle that lands on the rim of the globe, with the
+graticule sketched in. The globe then appears bare and asks where to start: nothing is solved until
 you search a city or click a place, so the drawing never waits on the solver.
 The app does this for any page that sets `window.ISO_ASK` before `app.js`, and
-draws the same pencilled graticule and rim for one that sets
-`window.ISO_SKETCH`; v3 also lays a paper grain over the whole page. `Skip the intro` or Escape leave
+draws the same pencilled graticule and rim, and letters the places in a book
+face, for one that sets `window.ISO_SKETCH`. v3 carries the same hand on over
+the page: the title in a cartouche, the panel and the years in ruled frames,
+the years as a scale bar, EB Garamond and warm ink throughout, and a paper
+grain over everything. `/` keeps the clean instrument panel. `Skip the intro` or Escape leave
 at once, and `/v3/?nointro` never shows it. `v3/index.html` is the root page
 with `../` paths and one extra script tag, so a change to the root page has to
 be copied across by hand.

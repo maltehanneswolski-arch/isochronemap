@@ -646,6 +646,10 @@
   const SKETCH = !!window.ISO_SKETCH;
   const GRAT = SKETCH ? d3.geoGraticule().extent([[-180, -90], [180, 90]]).step([30, 30])() : null;
   const INK = a => 'rgba(226,220,204,' + a + ')';
+  // on the drawn chart the place names are lettered in a book face, and the band edges in its italic
+  const FONT_PLACE = SKETCH ? '500 12.5px "EB Garamond", Georgia, serif' : '500 10px "IBM Plex Sans", sans-serif';
+  const FONT_MARK = SKETCH ? 'italic 500 12.5px "EB Garamond", Georgia, serif' : '500 10px "IBM Plex Mono", monospace';
+  if (SKETCH && document.fonts) document.fonts.ready.then(() => { TW.clear(); if (S.fit) draw(); });
 
   /* ================= state ================= */
   const S = {
@@ -1390,7 +1394,7 @@
 
     // the named band edges go down first, so the place names step round them
     const marks = bandMarks(r);
-    ctx.font = '500 10px "IBM Plex Mono", monospace';
+    ctx.font = FONT_MARK;
     for (const m of marks) m.box = [m.x - 4, m.y - 7, ctx.measureText(m.text).width + 14, 14];
 
     // places — more of them the closer you look, never overlapping
@@ -1403,7 +1407,7 @@
     // grows with zoom, but bounded: past a few hundred the declutter rejects
     // nearly all of them anyway, and each still costs a projection
     const nShow = Math.round(Math.min(PLACES.length, 420, 22 + Math.pow(zoom, 1.8) * 28));
-    ctx.font = '500 10px "IBM Plex Sans", sans-serif';
+    ctx.font = FONT_PLACE;
     ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
     const placed = marks.map(m => m.box);
     for (let k = 0; k < nShow; k++) {
@@ -1436,7 +1440,7 @@
 
     if (marks.length) {
       ctx.save();
-      ctx.font = '500 10px "IBM Plex Mono", monospace';
+      ctx.font = FONT_MARK;
       ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
       for (const m of marks) {
         ctx.strokeStyle = T.labelHalo; ctx.lineWidth = 3;
@@ -1477,7 +1481,7 @@
       ctx.moveTo(cx - 15, cy); ctx.lineTo(cx - 5, cy); ctx.moveTo(cx + 5, cy); ctx.lineTo(cx + 15, cy);
       ctx.moveTo(cx, cy - 15); ctx.lineTo(cx, cy - 5); ctx.moveTo(cx, cy + 5); ctx.lineTo(cx, cy + 15);
       ctx.stroke();
-      ctx.font = '500 10px "IBM Plex Mono", monospace';
+      ctx.font = FONT_MARK;
       ctx.textAlign = 'center'; ctx.textBaseline = 'top';
       ctx.lineWidth = 3; ctx.strokeStyle = T.labelHalo; ctx.strokeText('Enter: travel from here', cx, cy + 21);
       ctx.fillStyle = T.label; ctx.fillText('Enter: travel from here', cx, cy + 21);
