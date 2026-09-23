@@ -282,7 +282,7 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
   document.documentElement.classList.add('intro-on');
 
   /* Nothing here scrolls natively. The wheel, a finger or the keys move a
-     position along a track five screens long, so no browser, phone or
+     position along a track seven screens long, so no browser, phone or
      desktop, ever draws a scrollbar or a scroll indicator over the drawing. */
   const root = document.createElement('div');
   root.id = 'intro';
@@ -692,8 +692,10 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
      s runs 0 to 7: standing, walking, running, cycling, driving, sailing,
      steaming, flying. Each holds for a stretch of the scroll and hands over
      to the next. */
-  const KEYS = [[0, 0], [0.03, 0], [0.07, 1], [0.12, 1], [0.155, 2], [0.2, 2], [0.24, 3], [0.3, 3],
-                [0.34, 4], [0.4, 4], [0.445, 5], [0.51, 5], [0.555, 6], [0.615, 6], [0.66, 7], [1, 7]];
+  // each change from one means of travel to the next takes about three times the scroll it holds for:
+  // the drawing in between is the part worth watching, and the figure keeps moving while it holds
+  const KEYS = [[0, 0], [0.02, 0], [0.07, 1], [0.1, 1], [0.16, 2], [0.19, 2], [0.27, 3], [0.3, 3],
+                [0.38, 4], [0.41, 4], [0.5, 5], [0.53, 5], [0.62, 6], [0.65, 6], [0.73, 7], [1, 7]];
   const stageOf = p => {
     for (let i = 1; i < KEYS.length; i++) {
       const [p1, s1] = KEYS[i], [p0, s0] = KEYS[i - 1];
@@ -704,7 +706,7 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
   // standing, walking, running, bicycle, car, sail, steam, plane: figure heights a second
   const SPEED = [0, 1.0, 2.3, 3.2, 5.2, 2.2, 3.0, 7.5];
   const speedAt = s => lerp(SPEED[Math.floor(s)], SPEED[Math.ceil(s)], s - Math.floor(s));
-  const TAKEOFF = [0.69, 0.8], RING = [0.8, 0.94], GRAT = [0.925, 0.965], END = 0.968;
+  const TAKEOFF = [0.75, 0.86], RING = [0.86, 0.96], GRAT = [0.95, 0.985], END = 0.988;
   const waterAt = s => clamp(1 - Math.max(0, 5 - s, s - 6), 0, 1);
 
   /* where the globe will be: asked of the page once it is built, worked out
@@ -742,7 +744,7 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
 
   // the scroll, done by hand: a flick carries on and slows the way a native scroll does
   let pos = 0, fling = 0;
-  const spanPx = () => Math.max(1, H * 5);
+  const spanPx = () => Math.max(1, H * 7);                          // the ride is seven screens of scrolling
   const moveBy = d => { pos = clamp(pos + d, 0, spanPx()); target = pos / spanPx(); };
   root.addEventListener('wheel', e => {
     e.preventDefault();
@@ -816,7 +818,7 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
 
   let titleFade = 1;
   function words() {
-    titleFade = 1 - sstep(0.012, 0.045, P);
+    titleFade = 1 - sstep(0.008, 0.032, P);
     elTitle.style.opacity = titleFade.toFixed(3);
     elTitle.style.transform = 'translate(-50%,' + (-(1 - titleFade) * 18).toFixed(1) + 'px)';
     elHint.style.opacity = titleFade.toFixed(3);
