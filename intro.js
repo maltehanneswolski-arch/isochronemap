@@ -745,24 +745,36 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
   // the scroll, done by hand: a flick carries on and slows the way a native scroll does
   let pos = 0, fling = 0;
   const spanPx = () => Math.max(1, H * 7);                          // the ride is seven screens of scrolling
-  /* One means of travel at a time: the ride rests at each of these stops, and
-     however hard the scroll, it carries the ride no further than the next one
-     until the drawing has got there. The stretch after the plane takes off
-     (the climb, the curl into the globe, the graticule) is the last slide. */
-  const STOPS = [0.1, 0.19, 0.3, 0.41, 0.53, 0.65, 0.75, 1];
+  /* The ride rests at each means of travel: these are its stops. The scroll
+     goes as far as it is pushed, so a long one skips ahead, but once it
+     pauses between two stops the ride carries on to the next one in the way it
+     was going, and never comes to rest halfway through a change. The stretch
+     after the plane takes off (the climb, the curl into the globe, the
+     graticule) is the last slide. */
+  const STOPS = [0, 0.1, 0.19, 0.3, 0.41, 0.53, 0.65, 0.75, 1];
   // within a whisker of a stop counts as there: the drawing eases into each stop and never quite lands
   const nextStop = p => { for (const q of STOPS) if (q > p + 2e-3) return q; return 1; };
   const prevStop = p => { for (let i = STOPS.length - 1; i >= 0; i--) if (STOPS[i] < p - 2e-3) return STOPS[i]; return 0; };
+  const atStop = p => STOPS.some(q => Math.abs(q - p) <= 2e-3);
+  // where a position falls counted in slides, so the distance to go can be measured in slides
+  const slideAt = p => { for (let i = 1; i < STOPS.length; i++) if (p <= STOPS[i]) return i - 1 + (p - STOPS[i - 1]) / (STOPS[i] - STOPS[i - 1]); return STOPS.length - 1; };
+  // how much faster than its own pace the ride may go: set by how far the last scroll reached,
+  // and kept until the drawing gets there, so a long scroll is quick all the way to its end
+  let lastInput = 0, lastDir = 1, settled = true, rush = 1;
+  const setRush = () => { rush = Math.max(1, 0.4 + 0.6 * Math.abs(slideAt(target) - slideAt(P))); };
   const moveBy = d => {
     const was = pos;
-    pos = clamp(pos + d, prevStop(P) * spanPx(), nextStop(P) * spanPx());
+    pos = clamp(pos + d, 0, spanPx());
     target = pos / spanPx();
-    return pos !== was;                                               // false once it is held at a stop
+    if (d) { lastDir = Math.sign(d); lastInput = performance.now(); settled = false; setRush(); }
+    return pos !== was;
   };
-  const goTo = q => { pos = q * spanPx(); target = q; fling = 0; };
-  /* And each stretch plays at its own pace, however fast the scroll: the least
-     time it may take, in seconds, up to the point given. A slow scroll is
-     followed as it is; a fast one cannot rush the drawing. */
+  const goTo = q => { pos = q * spanPx(); target = q; fling = 0; settled = true; setRush(); };
+  /* Each stretch plays at its own pace: the least time it may take, in
+     seconds, up to the point given. The pace quickens with how far the scroll
+     reached, so one slide ahead plays at this pace, three ahead at about twice
+     it, and a scroll to the end runs the whole ride about five times as fast.
+     A slow scroll is followed as it is. */
   const PACE = [[0.02, 0.4], [0.07, 1.2], [0.1, 0.5], [0.16, 1.2], [0.19, 0.5], [0.27, 1.6], [0.3, 0.5],
                 [0.38, 1.6], [0.41, 0.5], [0.5, 1.8], [0.53, 0.5], [0.62, 1.8], [0.65, 0.5], [0.73, 1.6],
                 [0.75, 0.5], [0.86, 2.2], [0.96, 2.4], [1, 1.0]];
@@ -801,12 +813,17 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     if (fling) {
       const moved = moveBy(fling * dt * 1000);
       fling *= Math.exp(-dt * 1000 / 325);
-      if (Math.abs(fling) < 0.02 || !moved) fling = 0;                // spent, or held at the next stop
+      if (Math.abs(fling) < 0.02 || !moved) fling = 0;                // spent, or at an end of the track
     }
-    const cap = paceAt(P) * dt;
+    // the scroll has paused between two stops: go on to the next one in the way it was going
+    if (!settled && !fling && ty === null && performance.now() - lastInput > 160) {
+      settled = true;
+      if (!atStop(target)) goTo(lastDir > 0 ? nextStop(target) : prevStop(target));
+    }
+    const cap = paceAt(P) * rush * dt;
     const dP = clamp((target - P) * (1 - Math.exp(-dt * (reduced ? 40 : 7))), -cap, cap);
     P += dP;
-    if (Math.abs(target - P) < 3e-4) P = target;
+    if (Math.abs(target - P) < 3e-4) { P = target; rush = 1; }
     boil = reduced ? 1 : Math.floor(time * 8);
 
     const s = stageOf(P);
@@ -1052,8 +1069,8 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     if (e.target !== root) return;
     const back = e.key === 'ArrowUp' || e.key === 'PageUp' || (e.key === ' ' && e.shiftKey);
     const fwd = !back && (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ' || e.key === 'End');
-    if (fwd) { e.preventDefault(); goTo(nextStop(P)); }
-    else if (back) { e.preventDefault(); goTo(prevStop(P)); }
+    if (fwd) { e.preventDefault(); goTo(nextStop(Math.max(P, target))); }     // pressed again, it queues the next
+    else if (back) { e.preventDefault(); goTo(prevStop(Math.min(P, target))); }
     else if (e.key === 'Home') { e.preventDefault(); goTo(0); }
   });
 
