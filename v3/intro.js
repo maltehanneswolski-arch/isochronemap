@@ -7,8 +7,7 @@
    answer, so the drawing never waits on the solver.
 
    It is drawn the way a hand draws a map: pen strokes that swell and thin,
-   hatching for shade, a cartouche round the title and a compass rose in the
-   corner, on a plain ground. The same hand carries on over the page after it:
+   hatching for shade and a cartouche round the title, on a plain ground. The same hand carries on over the page after it:
    the globe gets a pencilled graticule and rim (ISO_SKETCH, drawn by app.js),
    and the title, the panel and the years get ruled frames, a book face and
    warm ink, with a paper grain over everything.
@@ -130,11 +129,24 @@
       }
       el.style.backgroundImage = cartouche(w, h, el.id.length * 7 + 3);
     };
+    const FRAMED = ['brand', 'panel', 'timeline', 'axis'];
     const ro = new ResizeObserver(es => es.forEach(e => paint(e.target)));
-    ['brand', 'panel', 'timeline', 'axis'].forEach(id => { const el = document.getElementById(id); if (el) ro.observe(el); });
+    FRAMED.forEach(id => { const el = document.getElementById(id); if (el) ro.observe(el); });
+    // a resize observer only reports while the page is being drawn; paint on the other cues too
+    const paintAll = () => FRAMED.forEach(id => { const el = document.getElementById(id); if (el) paint(el); });
+    window.addEventListener('resize', paintAll);
+    if (document.fonts) document.fonts.ready.then(paintAll);
+    window.addEventListener('iso:ready', paintAll);
+    setTimeout(paintAll, 60); setTimeout(paintAll, 2500);
 
-    const brand = document.getElementById('brand');
+    // the title and the panel share one column on a wide screen, the title at its head,
+    // so the panel always starts below it and neither ever sits on the globe
+    const brand = document.getElementById('brand'), pn = document.getElementById('panel');
     if (brand) brand.insertAdjacentHTML('afterbegin', '<p class="kicker">A passage chart for travellers</p>');
+    if (brand && pn) {
+      const col = document.createElement('div'); col.id = 'rightcol';
+      pn.parentNode.insertBefore(col, pn); col.appendChild(brand); col.appendChild(pn);
+    }
 
     const st = document.createElement('style');
     st.textContent = `
@@ -200,6 +212,19 @@ html.sketch body.mobile .era,html.sketch body.mobile #playChip{border:none;backg
 html.sketch body.mobile .era[aria-pressed="true"]{background:rgba(226,220,204,.08) var(--sk-box) 0 0/100% 100% no-repeat}
 html.sketch body.mobile .mode{border-color:transparent;background:var(--sk-box-faint) 0 0/100% 100% no-repeat}
 html.sketch body.mobile .mode[aria-pressed="true"]{background:rgba(226,220,204,.06) var(--sk-box) 0 0/100% 100% no-repeat}
+/* on a wide screen the title heads the right-hand column, above the panel, so it never sits on the globe */
+html.sketch #rightcol{position:fixed;top:20px;right:22px;bottom:156px;width:280px;z-index:6;
+  display:flex;flex-direction:column;gap:10px;pointer-events:none}
+html.sketch #rightcol>*{pointer-events:auto}
+html.sketch body.mobile #rightcol{display:contents}
+html.sketch body:not(.mobile) #brand,html.sketch body:not(.mobile) #panel{position:static}
+html.sketch body:not(.mobile) #panel{flex:0 1 auto;min-height:0;max-height:none;width:auto}
+html.sketch body:not(.mobile) #brand{flex:none;width:auto;max-width:none;padding:15px 20px 16px}
+html.sketch body:not(.mobile) #brand .kicker{font-size:9.5px;letter-spacing:.22em}
+html.sketch body:not(.mobile) #brand h1{font-size:28px}
+html.sketch body:not(.mobile) #brand .lede{font-size:14px}
+html.sketch body:not(.mobile) #brand .gloss{display:none}
+@media (max-width:1140px){html.sketch #rightcol{width:262px}}
 html.sketch body.mobile #brand{padding:8px 12px 9px}
 html.sketch body.mobile #brand .kicker{display:none}
 html.sketch body.mobile #brand .lede{font-size:12.5px}
@@ -796,7 +821,6 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     /* ---- the ground, which becomes the rim of the globe ---- */
     tf = { x: 0, y: 0, r: 0 };
     ground(s, wat, tRing, fade);
-    compass(fade * (1 - sstep(0, 0.3, tRing)));             // over the ground, which would hide it
     if (tRing >= 0.999) graticule(sstep(GRAT[0], GRAT[1], P), fade);
   }
 
@@ -874,28 +898,6 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
     ink([box(0)], 1, a * 0.7, LINE, LW * 0.8, 1400, true);
     ink([box(d)], 1, a * 0.35, LINE, LW * 0.5, 1410, true);
     ink([[x0, y0], [x1, y0], [x1, y1], [x0, y1]].map(([cx, cy]) => circ([cx, cy], 3.2, cx + cy, 10)), 1, a * 0.6, LINE, LW * 0.6, 1420, true);
-  }
-
-  // a compass rose in the corner, as on any chart
-  function compass(a) {
-    if (a <= 0.01) return;
-    const R = clamp(FH * 0.2, 20, 34), c = [Math.max(R + 22, W * 0.06), H - Math.max(R + 34, H * 0.09)];
-    const pt = (ang, len, wid) => {
-      const dx = Math.sin(ang), dy = -Math.cos(ang), px = -dy, py = dx;
-      return [[c[0] + dx * len, c[1] + dy * len], [c[0] + px * wid, c[1] + py * wid], [c[0] - dx * wid * 0.4, c[1] - dy * wid * 0.4],
-              [c[0] - px * wid, c[1] - py * wid], [c[0] + dx * len, c[1] + dy * len]];
-    };
-    const L = [circ(c, R * 0.78, 1501, 24), circ(c, R * 0.64, 1502, 22)];
-    for (let q = 0; q < 4; q++) L.push(pt(q * Math.PI / 2, R * 1.25, R * 0.16));
-    for (let q = 0; q < 4; q++) L.push(pt(Math.PI / 4 + q * Math.PI / 2, R * 0.8, R * 0.11));
-    ink(L, 1, a * 0.55, LINE, LW * 0.6, 1500, true);
-    ctx.save();
-    ctx.globalAlpha = a * 0.3; ctx.fillStyle = LINE;
-    ctx.beginPath(); pt(0, R * 1.25, R * 0.16).forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.fill();
-    ctx.globalAlpha = a * 0.7; ctx.font = 'italic 500 ' + Math.round(R * 0.5) + 'px "Bodoni Moda", Georgia, serif';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-    ctx.fillText('N', c[0], c[1] - R * 1.3);
-    ctx.restore();
   }
 
   /* The graticule of the globe that is about to appear, every thirty

@@ -760,7 +760,8 @@
     const gutter = mob ? 0 : (Wc > 1140 ? 302 : 284);
     const foot = mob || Hc > 620 ? 0 : 134;    // on a short screen the axis is in the way
     cx = (Wc - gutter) * 0.5;
-    const head = mob ? 58 : 0;                 // the masthead sits in this strip
+    // the masthead sits in this strip; on the drawn page its box is taller, so measure it
+    const head = mob ? Math.max(58, Math.round($('brand').getBoundingClientRect().bottom) + 10) : 0;
     cy = mob ? head + (Hc - peek - head) * 0.5 : (Hc - foot) * 0.5;
     const fit = Math.max(1, mob ? Math.min(Wc * 0.96, (Hc - peek - head) * 0.96) / 2
                                 : Math.min((Wc - gutter) * 0.88, (Hc - foot) * 0.84) / 2);
@@ -1626,6 +1627,12 @@
     const HR = h => h < 2 ? Math.round(h * 60) + ' min' : h + ' h';
     const L = items => b.push('<ul>' + items.map(i => '<li>' + i + '</li>').join('') + '</ul>');
 
+    // on the drawn page the masthead has no room for this, so the method opens with it
+    if (SKETCH) {
+      H('Chart');
+      L(['Each colour is a step in travel time, as on the ' +
+        A('https://en.wikipedia.org/wiki/Isochrone_map', 'isochronic chart Galton drew from London in 1881')]);
+    }
     H('Grid');
     L(['0.25\u00b0, 1\u2009036\u2009800 cells',
        'Each cell holds its road class, railway, ferry route, terrain and country',
