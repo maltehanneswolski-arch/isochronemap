@@ -605,23 +605,27 @@ window.ISO = (function () {
   const SATURATE = 1.5;       // chroma pushed out so adjacent times separate
   const LINE_WIDTH = 1.1;     // isochrone line weight, in band-gradient units
   const LINE_STRENGTH = 0.34; // how far the line lifts toward white
-  const BEYOND_ALPHA = 0.5;   // ground past the last threshold, dimmed not bare      // chroma pushed out so adjacent times separate
+  const BEYOND_ALPHA = 0.5;   // ground past the last threshold, dimmed not bare
   const SEA_TINT = [72, 166, 196];
-
   const SEA_MIX = 0.62;
+  // on the warm chart page the water is a grey-green wash, as on an engraved chart
+  const SEA_TINT_WARM = [132, 148, 136];
+  const SEA_MIX_WARM = 0.56;
 
   /* Five plates, each with its own character rather than five shufflings of
      the same rainbow: a full spectrum, Galton's muted lithograph, a warm-only
      ramp, a cool-only ramp, and an earth ramp.
      All of them wash onto black with a screen blend, where a dark colour
      contributes almost nothing — so distance is carried by hue, never by
-     going dark, or the far half of the map collapses into one flat shade. */
+     going dark, or the far half of the map collapses into one flat shade.
+     Only the last steps sink toward the ground, so the far side of the world
+     recedes; ending on a pale grey made the poles glow like a negative. */
   const PALETTES = [
     { id: 'passage', name: 'Passage', ramp: [
       [255,247,210],[255,214,118],[255,176,70],[250,138,62],[242,102,78],
       [230,76,114],[212,66,154],[182,72,194],[148,92,216],[110,114,228],
       [74,142,226],[58,170,212],[62,192,184],[86,204,146],[126,210,112],
-      [168,208,100],[190,198,150],[188,200,212] ] },
+      [168,208,100],[160,166,104],[132,124,104] ] },
     { id: 'galton', name: 'Galton 1881', ramp: [
       [150,200,120],[178,212,124],[206,220,128],[230,224,126],[246,220,116],
       [250,206,112],[250,188,120],[248,168,132],[246,150,150],[244,138,168],
@@ -641,12 +645,12 @@ window.ISO = (function () {
       [250,248,220],[236,242,190],[214,232,162],[186,220,140],[156,206,124],
       [126,190,114],[102,172,108],[88,152,104],[88,132,100],[100,120,92],
       [124,116,84],[148,116,78],[170,120,80],[188,130,92],[198,146,112],
-      [200,164,140],[194,180,170],[186,192,198] ] }
+      [184,144,120],[160,134,118],[132,120,110] ] }
   ];
   const RAMP = PALETTES[0].ramp;
 
   return {
-    ERAS, MODES, SEA_TINT, SEA_MIX, PALETTES, FIELD_ALPHA, SATURATE, LINE_WIDTH, LINE_STRENGTH, BEYOND_ALPHA, WATER, WATER_SCHEDULED, FERRY, ICE_WATER, RIVER, PORT_H, RAIL, HSR,
+    ERAS, MODES, SEA_TINT, SEA_MIX, SEA_TINT_WARM, SEA_MIX_WARM, PALETTES, FIELD_ALPHA, SATURATE, LINE_WIDTH, LINE_STRENGTH, BEYOND_ALPHA, WATER, WATER_SCHEDULED, FERRY, ICE_WATER, RIVER, PORT_H, RAIL, HSR,
     ROAD_CIRC, RAIL_CIRC, RIVER_CIRC, ROAD_EXP, ROAD_REF, TERRAIN_MUL, AIR, AIR_RANK, COUNTRY_RAW, RAIL_HIST, RAINFOREST,
     CLASS_MUL, NET_W, BIKE_MUL, FOOT_MUL, RAIL_MAIN, RAIL_BRANCH, ANTARCTIC_AIR, STRAITS, WATER_CUTS, FERRY_ROUTES, FERRY_PORT, SEA_DUTY, FIXED_LINKS, CANALS, RIVERS,
     RAIL_LINES, RAIL_BOARD, RAIL_ALIGHT, RAIL_BORDER, RAIL_CHANGE, TRANSIT_ACCESS, HSR_SERVICE, SAIL_CIRC, MAP_ERA, MAP_W, MAP_GAPS_ONLY, OTA_STRENGTH, CITIES, LANDMARKS, LADDERS, RAMP

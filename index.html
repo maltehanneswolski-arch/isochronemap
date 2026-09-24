@@ -4,11 +4,11 @@
 <title>Isochronic Globe</title>
 <style>
 :root{
-  --ink:#05070E; --ink-2:#080C15; --panel:rgba(9,13,22,.9); --panel-solid:#0B111C;
-  --rule:#1C2432; --rule-soft:#151C28;
-  --text:#DEE5F1; --text-dim:#95A2B8; --text-faint:#7C89A3;
-  --line:#C9D4E4; --line-lit:#FFFFFF; --line-dim:rgba(190,205,226,.28);
-  --hot:#FFFFFF; --glow:rgba(150,170,210,.22);
+  --ink:#0A0908; --ink-2:#0E0D0A; --panel:rgba(14,13,10,.9); --panel-solid:#100F0C;
+  --rule:#2A2720; --rule-soft:#1E1C17;
+  --text:#E6E0D1; --text-dim:#B3AB98; --text-faint:#8E8674;
+  --line:#E2DCCC; --line-lit:#FFFFFF; --line-dim:rgba(226,220,204,.28);
+  --hot:#FFFFFF; --glow:rgba(214,202,176,.2);
   --font-d:"Bodoni Moda",Georgia,"Times New Roman",serif;
   --font-s:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --font-m:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
@@ -16,7 +16,7 @@
   --fs-xs:10px; --fs-s:12.5px; --fs-m:15.5px; --fs-l:19.5px; --fs-xl:24px; --fs-xxl:30px;
   --ease:cubic-bezier(.16,1,.3,1);
 }
-:root{--head:#F2F5FA; --oob:#0A1120; --oob-line:#1C2432}
+:root{--head:#F2EDE1; --oob:#14120E; --oob-line:#2A2720}
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
@@ -52,7 +52,7 @@ button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:p
 #brand{position:fixed;top:20px;left:24px;z-index:6;max-width:310px;pointer-events:none}
 /* a soft dark ground under the words, for when the globe is zoomed in behind them */
 #brand::before{content:"";position:absolute;inset:-26px -60px -30px -30px;z-index:-1;
-  background:radial-gradient(closest-side,rgba(5,7,14,.82),rgba(5,7,14,.5) 60%,rgba(5,7,14,0))}
+  background:radial-gradient(closest-side,rgba(10,9,8,.82),rgba(10,9,8,.5) 60%,rgba(10,9,8,0))}
 body.mobile #brand::before{inset:-14px -20px -18px -20px}
 #brand h1{
   font-family:var(--font-d);font-weight:500;font-size:var(--fs-xxl);line-height:1;
@@ -79,7 +79,7 @@ body.mobile #brand::before{inset:-14px -20px -18px -20px}
   border:1px solid var(--rule);max-height:230px;overflow-y:auto}
 #findList:empty{display:none;border:none}
 #findList li{padding:9px 10px;font-size:var(--fs-s);cursor:pointer;color:var(--text-dim)}
-#findList li:hover,#findList li.on{background:rgba(200,214,235,.12);color:var(--text)}
+#findList li:hover,#findList li.on{background:rgba(226,220,204,.12);color:var(--text)}
 #originName{font-family:var(--font-d);font-size:var(--fs-xl);font-weight:500;line-height:1.1;
   margin:12px 0 3px;color:var(--head);text-wrap:balance}
 #originCoord{font-family:var(--font-m);font-size:var(--fs-xs);color:var(--text-faint);letter-spacing:.02em}
@@ -92,8 +92,8 @@ body.mobile #brand::before{inset:-14px -20px -18px -20px}
   width:100%;min-height:44px;padding:6px 7px;text-align:left;
   border:1px solid transparent;transition:background .2s var(--ease),border-color .2s var(--ease)}
 .mode+.mode{margin-top:1px}
-.mode:hover:not([disabled]){background:rgba(200,214,235,.06)}
-.mode[aria-pressed="true"]{background:rgba(200,214,235,.10);border-color:var(--line-dim)}
+.mode:hover:not([disabled]){background:rgba(226,220,204,.06)}
+.mode[aria-pressed="true"]{background:rgba(226,220,204,.10);border-color:var(--line-dim)}
 .mode[disabled]{opacity:.4;cursor:not-allowed}
 .mode svg{width:24px;height:19px;stroke:currentColor;fill:none;stroke-width:1.5;
   stroke-linecap:round;stroke-linejoin:round;color:var(--text-dim)}
@@ -115,7 +115,7 @@ body.mobile #brand::before{inset:-14px -20px -18px -20px}
 #palette button:hover{border-color:var(--line-dim)}
 
 #profile{margin-top:10px;font-size:var(--fs-s);line-height:1.5;color:var(--text-faint);
-  border:1px solid var(--rule-soft);background:rgba(200,214,235,.035);padding:8px 9px}
+  border:1px solid var(--rule-soft);background:rgba(226,220,204,.035);padding:8px 9px}
 #profile b{color:var(--text-dim);font-weight:500}
 #foot{margin-top:14px;border-top:1px solid var(--rule-soft);padding-top:9px}
 #checked{margin:0 0 7px;font-size:var(--fs-xs);line-height:1.55;color:var(--text-dim)}
@@ -178,7 +178,7 @@ body.preparing #globe{opacity:.8}
 details{margin-top:15px;border-top:1px solid var(--rule-soft);padding-top:10px}
 #travel{margin-top:13px;border-top:none;padding-top:0}
 #travelNow{display:grid;grid-template-columns:24px 1fr 12px;gap:9px;align-items:center;
-  min-height:44px;padding:6px 7px;border:1px solid var(--line-dim);background:rgba(200,214,235,.10);
+  min-height:44px;padding:6px 7px;border:1px solid var(--line-dim);background:rgba(226,220,204,.10);
   font-size:inherit;letter-spacing:normal;text-transform:none;color:inherit}
 #travelNow::after{content:"+";color:var(--line);font-size:var(--fs-s);text-align:right}
 #travel[open] #travelNow::after{content:"\2212"}
@@ -216,9 +216,9 @@ details a:hover{color:var(--line-lit);border-bottom-color:var(--line-lit)}
 #play{margin-left:auto;display:inline-flex;align-items:center;gap:7px;min-height:30px;padding:0 12px;
   border:1px solid var(--line-dim);font-size:var(--fs-xs);letter-spacing:.16em;text-transform:uppercase;
   font-weight:600;color:var(--line);transition:background .2s var(--ease),border-color .2s var(--ease)}
-#play:hover{border-color:var(--line);background:rgba(200,214,235,.06)}
+#play:hover{border-color:var(--line);background:rgba(226,220,204,.06)}
 #play svg,#playChip svg{width:9px;height:10px;fill:currentColor}
-#play[aria-pressed="true"],#playChip[aria-pressed="true"]{background:rgba(200,214,235,.13);color:var(--hot)}
+#play[aria-pressed="true"],#playChip[aria-pressed="true"]{background:rgba(226,220,204,.13);color:var(--hot)}
 #playChip{display:none}
 #axis{position:relative;height:56px}
 #axis .track{position:absolute;left:0;right:0;top:7px;height:1px;background:var(--rule)}
@@ -247,20 +247,20 @@ body.tags-tight .era:not([aria-pressed="true"]) .tag{display:none}
 /* ---------- tooltip ---------- */
 #tip{
   position:fixed;z-index:9;pointer-events:none;padding:7px 10px;
-  background:rgba(6,9,16,.94);border:1px solid var(--rule);
+  background:rgba(12,11,9,.94);border:1px solid var(--rule);
   font-family:var(--font-m);font-size:var(--fs-s);line-height:1.45;white-space:nowrap;
   transform:translate(-50%,calc(-100% - 13px));
 }
-#tip b{display:block;font-family:var(--font-s);font-size:var(--fs-s);font-weight:500;color:#F2F5FA}
+#tip b{display:block;font-family:var(--font-s);font-size:var(--fs-s);font-weight:500;color:#F2EDE1}
 #tip span{color:var(--hot)}
 #tip em{font-style:normal;color:var(--text-faint)}
 #tip.below{transform:translate(-50%,13px)}
 #tip.pin{pointer-events:auto}
 #tip button{display:block;width:100%;margin-top:8px;padding:10px 10px;min-height:40px;
-  border:1px solid var(--line-dim);background:rgba(200,214,235,.12);
+  border:1px solid var(--line-dim);background:rgba(226,220,204,.12);
   font-family:var(--font-s);font-size:var(--fs-xs);letter-spacing:.14em;text-transform:uppercase;
   font-weight:600;color:var(--head)}
-#tip button:active{background:rgba(200,214,235,.22)}
+#tip button:active{background:rgba(226,220,204,.22)}
 #grab{display:none}
 
 /* ---------- boot ---------- */
@@ -311,7 +311,7 @@ body.mobile #panel{
   height:86vh; height:86dvh; max-height:none;
   padding:0 15px calc(16px + env(safe-area-inset-bottom));
   border-left:none;border-right:none;border-bottom:none;border-radius:15px 15px 0 0;
-  background:rgba(8,12,20,.94);
+  background:rgba(13,12,10,.94);
   display:flex;flex-direction:column;align-items:stretch;
   overflow:hidden;overscroll-behavior:contain;
   transform:translateY(calc(100% - var(--peek,188px)));
@@ -324,7 +324,7 @@ body.mobile #panel.dragging{transition:none}
 body.mobile #grab{
   display:block;order:0;flex:none;position:sticky;top:0;z-index:2;
   margin:0 -15px;padding:12px 0 12px;min-height:30px;touch-action:none;
-  background:linear-gradient(rgba(8,12,20,.98) 72%,rgba(8,12,20,0));
+  background:linear-gradient(rgba(13,12,10,.98) 72%,rgba(13,12,10,0));
 }
 body.mobile #grab::before{content:"";display:block;width:36px;height:4px;border-radius:2px;
   background:var(--rule);margin:0 auto}
@@ -355,7 +355,7 @@ body.mobile .era,body.mobile #playChip{position:static;transform:none;flex:1 1 0
 body.mobile #playChip{flex:.8 1 0;color:var(--line)}
 body.mobile .era .tick,body.mobile .era .tag{display:none}
 body.mobile .era .yr{font-size:11px;margin:0}
-body.mobile .era[aria-pressed="true"]{background:rgba(200,214,235,.13);border-color:var(--line-dim)}
+body.mobile .era[aria-pressed="true"]{background:rgba(226,220,204,.13);border-color:var(--line-dim)}
 
 /* means of travel: the one in use, opening to a grid */
 body.mobile #travelNow{padding:10px 11px}

@@ -154,7 +154,7 @@ html.sketch{
   --text:#E6E0D1; --text-dim:#C3BBA7; --text-faint:#8E8674; --head:#F2EDE1; --hot:#F4EFE3;
   --line:#E2DCCC; --line-lit:#FBF8F0; --line-dim:rgba(226,220,204,.32);
   --rule:rgba(226,220,204,.2); --rule-soft:rgba(226,220,204,.1);
-  --panel:rgba(7,9,15,.93); --panel-solid:#090B12;
+  --panel:rgba(13,12,10,.93); --panel-solid:#0F0E0B;
   --font-s:"EB Garamond",Georgia,"Times New Roman",serif; --font-m:"EB Garamond",Georgia,"Times New Roman",serif;
   --fs-xs:11.5px; --fs-s:14px; --fs-m:17px; --fs-l:21px;
 }
@@ -203,14 +203,14 @@ html.sketch .era .tick{background:var(--line-dim)}
 html.sketch .era .yr{font-size:15px;font-variant-numeric:oldstyle-nums}
 html.sketch .era .tag{font-style:italic;font-size:12px;letter-spacing:.01em}
 /* the small things that float over the map */
-html.sketch #tip{border:none;background:rgba(7,9,15,.95) var(--sk-box) 0 0/100% 100% no-repeat;padding:8px 12px}
+html.sketch #tip{border:none;background:rgba(13,12,10,.95) var(--sk-box) 0 0/100% 100% no-repeat;padding:8px 12px}
 html.sketch #tip b{font-family:var(--font-d);font-size:15px}
 html.sketch #tip button{border:none;background:var(--sk-box) 0 0/100% 100% no-repeat}
-html.sketch #solving{border:none;background:rgba(7,9,15,.95) var(--sk-box) 0 0/100% 100% no-repeat;
+html.sketch #solving{border:none;background:rgba(13,12,10,.95) var(--sk-box) 0 0/100% 100% no-repeat;
   font-family:var(--font-d);font-style:italic;text-transform:none;letter-spacing:.02em;font-size:16px;padding:12px 20px}
 html.sketch #boot p{font-style:italic}
 /* on a phone the sheet is a square-cornered sheet of paper */
-html.sketch body.mobile #panel{border-radius:0;background-color:rgba(7,9,15,.95)}
+html.sketch body.mobile #panel{border-radius:0;background-color:rgba(13,12,10,.95)}
 html.sketch body.mobile .era,html.sketch body.mobile #playChip{border:none;background:var(--sk-box-faint) 0 0/100% 100% no-repeat}
 html.sketch body.mobile .era[aria-pressed="true"]{background:rgba(226,220,204,.08) var(--sk-box) 0 0/100% 100% no-repeat}
 html.sketch body.mobile .mode{border-color:transparent;background:var(--sk-box-faint) 0 0/100% 100% no-repeat}
@@ -250,7 +250,7 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
   overscroll-behavior:none;-webkit-user-select:none;user-select:none}
 #intro .istage{position:absolute;inset:0;overflow:hidden}
 #intro .ibg{position:absolute;inset:0;transition:opacity .9s var(--ease);
-  background:radial-gradient(ellipse 80% 70% at 50% 46%,#0B0F19 0%,#06080F 62%,#030409 100%)}
+  background:radial-gradient(ellipse 80% 70% at 50% 46%,#12110D 0%,#0A0908 62%,#050404 100%)}
 #intro canvas{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
 #intro .ititle{position:absolute;left:50%;top:13vh;width:max-content;max-width:calc(100% - 64px);
   padding:22px 34px 24px;text-align:center;pointer-events:none;color:#EDE7D9;transform:translateX(-50%)}
@@ -564,7 +564,7 @@ html.intro-on #brand,html.intro-on #panel,html.intro-on #timeline,html.intro-on 
   let W = 0, H = 0, DPR = 1, FH = 150, X0 = 0, GY = 0, J = 0.7, LW = 2, SEG = 7, boil = 0;
   let tf = { x: 0, y: 0, r: 0 };
   const FIG = '#EFEADF', LINE = '#E2DCCC';
-  const INKBG = '#06080F';
+  const INKBG = '#0A0908';
   const scr = p => {
     const c = Math.cos(tf.r), s = Math.sin(tf.r);
     return [X0 + (tf.x + p[0] * c - p[1] * s) * FH, GY - (tf.y + p[0] * s + p[1] * c) * FH];

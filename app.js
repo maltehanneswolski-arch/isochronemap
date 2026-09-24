@@ -625,8 +625,11 @@
   const PLACES = G.places;
   const TW = new Map();   // cached label widths
 
-  /* The interface is black; only the band palette changes. */
-  const TH = () => ({
+  /* The interface is black; only the band palette changes. The chart page
+     (ISO_SKETCH) has a warm black and draws in the panels' ink, so the globe,
+     the paper round it and the frames on it are one surface, not a blue
+     globe under cream lettering. */
+  const TH_COOL = {
     sea0: '#081120', sea1: '#04080F', sea2: '#020407', land: '#141E2B',
     coastHalo: 'rgba(2,5,10,.5)', coast: 'rgba(198,220,250,.62)',
     border: 'rgba(168,196,236,.34)', borderHalo: 'rgba(2,5,10,.45)',
@@ -635,8 +638,24 @@
     label: 'rgba(228,236,250,.95)', labelSmall: 'rgba(186,201,226,.74)',
     labelHalo: 'rgba(4,7,14,.85)', limb: 'rgba(140,180,240,.22)',
     origin: 'rgba(255,255,255,.95)', originRing: '255,255,255', originDot: '#FFFFFF',
+    atm: 'rgba(90,140,210,', atmA: 0.3, wash: 'rgba(146,182,236,.055)',
+    star: '#CBD8F0', starDim: '#8FA2C4', paper: '#05070E', sea: D.SEA_TINT,
     blend: 'screen', glow: true, stars: true
-  });
+  };
+  const TH_WARM = {
+    sea0: '#15130F', sea1: '#0B0A08', sea2: '#050404', land: '#221F19',
+    coastHalo: 'rgba(7,6,4,.5)', coast: 'rgba(234,226,206,.62)',
+    border: 'rgba(216,206,182,.32)', borderHalo: 'rgba(7,6,4,.45)',
+    grat: 'rgba(210,198,170,.08)', rail: 'rgba(232,224,204,.42)',
+    dot: 'rgba(250,246,236,.92)', dotSmall: 'rgba(216,208,188,.6)',
+    label: 'rgba(242,237,225,.95)', labelSmall: 'rgba(214,206,186,.74)',
+    labelHalo: 'rgba(10,9,7,.85)', limb: 'rgba(226,212,182,.22)',
+    origin: 'rgba(251,248,240,.95)', originRing: '251,248,240', originDot: '#FBF8F0',
+    atm: 'rgba(206,188,150,', atmA: 0.2, wash: 'rgba(236,222,190,.05)',
+    star: '#EDE6D6', starDim: '#A9A08C', paper: '#0A0908', sea: D.SEA_TINT_WARM,
+    blend: 'screen', glow: true, stars: true
+  };
+  const TH = () => (window.ISO_SKETCH ? TH_WARM : TH_COOL);
   const rampOf = () => D.PALETTES[S.palette].ramp;
 
   /* With ISO_SKETCH set, the globe is drawn a little by hand: a graticule
@@ -799,7 +818,7 @@
       const x = rnd() * Wc, y = rnd() * Hc, m = rnd();
       const r = m > .97 ? 1.35 : m > .85 ? .95 : .6;
       skyC.globalAlpha = 0.1 + m * 0.5;
-      skyC.fillStyle = m > .93 ? '#CBD8F0' : '#8FA2C4';
+      skyC.fillStyle = m > .93 ? T.star : T.starDim;
       skyC.beginPath(); skyC.arc(x, y, r, 0, TAU); skyC.fill();
     }
     skyC.globalAlpha = 1;
@@ -950,7 +969,7 @@
       if (t > uRev) discard;
       float raw = t;
       float beyond = 0.0;
-      if (t >= uNB) { beyond = min(1.0, (t - uNB) / 5.0); t = uNB - 0.0001; }
+      if (t >= uNB) { beyond = min(1.0, (t - uNB) / 2.0); t = uNB - 0.0001; }
 
       float band = floor(t), f = t - band;
       int i0b = int(band);
@@ -960,7 +979,6 @@
 
       float l = (max(max(c.r, c.g), c.b) + min(min(c.r, c.g), c.b)) * 0.5;
       c = vec3(l) + (c - vec3(l)) * uSat;
-      c *= 1.0 - beyond * 0.45;
       float alpha = uAlpha * (1.0 - beyond * (1.0 - uBeyondA));
 
       // isochrones, at a width that is constant on screen
@@ -974,7 +992,16 @@
         line = max(maj * maj, mid * mid * 0.45);
       }
 
-      if (isLand < 0.5) { c = mix(c, uSea, uSeaMix); alpha *= 0.84; }
+      // Water takes the sea's hue at the band's own lightness. Mixed toward one
+      // fixed tint, the far oceans held that tint's brightness and the poles,
+      // the farthest ground of all, came up pale as a negative of the chart.
+      if (isLand < 0.5) {
+        vec3 Y = vec3(0.299, 0.587, 0.114);
+        vec3 tint = min(uSea * (0.8 * dot(clamp(c, 0.0, 1.0), Y) / max(dot(uSea, Y), 1e-3)), vec3(1.0));
+        c = mix(c, tint, uSeaMix); alpha *= 0.84;
+      }
+      // past the last threshold, land and sea alike fall back into the dark
+      c *= 1.0 - beyond * 0.6;
       if (line > 0.0) { c = mix(c, vec3(1.0), line * uLineS); alpha += line * 0.22; }
 
       frag = vec4(c, clamp(alpha, 0.0, 1.0));
@@ -1052,12 +1079,13 @@
       gl.uniform1f(U.uTMax, TMAX);
       gl.uniform1f(U.uAlpha, D.FIELD_ALPHA);
       gl.uniform1f(U.uSat, D.SATURATE);
-      gl.uniform1f(U.uSeaMix, D.SEA_MIX);
+      gl.uniform1f(U.uSeaMix, TH().sea === D.SEA_TINT ? D.SEA_MIX : D.SEA_MIX_WARM);
       gl.uniform1f(U.uBeyondA, D.BEYOND_ALPHA);
       gl.uniform1f(U.uLineW, D.LINE_WIDTH);
       gl.uniform1f(U.uLineS, D.LINE_STRENGTH);
       gl.uniform1f(U.uRev, rev >= NB ? 1e6 : rev);
-      gl.uniform3f(U.uSea, D.SEA_TINT[0] / 255, D.SEA_TINT[1] / 255, D.SEA_TINT[2] / 255);
+      const sea = TH().sea;
+      gl.uniform3f(U.uSea, sea[0] / 255, sea[1] / 255, sea[2] / 255);
       gl.uniform3fv(U.uRamp, flat);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     }
@@ -1181,7 +1209,9 @@
     if (!img || img.width !== bw || img.height !== bh) { img = S.img = bufC.createImageData(bw, bh); }
     const px = img.data;
     px.fill(0);
-    const R = rampOf(), SEA = D.SEA_TINT, SW = D.SEA_MIX, SAT = D.SATURATE, A0 = D.FIELD_ALPHA;
+    const R = rampOf(), SEA = TH().sea, SW = SEA === D.SEA_TINT ? D.SEA_MIX : D.SEA_MIX_WARM;
+    const SAT = D.SATURATE, A0 = D.FIELD_ALPHA;
+    const SEAY = SEA[0] * 0.299 + SEA[1] * 0.587 + SEA[2] * 0.114;
     const LW = D.LINE_WIDTH, LS = D.LINE_STRENGTH, BEY = D.BEYOND_ALPHA;
     for (let by = 0; by < bh; by++) {
       for (let bx = 0; bx < bw; bx++) {
@@ -1197,7 +1227,7 @@
           // Clamping everything past the last threshold to one flat colour left
           // Greenland and the pack ice as slabs. Carry the ramp onward into a
           // darker continuation instead, so it fades rather than patches.
-          beyond = Math.min(1, (tv - NB) / 5);
+          beyond = Math.min(1, (tv - NB) / 2);
           tv = NB - 0.0001;
         }
         const band = tv | 0, f = tv - band;
@@ -1207,7 +1237,6 @@
         let cb = c0[2] + (c1[2] - c0[2]) * f;
         const l = (Math.max(cr, cg, cb) + Math.min(cr, cg, cb)) * 0.5;
         cr = l + (cr - l) * SAT; cg = l + (cg - l) * SAT; cb = l + (cb - l) * SAT;
-        if (beyond) { const k = 1 - beyond * 0.45; cr *= k; cg *= k; cb *= k; }
         let a = A0 * (1 - beyond * (1 - BEY));
 
         /* Isochrones are read from the unclamped value. Past the last
@@ -1230,10 +1259,14 @@
           line = Math.max(maj * maj, mid * mid * 0.45);
         }
 
-        if (!lnd[p]) {                       // water in a cooler hue
-          cr += (SEA[0] - cr) * SW; cg += (SEA[1] - cg) * SW; cb += (SEA[2] - cb) * SW;
+        if (!lnd[p]) {                       // water: the sea's hue at the band's lightness
+          const cl = (cr < 0 ? 0 : cr > 255 ? 255 : cr) * 0.299 + (cg < 0 ? 0 : cg > 255 ? 255 : cg) * 0.587 +
+            (cb < 0 ? 0 : cb > 255 ? 255 : cb) * 0.114, k = 0.8 * cl / SEAY;
+          cr += (Math.min(255, SEA[0] * k) - cr) * SW; cg += (Math.min(255, SEA[1] * k) - cg) * SW;
+          cb += (Math.min(255, SEA[2] * k) - cb) * SW;
           a *= 0.84;
         }
+        if (beyond) { const k = 1 - beyond * 0.6; cr *= k; cg *= k; cb *= k; }
         if (line > 0) {
           const w = line * LS;
           cr += (255 - cr) * w; cg += (255 - cg) * w; cb += (255 - cb) * w;
@@ -1331,7 +1364,7 @@
     const T = TH();
     if (T.glow) {
       const atm = ctx.createRadialGradient(cx, cy, r * 0.97, cx, cy, r * 1.16);
-      atm.addColorStop(0, 'rgba(90,140,210,.30)'); atm.addColorStop(1, 'rgba(90,140,210,0)');
+      atm.addColorStop(0, T.atm + T.atmA + ')'); atm.addColorStop(1, T.atm + '0)');
       ctx.fillStyle = atm; ctx.beginPath(); ctx.arc(cx, cy, r * 1.16, 0, TAU); ctx.fill();
     } else {
       ctx.save();
@@ -1364,7 +1397,7 @@
     // Lift the continents back out of the glow. This runs over the whole of
     // the land, reached or not, so a country you cannot get to at all still
     // reads as a country rather than as more ocean.
-    if (landPath) globe(() => { ctx.fillStyle = 'rgba(146,182,236,.055)'; ctx.fill(landPath); });
+    if (landPath) globe(() => { ctx.fillStyle = T.wash; ctx.fill(landPath); });
 
     if (SKETCH) {
       const gp = layer('grat', GRAT);
@@ -1613,7 +1646,7 @@
     $('legend').innerHTML =
       '<div class="rampbar" style="background:linear-gradient(90deg,' + stops + ')"></div>' +
       '<div class="ramplab">' + labs + '</div>' +
-      '<div class="lg"><i style="background:rgba(' + R[n - 1].join(',') + ',.5)"></i>' +
+      '<div class="lg"><i style="background:rgba(' + R[n - 1].map(v => Math.round(v * 0.55)).join(',') + ',.6)"></i>' +
       '<span>beyond ' + fmtBand(L[n - 1]) + '</span></div>' +
       (S.ladderLock ? '<div class="lg held"><i></i><span>Scale held from ' + D.ERAS[S.lockEra].y +
         ', so the years compare</span></div>' : '');
